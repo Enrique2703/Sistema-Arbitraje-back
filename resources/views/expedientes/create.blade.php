@@ -1,0 +1,468 @@
+<!-- Modal Overlay para Crear Expediente -->
+<div id="createModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
+                <h3 class="text-lg font-semibold text-gray-900">Nuevo expediente</h3>
+                <button onclick="closeCreateModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Formulario -->
+            <div class="px-6 py-4">
+                <form id="createExpedienteForm">
+                    <!-- Número, Año, Código -->
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 mb-2">Número</label>
+                            <input type="text" name="numero" required placeholder="Placeholder"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 mb-2">Año</label>
+                            <input type="number" name="anio" required placeholder="Placeholder"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 mb-2">Código</label>
+                            <input type="number" name="anio" required placeholder="Placeholder"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                        </div>
+                    </div>
+
+                    <!-- Etapa procesal, Inicio del proceso -->
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 mb-2">Etapa procesal</label>
+                            <select name="etapa_procesal"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                                <option value="">Seleccione una etapa...</option>
+                                <option value="Prearbitral">Prearbitral</option>
+                                <option value="Instalación">Instalación</option>
+                                <option value="Postulatoria">Postulatoria</option>
+                                <option value="Fijación de puntos controvertidos">Fijación de puntos controvertidos</option>
+                                <option value="Admisión de medios probatorios">Admisión de medios probatorios</option>
+                                <option value="Actuación pericial">Actuación pericial</option>
+                                <option value="Actuación probatoria">Actuación probatoria</option>
+                                <option value="Cierre de etapa probatoria">Cierre de etapa probatoria</option>
+                                <option value="Alegatos">Alegatos</option>
+                                <option value="Audiencia">Audiencia</option>
+                                <option value="Plazo para laudar">Plazo para laudar</option>
+                                <option value="Plazo para resolver pedido contra Laudo Arbitral">Plazo para resolver pedido contra Laudo Arbitral</option>
+                                <option value="Concluido con Laudo Arbitral Consentido">Concluido con Laudo Arbitral Consentido</option>
+                                <option value="Concluido con pedido contra Laudo Arbitral">Concluido con pedido contra Laudo Arbitral</option>
+                                <option value="Recusación de árbitro">Recusación de árbitro</option>
+                                <option value="Recusación de adjudicador">Recusación de adjudicador</option>
+                                <option value="Reconstitución de Tribunal Arbitral">Reconstitución de Tribunal Arbitral</option>
+                                <option value="Reconstitución de JPRD">Reconstitución de JPRD</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 mb-2">Inicio del proceso</label>
+                            <input type="date" name="inicio_proceso" placeholder="DD/MM/AA"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- Tipo de proceso -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Tipo de proceso</label>
+                        <select name="tipo_proceso"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                            <option value="">Seleccione un tipo...</option>
+                            <option value="Arbitraje de Emergencia">Arbitraje de Emergencia</option>
+                            <option value="Arbitraje Ad Hoc">Arbitraje Ad Hoc</option>
+                            <option value="Arbitraje Institucional">Arbitraje Institucional</option>
+                            <option value="Recusación de árbitro">Recusación de árbitro</option>
+                            <option value="Recusación de adjudicador">Recusación de adjudicador</option>
+                            <option value="Designación residual">Designación residual</option>
+                            <option value="Instalación de arbitraje">Instalación de arbitraje</option>
+                            <option value="Junta Consultiva de Disputas">Junta Consultiva de Disputas</option>
+                            <option value="Junta Decisoria de Disputas">Junta Decisoria de Disputas</option>
+                        </select>
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Estado</label>
+                        <select name="estado"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                            <option value="">Seleccionar estado</option>
+                            <option value="Archivado">Archivado</option>
+                            <option value="En trámite">En trámite</option>
+                            <option value="Suspendido">Suspendido</option>
+                            <option value="Concluido">Concluido</option>
+                        </select>
+                    </div>
+
+                    <!-- Árbitro -->
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-medium text-gray-900">Árbitro</label>
+                            <div class="flex gap-3">
+                                <button type="button" onclick="openCreateUsuarioModal()" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
+                                    <span class="w-5 h-5 border-2 border-gray-700 rounded-full flex items-center justify-center mr-1.5 text-lg leading-none">+</span>
+                                    Crear usuario
+                                </button>
+                                <button type="button" onclick="addArbitro()" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
+                                    <span class="w-5 h-5 border-2 border-gray-700 rounded-full flex items-center justify-center mr-1.5 text-lg leading-none">+</span>
+                                    Agregar usuario
+                                </button>
+                            </div>
+                        </div>
+                        <div id="arbitrosContainer">
+                            <div class="flex items-center gap-2 mb-2">
+                                <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+                                <select name="arbitros[]"
+                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                                    <option value="">Usuario 1</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Adjudicador -->
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-medium text-gray-900">Adjudicador</label>
+                            <div class="flex gap-3">
+                                <button type="button" onclick="openCreateUsuarioModal()" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
+                                    <span class="w-5 h-5 border-2 border-gray-700 rounded-full flex items-center justify-center mr-1.5 text-lg leading-none">+</span>
+                                    Crear usuario
+                                </button>
+                                <button type="button" onclick="addAdjudicador()" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
+                                    <span class="w-5 h-5 border-2 border-gray-700 rounded-full flex items-center justify-center mr-1.5 text-lg leading-none">+</span>
+                                    Agregar usuario
+                                </button>
+                            </div>
+                        </div>
+                        <div id="adjudicadoresContainer">
+                            <div class="flex items-center gap-2 mb-2">
+                                <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+                                <select name="adjutadores[]"
+                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                                    <option value="">Usuario 1</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Secretario Técnico -->
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-medium text-gray-900">Secretario Técnico</label>
+                            <div class="flex gap-3">
+                                <button type="button" onclick="openCreateUsuarioModal()" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
+                                    <span class="w-5 h-5 border-2 border-gray-700 rounded-full flex items-center justify-center mr-1.5 text-lg leading-none">+</span>
+                                    Crear usuario
+                                </button>
+                                <button type="button" onclick="addSecretarioTecnico()" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
+                                    <span class="w-5 h-5 border-2 border-gray-700 rounded-full flex items-center justify-center mr-1.5 text-lg leading-none">+</span>
+                                    Agregar usuario
+                                </button>
+                            </div>
+                        </div>
+                        <div id="secretariosTecnicosContainer">
+                            <div class="flex items-center gap-2 mb-2">
+                                <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+                                <select name="secretarios_tecnicos[]"
+                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                                    <option value="">Usuario 1</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Partícipes -->
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-medium text-gray-900">Partícipes</label>
+                            <div class="flex gap-3">
+                                <button type="button" onclick="openCreateParticipeModal()" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
+                                    <span class="w-5 h-5 border-2 border-gray-700 rounded-full flex items-center justify-center mr-1.5 text-lg leading-none">+</span>
+                                    Crear partícipe
+                                </button>
+                                <button type="button" onclick="addParticipe()" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
+                                    <span class="w-5 h-5 border-2 border-gray-700 rounded-full flex items-center justify-center mr-1.5 text-lg leading-none">+</span>
+                                    Agregar partícipe
+                                </button>
+                            </div>
+                        </div>
+                        <div id="participesContainer">
+                            <div class="flex items-center gap-2 mb-2">
+                                <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+                                <select name="participes_id[]"
+                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                                    <option value="">Cliente 1</option>
+                                </select>
+                                <select name="participes_condicion[]"
+                                    class="w-40 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                                    <option value="">Condición</option>
+                                    <option value="Demandante">Demandante</option>
+                                    <option value="Demandado">Demandado</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fecha de Laudo Arbitral -->
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-medium text-gray-900">Fecha de Laudo Arbitral</label>
+                            <button type="button" onclick="addFechaLaudo()" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
+                                <span class="w-5 h-5 border-2 border-gray-700 rounded-full flex items-center justify-center mr-1.5 text-lg leading-none">+</span>
+                                Agregar fecha
+                            </button>
+                        </div>
+                        <div id="fechasLaudoContainer">
+                            <div class="flex items-center gap-2 mb-2">
+                                <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+                                <input type="date" name="fecha_laudo" placeholder="DD/MM/AA"
+                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fecha de Resolución -->
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-medium text-gray-900">Fecha de Resolución:</label>
+                            <button type="button" onclick="addFechaResolucion()" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
+                                <span class="w-5 h-5 border-2 border-gray-700 rounded-full flex items-center justify-center mr-1.5 text-lg leading-none">+</span>
+                                Agregar fecha
+                            </button>
+                        </div>
+                        <div id="fechasResolucionContainer">
+                            <div class="flex items-center gap-2 mb-2">
+                                <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+                                <input type="date" name="fecha_resolucion" placeholder="DD/MM/AA"
+                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="grid grid-cols-2 gap-3 pt-4">
+                        <button type="button" onclick="closeCreateModal()"
+                            class="px-4 py-2.5 bg-gray-200 text-gray-900 rounded-md hover:bg-gray-300 font-medium">
+                            Cancelar
+                        </button>
+                        <button type="submit"
+                            class="px-4 py-2.5 bg-black text-white rounded-md hover:bg-gray-800 font-medium">
+                            Crear
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Abrir modal
+    function openCreateModal() {
+        document.getElementById('createModalOverlay').classList.remove('hidden');
+        loadSelectsExpediente();
+    }
+
+    // Cerrar modal
+    function closeCreateModal() {
+        document.getElementById('createModalOverlay').classList.add('hidden');
+        document.getElementById('createExpedienteForm').reset();
+    }
+
+    // Cargar selects
+    async function loadSelectsExpediente() {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+        try {
+            const [usuariosRes, clientesRes] = await Promise.all([
+                fetch('/api/usuarios', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }),
+                fetch('/api/clientes', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+            ]);
+
+            const usuarios = await usuariosRes.json();
+            const clientes = await clientesRes.json();
+
+            // Opciones de usuarios
+            const usuariosOptions = usuarios.map(u =>
+                `<option value="${u.id}">${u.id} - ${u.nombres}</option>`
+            ).join('');
+
+            // Actualizar todos los selects de usuarios
+            document.querySelectorAll('select[name="arbitros[]"]').forEach(select => {
+                select.innerHTML = '<option value="">Seleccionar usuario</option>' + usuariosOptions;
+            });
+
+            document.querySelectorAll('select[name="adjutadores[]"]').forEach(select => {
+                select.innerHTML = '<option value="">Seleccionar usuario</option>' + usuariosOptions;
+            });
+
+            document.querySelectorAll('select[name="secretarios_tecnicos[]"]').forEach(select => {
+                select.innerHTML = '<option value="">Seleccionar usuario</option>' + usuariosOptions;
+            });
+
+            // Opciones de clientes
+            const clientesOptions = clientes.map(c =>
+                `<option value="${c.id}">${c.id} - ${c.nombre}</option>`
+            ).join('');
+
+            document.querySelectorAll('select[name="participes_id[]"]').forEach(select => {
+                select.innerHTML = '<option value="">Seleccionar cliente</option>' + clientesOptions;
+            });
+
+        } catch (error) {
+            console.error('Error cargando datos:', error);
+        }
+    }
+
+    // Funciones para agregar campos dinámicos
+    function addArbitro() {
+        const container = document.getElementById('arbitrosContainer');
+        const newField = container.children[0].cloneNode(true);
+        newField.querySelector('select').value = '';
+        container.appendChild(newField);
+    }
+
+    function addAdjudicador() {
+        const container = document.getElementById('adjudicadoresContainer');
+        const newField = container.children[0].cloneNode(true);
+        newField.querySelector('select').value = '';
+        container.appendChild(newField);
+    }
+
+    function addSecretarioTecnico() {
+        const container = document.getElementById('secretariosTecnicosContainer');
+        const newField = container.children[0].cloneNode(true);
+        newField.querySelector('select').value = '';
+        container.appendChild(newField);
+    }
+
+    function addParticipe() {
+        const container = document.getElementById('participesContainer');
+        const newField = container.children[0].cloneNode(true);
+        newField.querySelectorAll('select').forEach(s => s.value = '');
+        container.appendChild(newField);
+    }
+
+    function addFechaLaudo() {
+        const container = document.getElementById('fechasLaudoContainer');
+        const newField = container.children[0].cloneNode(true);
+        newField.querySelector('input').value = '';
+        container.appendChild(newField);
+    }
+
+    function addFechaResolucion() {
+        const container = document.getElementById('fechasResolucionContainer');
+        const newField = container.children[0].cloneNode(true);
+        newField.querySelector('input').value = '';
+        container.appendChild(newField);
+    }
+
+    // Placeholders para modales de crear usuario/partícipe
+    function openCreateUsuarioModal() {
+        alert('Aquí se abriría el modal para crear usuario');
+    }
+
+    function openCreateParticipeModal() {
+        alert('Aquí se abriría el modal para crear partícipe');
+    }
+
+    // Submit del formulario
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('createExpedienteForm');
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+            // Recopilar datos del formulario
+            const formData = new FormData(form);
+
+            // Construir objeto de datos
+            const data = {
+                usuario_id: 1, // Ajustar según tu lógica
+                nombre: formData.get('numero') + '/' + formData.get('anio'), // O como desees construirlo
+                numero: formData.get('numero'),
+                anio: parseInt(formData.get('anio')),
+                etapa_procesal: formData.get('etapa_procesal'),
+                estado: formData.get('estado'),
+                inicio_proceso: formData.get('inicio_proceso'),
+                tipo_proceso: formData.get('tipo_proceso'),
+                arbitros: formData.getAll('arbitros[]').filter(v => v),
+                adjutadores: formData.getAll('adjutadores[]').filter(v => v),
+                secretarios_tecnicos: formData.getAll('secretarios_tecnicos[]').filter(v => v),
+                fecha_laudo: formData.get('fecha_laudo'),
+                fecha_resolucion: formData.get('fecha_resolucion')
+            };
+
+            // Construir partícipes con condición
+            const participesIds = formData.getAll('participes_id[]').filter(v => v);
+            const participesCondiciones = formData.getAll('participes_condicion[]');
+
+            data.participes = participesIds.map((id, index) => ({
+                id: parseInt(id),
+                condicion: participesCondiciones[index] || null
+            }));
+
+            try {
+                const response = await fetch('/api/expedientes', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('Expediente creado correctamente');
+                    closeCreateModal();
+                    // Recargar tabla o lista de expedientes
+                    if (typeof loadExpedientes === 'function') {
+                        loadExpedientes();
+                    }
+                } else {
+                    alert('Error: ' + (result.message || 'No se pudo crear el expediente'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al crear el expediente');
+            }
+        });
+    });
+</script>
+
+<style>
+    /* Estilos adicionales para mejorar la apariencia */
+    #createModalOverlay select,
+    #createModalOverlay input[type="text"],
+    #createModalOverlay input[type="number"],
+    #createModalOverlay input[type="date"] {
+        font-size: 14px;
+    }
+
+    #createModalOverlay input::placeholder {
+        color: #9CA3AF;
+    }
+
+    /* Ocultar el icono de calendario por defecto si quieres un estilo personalizado */
+    #createModalOverlay input[type="date"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+    }
+</style>
