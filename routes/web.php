@@ -25,3 +25,7 @@ Route::get('/expedientes', function () {
 Route::get('/auditoria', function () {
     return view('auditoria.index');
 })->name('auditoria.index');
+
+Route::get('/expedientes/participes', function () {
+    return view('expedientes.participes.index');
+})->name('expedientes.participes.index');

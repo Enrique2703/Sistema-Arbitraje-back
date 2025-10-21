@@ -1,3 +1,5 @@
+
+
 <!-- Modal Overlay para Crear Expediente -->
 <div id="createModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
     <div class="flex items-center justify-center min-h-screen p-4">
@@ -29,8 +31,17 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-900 mb-2">Código</label>
-                            <input type="number" name="anio" required placeholder="Placeholder"
+                            <select name="codigo" required
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                                <option value="" disabled selected>Código</option>
+                                <option value="CA-RENA">CA-RENA</option>
+                                <option value="JPRD-RENA">JPRD-RENA</option>
+                                <option value="DESIGNACION">DESIGNACIÓN</option>
+                                <option value="RECUSACION">RECUSACIÓN</option>
+                                <option value="INSTALACION">INSTALACIÓN</option>
+                                <option value="AD HOC-RENA">AD HOC-RENA</option>
+                                <option value="AE-RENA">AE-RENA</option>
+                            </select>
                         </div>
                     </div>
 
@@ -104,7 +115,7 @@
                         <div class="flex items-center justify-between mb-2">
                             <label class="block text-sm font-medium text-gray-900">Árbitro</label>
                             <div class="flex gap-3">
-                                <button type="button" onclick="openCreateUsuarioModal()" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
+                                <button type="button" onclick="openCreateUserModal()" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
                                     <span class="w-5 h-5 border-2 border-gray-700 rounded-full flex items-center justify-center mr-1.5 text-lg leading-none">+</span>
                                     Crear usuario
                                 </button>
@@ -119,7 +130,7 @@
                                 <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
                                 <select name="arbitros[]"
                                     class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                                    <option value="">Usuario 1</option>
+                                    <option value="">Seleccionar usuario</option>
                                 </select>
                             </div>
                         </div>
@@ -130,7 +141,7 @@
                         <div class="flex items-center justify-between mb-2">
                             <label class="block text-sm font-medium text-gray-900">Adjudicador</label>
                             <div class="flex gap-3">
-                                <button type="button" onclick="openCreateUsuarioModal()" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
+                                <button type="button" onclick="openCreateUserModal()" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
                                     <span class="w-5 h-5 border-2 border-gray-700 rounded-full flex items-center justify-center mr-1.5 text-lg leading-none">+</span>
                                     Crear usuario
                                 </button>
@@ -145,7 +156,7 @@
                                 <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
                                 <select name="adjutadores[]"
                                     class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                                    <option value="">Usuario 1</option>
+                                    <option value="">Seleccionar usuario</option>
                                 </select>
                             </div>
                         </div>
@@ -156,7 +167,7 @@
                         <div class="flex items-center justify-between mb-2">
                             <label class="block text-sm font-medium text-gray-900">Secretario Técnico</label>
                             <div class="flex gap-3">
-                                <button type="button" onclick="openCreateUsuarioModal()" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
+                                <button type="button" onclick="openCreateUserModal()" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
                                     <span class="w-5 h-5 border-2 border-gray-700 rounded-full flex items-center justify-center mr-1.5 text-lg leading-none">+</span>
                                     Crear usuario
                                 </button>
@@ -171,7 +182,7 @@
                                 <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
                                 <select name="secretarios_tecnicos[]"
                                     class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                                    <option value="">Usuario 1</option>
+                                    <option value="">Seleccionar usuario</option>
                                 </select>
                             </div>
                         </div>
@@ -197,7 +208,7 @@
                                 <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
                                 <select name="participes_id[]"
                                     class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                                    <option value="">Cliente 1</option>
+                                    <option value="">Seleccionar partícipe</option>
                                 </select>
                                 <select name="participes_condicion[]"
                                     class="w-40 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
@@ -293,13 +304,26 @@
                 })
             ]);
 
-            const usuarios = await usuariosRes.json();
-            const clientes = await clientesRes.json();
+            const usuariosJson = await usuariosRes.json();
+            const clientesJson = await clientesRes.json();
 
+            // soportar respuesta paginada { registros, meta } o array directo
+            const usuarios = Array.isArray(usuariosJson) ? usuariosJson : (usuariosJson.registros || usuariosJson.data || []);
+            const clientes = Array.isArray(clientesJson) ? clientesJson : (clientesJson.registros || clientesJson.data || []);
+
+            // Guardar en caché global para reutilizar al clonar campos
+            window._expedienteUsuarios = usuarios;
+            window._expedienteClientes = clientes;
+
+            function usuariosOptionsHtml() {
+                return usuarios.map(u => `<option value="">Seleccionar usuario</option><option value="${u.id}">${u.id} - ${u.nombres}</option>`).join('');
+            }
+
+            function clientesOptionsHtml() {
+                return clientes.map(c => `<option value="">Seleccionar cliente</option><option value="${c.id}">${c.id} - ${c.nombre}</option>`).join('');
+            }
             // Opciones de usuarios
-            const usuariosOptions = usuarios.map(u =>
-                `<option value="${u.id}">${u.id} - ${u.nombres}</option>`
-            ).join('');
+            const usuariosOptions = usuarios.map(u => `<option value="${u.id}">${u.id} - ${u.nombres}</option>`).join('');
 
             // Actualizar todos los selects de usuarios
             document.querySelectorAll('select[name="arbitros[]"]').forEach(select => {
@@ -315,13 +339,27 @@
             });
 
             // Opciones de clientes
-            const clientesOptions = clientes.map(c =>
-                `<option value="${c.id}">${c.id} - ${c.nombre}</option>`
-            ).join('');
+            const clientesOptions = clientes.map(c => `<option value="${c.id}">${c.id} - ${c.nombre}</option>`).join('');
 
             document.querySelectorAll('select[name="participes_id[]"]').forEach(select => {
                 select.innerHTML = '<option value="">Seleccionar cliente</option>' + clientesOptions;
             });
+
+            // Helper para rellenar selects cuando clonamos nodos dinámicos
+            window.fillExpedienteSelects = function(root) {
+                root.querySelectorAll('select[name="arbitros[]"]').forEach(select => {
+                    select.innerHTML = '<option value="">Seleccionar usuario</option>' + usuariosOptions;
+                });
+                root.querySelectorAll('select[name="adjutadores[]"]').forEach(select => {
+                    select.innerHTML = '<option value="">Seleccionar usuario</option>' + usuariosOptions;
+                });
+                root.querySelectorAll('select[name="secretarios_tecnicos[]"]').forEach(select => {
+                    select.innerHTML = '<option value="">Seleccionar usuario</option>' + usuariosOptions;
+                });
+                root.querySelectorAll('select[name="participes_id[]"]').forEach(select => {
+                    select.innerHTML = '<option value="">Seleccionar cliente</option>' + clientesOptions;
+                });
+            };
 
         } catch (error) {
             console.error('Error cargando datos:', error);
@@ -333,6 +371,7 @@
         const container = document.getElementById('arbitrosContainer');
         const newField = container.children[0].cloneNode(true);
         newField.querySelector('select').value = '';
+        if (window.fillExpedienteSelects) window.fillExpedienteSelects(newField);
         container.appendChild(newField);
     }
 
@@ -340,6 +379,7 @@
         const container = document.getElementById('adjudicadoresContainer');
         const newField = container.children[0].cloneNode(true);
         newField.querySelector('select').value = '';
+        if (window.fillExpedienteSelects) window.fillExpedienteSelects(newField);
         container.appendChild(newField);
     }
 
@@ -347,6 +387,7 @@
         const container = document.getElementById('secretariosTecnicosContainer');
         const newField = container.children[0].cloneNode(true);
         newField.querySelector('select').value = '';
+        if (window.fillExpedienteSelects) window.fillExpedienteSelects(newField);
         container.appendChild(newField);
     }
 
@@ -354,6 +395,7 @@
         const container = document.getElementById('participesContainer');
         const newField = container.children[0].cloneNode(true);
         newField.querySelectorAll('select').forEach(s => s.value = '');
+        if (window.fillExpedienteSelects) window.fillExpedienteSelects(newField);
         container.appendChild(newField);
     }
 
@@ -398,6 +440,7 @@
                 nombre: formData.get('numero') + '/' + formData.get('anio'), // O como desees construirlo
                 numero: formData.get('numero'),
                 anio: parseInt(formData.get('anio')),
+                codigo: formData.get('codigo'),
                 etapa_procesal: formData.get('etapa_procesal'),
                 estado: formData.get('estado'),
                 inicio_proceso: formData.get('inicio_proceso'),
@@ -446,6 +489,163 @@
             }
         });
     });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        await cargarUsuarios(); // carga inicial
+    });
+
+    async function cargarUsuarios() {
+        try {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const res = await fetch('/api/usuarios', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!res.ok) throw new Error('Error al obtener usuarios');
+
+            const data = await res.json();
+            const usuarios = data.registros || [];
+
+            // Llenar todos los select existentes
+            llenarSelectUsuarios(document.querySelectorAll('select[name="arbitros[]"]'), usuarios);
+            llenarSelectUsuarios(document.querySelectorAll('select[name="adjutadores[]"]'), usuarios);
+            llenarSelectUsuarios(document.querySelectorAll('select[name="secretarios_tecnicos[]"]'), usuarios);
+
+            // Guardar los usuarios globalmente por si se agregan nuevos selects
+            window.listaUsuarios = usuarios;
+        } catch (error) {
+            console.error('Error cargando usuarios:', error);
+        }
+    }
+
+    function llenarSelectUsuarios(selects, usuarios) {
+        selects.forEach(select => {
+            const selectedValue = select.value;
+            select.innerHTML = `<option value="">Seleccionar usuario</option>`;
+            usuarios.forEach(u => {
+                const nombreCompleto = `${u.nombres ?? ''} ${u.apellidos ?? ''}`.trim();
+                const option = document.createElement('option');
+                option.value = u.id;
+                option.textContent = nombreCompleto || 'Usuario sin nombre';
+                if (u.id == selectedValue) option.selected = true;
+                select.appendChild(option);
+            });
+        });
+    }
+
+    // Funciones para agregar nuevos selects dinámicamente
+    function addArbitro() {
+        const container = document.getElementById('arbitrosContainer');
+        const div = document.createElement('div');
+        div.className = 'flex items-center gap-2 mb-2';
+        div.innerHTML = `
+        <button type="button" onclick="this.parentElement.remove()" 
+            class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+        <select name="arbitros[]" 
+            class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+            <option value="">Seleccionar usuario</option>
+        </select>
+    `;
+        container.appendChild(div);
+        if (window.listaUsuarios) llenarSelectUsuarios([div.querySelector('select')], window.listaUsuarios);
+    }
+
+    function addAdjudicador() {
+        const container = document.getElementById('adjudicadoresContainer');
+        const div = document.createElement('div');
+        div.className = 'flex items-center gap-2 mb-2';
+        div.innerHTML = `
+        <button type="button" onclick="this.parentElement.remove()" 
+            class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+        <select name="adjutadores[]" 
+            class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+            <option value="">Seleccionar usuario</option>
+        </select>
+    `;
+        container.appendChild(div);
+        if (window.listaUsuarios) llenarSelectUsuarios([div.querySelector('select')], window.listaUsuarios);
+    }
+
+    function addSecretarioTecnico() {
+        const container = document.getElementById('secretariosTecnicosContainer');
+        const div = document.createElement('div');
+        div.className = 'flex items-center gap-2 mb-2';
+        div.innerHTML = `
+        <button type="button" onclick="this.parentElement.remove()" 
+            class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+        <select name="secretarios_tecnicos[]" 
+            class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+            <option value="">Seleccionar usuario</option>
+        </select>
+    `;
+        container.appendChild(div);
+        if (window.listaUsuarios) llenarSelectUsuarios([div.querySelector('select')], window.listaUsuarios);
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await cargarParticipes(); // carga inicial
+    });
+
+    async function cargarParticipes() {
+        try {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const res = await fetch('/api/participes', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!res.ok) throw new Error('Error al obtener partícipes');
+
+            const data = await res.json();
+            const participes = data.registros || [];
+
+            // Llenar todos los select existentes
+            llenarSelectParticipes(document.querySelectorAll('select[name="participes_id[]"]'), participes);
+
+            // Guardar los partícipes globalmente para futuros selects dinámicos
+            window.listaParticipes = participes;
+        } catch (error) {
+            console.error('Error cargando partícipes:', error);
+        }
+    }
+
+    function llenarSelectParticipes(selects, participes) {
+        selects.forEach(select => {
+            const selectedValue = select.value;
+            select.innerHTML = `<option value="">Seleccionar partícipe</option>`;
+            participes.forEach(p => {
+                const nombreCompleto = `${p.nombres ?? ''} ${p.apellidos ?? ''}`.trim();
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.textContent = nombreCompleto || 'Partícipe sin nombre';
+                if (p.id == selectedValue) option.selected = true;
+                select.appendChild(option);
+            });
+        });
+    }
+
+    // 🔹 Si agregas partícipes dinámicamente desde un botón:
+    function addParticipe() {
+        const container = document.getElementById('participesContainer');
+        const div = document.createElement('div');
+        div.className = 'flex items-center gap-2 mb-2';
+        div.innerHTML = `
+        <button type="button" onclick="this.parentElement.remove()" 
+            class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+        <select name="participes_id[]" 
+            class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+            <option value="">Seleccionar partícipe</option>
+        </select>
+    `;
+        container.appendChild(div);
+        if (window.listaParticipes) llenarSelectParticipes([div.querySelector('select')], window.listaParticipes);
+    }
 </script>
 
 <style>

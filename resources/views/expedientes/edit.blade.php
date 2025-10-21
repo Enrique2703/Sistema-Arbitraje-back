@@ -32,11 +32,19 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-900 mb-2">Código</label>
-                            <select name="codigo"
+                            <select name="codigo" required
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                                <option value="">Placeholder</option>
+                                <option value="" disabled selected>Código</option>
+                                <option value="CA-RENA">CA-RENA</option>
+                                <option value="JPRD-RENA">JPRD-RENA</option>
+                                <option value="DESIGNACION">DESIGNACIÓN</option>
+                                <option value="RECUSACION">RECUSACIÓN</option>
+                                <option value="INSTALACION">INSTALACIÓN</option>
+                                <option value="AD HOC-RENA">AD HOC-RENA</option>
+                                <option value="AE-RENA">AE-RENA</option>
                             </select>
                         </div>
+
                     </div>
 
                     <!-- Etapa procesal, Inicio del proceso -->
@@ -218,266 +226,534 @@
 </div>
 
 <script>
-// Caches de opciones
-let editUsuariosOptions = '';
-let editClientesOptions = '';
+    // Caches de opciones
+    let editUsuariosOptions = '';
+    let editClientesOptions = '';
 
-function openEditModal(id) {
-    document.getElementById('editModalOverlay').classList.remove('hidden');
-    loadEditSelects().then(() => loadExpedienteToForm(id));
-}
-
-function closeEditModal() {
-    document.getElementById('editModalOverlay').classList.add('hidden');
-    document.getElementById('editExpedienteForm').reset();
-    // limpiar contenedores
-    ['editArbitrosContainer','editAdjudicadoresContainer','editSecretariosTecnicosContainer','editParticipesContainer','editFechasLaudoContainer','editFechasResolucionContainer'].forEach(id => {
-        document.getElementById(id).innerHTML = '';
-    });
-}
-
-async function loadEditSelects() {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-
-    try {
-        const [usuariosRes, clientesRes] = await Promise.all([
-            fetch('/api/usuarios', { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch('/api/clientes', { headers: { 'Authorization': `Bearer ${token}` } })
-        ]);
-
-        const usuarios = await usuariosRes.json();
-        const clientes = await clientesRes.json();
-
-        editUsuariosOptions = '<option value="">Seleccionar usuario</option>' + usuarios.map(u => `<option value="${u.id}">${u.id} - ${u.nombres}</option>`).join('');
-        editClientesOptions = '<option value="">Seleccionar cliente</option>' + clientes.map(c => `<option value="${c.id}">${c.id} - ${c.nombre}</option>`).join('');
-    } catch (error) {
-        console.error('Error cargando selects para editar:', error);
+    function openEditModal(id) {
+        document.getElementById('editModalOverlay').classList.remove('hidden');
+        loadEditSelects().then(() => loadExpedienteToForm(id));
     }
-}
 
-async function loadExpedienteToForm(id) {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    try {
-        const res = await fetch(`/api/expedientes/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.message || 'No se pudo obtener expediente');
+    function closeEditModal() {
+        document.getElementById('editModalOverlay').classList.add('hidden');
+        document.getElementById('editExpedienteForm').reset();
+        // limpiar contenedores
+        ['editArbitrosContainer', 'editAdjudicadoresContainer', 'editSecretariosTecnicosContainer', 'editParticipesContainer', 'editFechasLaudoContainer', 'editFechasResolucionContainer'].forEach(id => {
+            document.getElementById(id).innerHTML = '';
+        });
+    }
 
-        const exp = json.data;
+    async function loadEditSelects() {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
-        const form = document.getElementById('editExpedienteForm');
-        form.querySelector('input[name="expediente_id"]').value = exp.id;
-        form.querySelector('input[name="usuario_id"]').value = exp.usuario?.id || '';
-        form.querySelector('input[name="numero"]').value = exp.numero || '';
-        form.querySelector('input[name="anio"]').value = exp.anio || '';
-        form.querySelector('select[name="etapa_procesal"]').value = exp.etapa_procesal || '';
-        form.querySelector('input[name="inicio_proceso"]').value = exp.inicio_proceso || '';
-        form.querySelector('select[name="tipo_proceso"]').value = exp.tipo_proceso || '';
-        form.querySelector('select[name="estado"]').value = exp.estado || '';
+        try {
+            const [usuariosRes, clientesRes] = await Promise.all([
+                fetch('/api/usuarios', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }),
+                fetch('/api/clientes', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+            ]);
 
-        // Árbitros
-        const arbContainer = document.getElementById('editArbitrosContainer');
-        arbContainer.innerHTML = '';
-        if (exp.arbitros && exp.arbitros.length) {
-            exp.arbitros.forEach(a => {
-                const row = document.createElement('div');
-                row.className = 'flex items-center gap-2 mb-2';
-                row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+            const usuarios = await usuariosRes.json();
+            const clientes = await clientesRes.json();
+
+            editUsuariosOptions = '<option value="">Seleccionar usuario</option>' + usuarios.map(u => `<option value="${u.id}">${u.id} - ${u.nombres}</option>`).join('');
+            editClientesOptions = '<option value="">Seleccionar cliente</option>' + clientes.map(c => `<option value="${c.id}">${c.id} - ${c.nombre}</option>`).join('');
+        } catch (error) {
+            console.error('Error cargando selects para editar:', error);
+        }
+    }
+
+    async function loadExpedienteToForm(id) {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        try {
+            const res = await fetch(`/api/expedientes/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.message || 'No se pudo obtener expediente');
+
+            const exp = json.data;
+
+            const form = document.getElementById('editExpedienteForm');
+            form.querySelector('input[name="expediente_id"]').value = exp.id;
+            form.querySelector('input[name="usuario_id"]').value = exp.usuario?.id || '';
+            form.querySelector('input[name="numero"]').value = exp.numero || '';
+            form.querySelector('input[name="anio"]').value = exp.anio || '';
+            form.querySelector('select[name="codigo"]').value = exp.codigo || ''; // 👈 añadir esto
+            form.querySelector('select[name="etapa_procesal"]').value = exp.etapa_procesal || '';
+            form.querySelector('input[name="inicio_proceso"]').value = exp.inicio_proceso || '';
+            form.querySelector('select[name="tipo_proceso"]').value = exp.tipo_proceso || '';
+            form.querySelector('select[name="estado"]').value = exp.estado || '';
+
+            // Árbitros
+            const arbContainer = document.getElementById('editArbitrosContainer');
+            arbContainer.innerHTML = '';
+            if (exp.arbitros && exp.arbitros.length) {
+                exp.arbitros.forEach(a => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center gap-2 mb-2';
+                    row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
                     <select name="arbitros[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">${editUsuariosOptions}</select>`;
-                row.querySelector('select').value = a.usuario_id || a.usuario?.id || '';
-                arbContainer.appendChild(row);
-            });
-        }
+                    row.querySelector('select').value = a.usuario_id || a.usuario?.id || '';
+                    arbContainer.appendChild(row);
+                });
+            }
 
-        // Adjutadores
-        const adjContainer = document.getElementById('editAdjudicadoresContainer');
-        adjContainer.innerHTML = '';
-        if (exp.adjutadores && exp.adjutadores.length) {
-            exp.adjutadores.forEach(a => {
-                const row = document.createElement('div');
-                row.className = 'flex items-center gap-2 mb-2';
-                row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+            // Adjutadores
+            const adjContainer = document.getElementById('editAdjudicadoresContainer');
+            adjContainer.innerHTML = '';
+            if (exp.adjutadores && exp.adjutadores.length) {
+                exp.adjutadores.forEach(a => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center gap-2 mb-2';
+                    row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
                     <select name="adjutadores[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">${editUsuariosOptions}</select>`;
-                row.querySelector('select').value = a.usuario_id || a.usuario?.id || '';
-                adjContainer.appendChild(row);
-            });
-        }
+                    row.querySelector('select').value = a.usuario_id || a.usuario?.id || '';
+                    adjContainer.appendChild(row);
+                });
+            }
 
-        // Secretarios técnicos
-        const secTecContainer = document.getElementById('editSecretariosTecnicosContainer');
-        secTecContainer.innerHTML = '';
-        if (exp.secretarios_tecnicos && exp.secretarios_tecnicos.length) {
-            exp.secretarios_tecnicos.forEach(s => {
-                const row = document.createElement('div');
-                row.className = 'flex items-center gap-2 mb-2';
-                row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+            // Secretarios técnicos
+            const secTecContainer = document.getElementById('editSecretariosTecnicosContainer');
+            secTecContainer.innerHTML = '';
+            if (exp.secretarios_tecnicos && exp.secretarios_tecnicos.length) {
+                exp.secretarios_tecnicos.forEach(s => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center gap-2 mb-2';
+                    row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
                     <select name="secretarios_tecnicos[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">${editUsuariosOptions}</select>`;
-                row.querySelector('select').value = s.usuario_id || s.usuario?.id || '';
-                secTecContainer.appendChild(row);
-            });
-        }
+                    row.querySelector('select').value = s.usuario_id || s.usuario?.id || '';
+                    secTecContainer.appendChild(row);
+                });
+            }
 
-        // Partícipes
-        const partsContainer = document.getElementById('editParticipesContainer');
-        partsContainer.innerHTML = '';
-        if (exp.participes && exp.participes.length) {
-            exp.participes.forEach(p => {
-                const row = document.createElement('div');
-                row.className = 'flex items-center gap-2 mb-2';
-                row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+            // Partícipes
+            const partsContainer = document.getElementById('editParticipesContainer');
+            partsContainer.innerHTML = '';
+            if (exp.participes && exp.participes.length) {
+                exp.participes.forEach(p => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center gap-2 mb-2';
+                    row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
                     <select name="participes_id[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">${editClientesOptions}</select>
                     <select name="participes_condicion[]" class="w-40 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
                         <option value="">Condición</option>
                         <option value="Demandante">Demandante</option>
                         <option value="Demandado">Demandado</option>
                     </select>`;
-                row.querySelector('select[name="participes_id[]"]').value = p.participe_id || p.participe?.id || '';
-                row.querySelector('select[name="participes_condicion[]"]').value = p.condicion || '';
-                partsContainer.appendChild(row);
-            });
-        }
+                    row.querySelector('select[name="participes_id[]"]').value = p.participe_id || p.participe?.id || '';
+                    row.querySelector('select[name="participes_condicion[]"]').value = p.condicion || '';
+                    partsContainer.appendChild(row);
+                });
+            }
 
-        // Fechas
-        const fLaudoCont = document.getElementById('editFechasLaudoContainer');
-        fLaudoCont.innerHTML = '';
-        if (exp.fechaLaudo && exp.fechaLaudo.fecha) {
-            const row = document.createElement('div');
-            row.className = 'flex items-center gap-2 mb-2';
-            row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
-                <input type="date" name="fecha_laudo" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="${exp.fechaLaudo.fecha}">`;
-            fLaudoCont.appendChild(row);
-        }
+            // Fechas
+            // ----- Fecha de Laudo Arbitral -----
+            const fLaudoCont = document.getElementById('editFechasLaudoContainer');
+            fLaudoCont.innerHTML = '';
 
-        const fResCont = document.getElementById('editFechasResolucionContainer');
-        fResCont.innerHTML = '';
-        if (exp.fechaResolucion && exp.fechaResolucion.fecha) {
-            const row = document.createElement('div');
-            row.className = 'flex items-center gap-2 mb-2';
-            row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
-                <input type="date" name="fecha_resolucion" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="${exp.fechaResolucion.fecha}">`;
-            fResCont.appendChild(row);
-        }
+            if (exp.fecha_laudo) {
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-2 mb-2';
+                row.innerHTML = `
+            <button type="button" onclick="this.parentElement.remove()" 
+                class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center 
+                    text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+            <input type="date" name="fecha_laudo" 
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-md 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                value="${exp.fecha_laudo}">
+        `;
+                fLaudoCont.appendChild(row);
+            } else {
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-2 mb-2';
+                row.innerHTML = `
+            <button type="button" onclick="this.parentElement.remove()" 
+                class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center 
+                    text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+            <input type="date" name="fecha_laudo" 
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-md 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        `;
+                fLaudoCont.appendChild(row);
+            }
 
-    } catch (error) {
-        console.error('Error cargando expediente:', error);
-        alert('No se pudo cargar el expediente para edición');
-        closeEditModal();
+            // ----- Fecha de Resolución -----
+            const fResCont = document.getElementById('editFechasResolucionContainer');
+            fResCont.innerHTML = '';
+
+            if (exp.fecha_resolucion) {
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-2 mb-2';
+                row.innerHTML = `
+            <button type="button" onclick="this.parentElement.remove()" 
+                class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center 
+                    text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+            <input type="date" name="fecha_resolucion" 
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-md 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                value="${exp.fecha_resolucion}">
+        `;
+                fResCont.appendChild(row);
+            } else {
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-2 mb-2';
+                row.innerHTML = `
+        <button type="button" onclick="this.parentElement.remove()" 
+            class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center 
+                    text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+        <input type="date" name="fecha_resolucion" 
+            class="flex-1 px-3 py-2 border border-gray-300 rounded-md 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+    `;
+                fResCont.appendChild(row);
+            }
+
+
+        } catch (error) {
+            console.error('Error cargando expediente:', error);
+            alert('No se pudo cargar el expediente para edición');
+            closeEditModal();
+        }
     }
-}
 
-// Funciones para agregar campos dinámicos en edit
-function editAddArbitro() {
-    const container = document.getElementById('editArbitrosContainer');
-    const row = document.createElement('div');
-    row.className = 'flex items-center gap-2 mb-2';
-    row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+    // Funciones para agregar campos dinámicos en edit
+    function editAddArbitro() {
+        const container = document.getElementById('editArbitrosContainer');
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-2 mb-2';
+        row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
         <select name="arbitros[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">${editUsuariosOptions}</select>`;
-    container.appendChild(row);
-}
+        container.appendChild(row);
+    }
 
-function editAddAdjudicador() {
-    const container = document.getElementById('editAdjudicadoresContainer');
-    const row = document.createElement('div');
-    row.className = 'flex items-center gap-2 mb-2';
-    row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+    function editAddAdjudicador() {
+        const container = document.getElementById('editAdjudicadoresContainer');
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-2 mb-2';
+        row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
         <select name="adjutadores[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">${editUsuariosOptions}</select>`;
-    container.appendChild(row);
-}
+        container.appendChild(row);
+    }
 
-function editAddSecretarioTecnico() {
-    const container = document.getElementById('editSecretariosTecnicosContainer');
-    const row = document.createElement('div');
-    row.className = 'flex items-center gap-2 mb-2';
-    row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+    function editAddSecretarioTecnico() {
+        const container = document.getElementById('editSecretariosTecnicosContainer');
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-2 mb-2';
+        row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
         <select name="secretarios_tecnicos[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">${editUsuariosOptions}</select>`;
-    container.appendChild(row);
-}
+        container.appendChild(row);
+    }
 
-function editAddParticipe() {
-    const container = document.getElementById('editParticipesContainer');
-    const row = document.createElement('div');
-    row.className = 'flex items-center gap-2 mb-2';
-    row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+    function editAddParticipe() {
+        const container = document.getElementById('editParticipesContainer');
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-2 mb-2';
+        row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
         <select name="participes_id[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">${editClientesOptions}</select>
         <select name="participes_condicion[]" class="w-40 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
             <option value="">Condición</option>
             <option value="Demandante">Demandante</option>
             <option value="Demandado">Demandado</option>
         </select>`;
-    container.appendChild(row);
-}
+        container.appendChild(row);
+    }
 
-function editAddFechaLaudo() {
-    const container = document.getElementById('editFechasLaudoContainer');
-    const row = document.createElement('div');
-    row.className = 'flex items-center gap-2 mb-2';
-    row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+    function editAddFechaLaudo() {
+        const container = document.getElementById('editFechasLaudoContainer');
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-2 mb-2';
+        row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
         <input type="date" name="fecha_laudo" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">`;
-    container.appendChild(row);
+        container.appendChild(row);
+    }
+
+    function editAddFechaResolucion() {
+        const container = document.getElementById('editFechasResolucionContainer');
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-2 mb-2';
+        row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+        <input type="date" name="fecha_resolucion" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">`;
+        container.appendChild(row);
+    }
+
+    // Placeholders para modales de crear usuario/partícipe
+    function openCreateUsuarioModal() {
+        alert('Aquí se abriría el modal para crear usuario');
+    }
+
+    function openCreateParticipeModal() {
+        alert('Aquí se abriría el modal para crear partícipe');
+    }
+
+    // Submit del formulario de edición
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('editExpedienteForm');
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const formData = new FormData(form);
+            const expedienteId = formData.get('expediente_id');
+
+            const data = {
+                usuario_id: formData.get('usuario_id') || 1,
+                nombre: formData.get('numero') + '/' + formData.get('anio'),
+                numero: formData.get('numero'),
+                anio: parseInt(formData.get('anio')),
+                codigo: formData.get('codigo'),
+                etapa_procesal: formData.get('etapa_procesal'),
+                estado: formData.get('estado'),
+                inicio_proceso: formData.get('inicio_proceso'),
+                tipo_proceso: formData.get('tipo_proceso'),
+                arbitros: formData.getAll('arbitros[]').filter(v => v),
+                adjutadores: formData.getAll('adjutadores[]').filter(v => v),
+                secretarios_tecnicos: formData.getAll('secretarios_tecnicos[]').filter(v => v),
+                fecha_laudo: formData.get('fecha_laudo'),
+                fecha_resolucion: formData.get('fecha_resolucion')
+            };
+
+            const participesIds = formData.getAll('participes_id[]').filter(v => v);
+            const participesCondiciones = formData.getAll('participes_condicion[]');
+            data.participes = participesIds.map((id, index) => ({
+                id: parseInt(id),
+                condicion: participesCondiciones[index] || null
+            }));
+
+            try {
+                const response = await fetch(`/api/expedientes/${expedienteId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    alert('Expediente actualizado correctamente');
+                    closeEditModal();
+                    if (typeof loadExpedientes === 'function') loadExpedientes();
+                } else {
+                    alert('Error: ' + (result.message || 'No se pudo actualizar el expediente'));
+                }
+            } catch (error) {
+                console.error('Error al actualizar expediente:', error);
+                alert('Error al actualizar expediente');
+            }
+        });
+    });
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    await cargarUsuariosEdit();
+    await cargarParticipesEdit();
+});
+
+// ====================== CARGA DE LISTAS ======================
+async function cargarUsuariosEdit() {
+    try {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const res = await fetch('/api/usuarios', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (!res.ok) throw new Error('Error al obtener usuarios');
+        const data = await res.json();
+        window.listaUsuariosEdit = data.registros || data || [];
+    } catch (error) {
+        console.error('Error cargando usuarios (editar):', error);
+    }
 }
 
-function editAddFechaResolucion() {
-    const container = document.getElementById('editFechasResolucionContainer');
+async function cargarParticipesEdit() {
+    try {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const res = await fetch('/api/participes', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (!res.ok) throw new Error('Error al obtener partícipes');
+        const data = await res.json();
+        window.listaParticipesEdit = data.registros || data || [];
+    } catch (error) {
+        console.error('Error cargando partícipes (editar):', error);
+    }
+}
+
+// ====================== FUNCIONES AUXILIARES ======================
+function crearFilaUsuarioSelect(name, usuarios, selectedId = '') {
     const row = document.createElement('div');
     row.className = 'flex items-center gap-2 mb-2';
-    row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
-        <input type="date" name="fecha_resolucion" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">`;
-    container.appendChild(row);
+    const options = usuarios.map(u => `
+        <option value="${u.id}" ${u.id == selectedId ? 'selected' : ''}>
+            ${u.nombres || 'Sin nombre'}
+        </option>`).join('');
+
+    row.innerHTML = `
+        <button type="button" onclick="this.parentElement.remove()" 
+            class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center 
+                   text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+        <select name="${name}" 
+            class="flex-1 px-3 py-2 border border-gray-300 rounded-md 
+                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+            <option value="">Seleccione</option>
+            ${options}
+        </select>
+    `;
+    return row;
 }
 
-// Placeholders para modales de crear usuario/partícipe
-function openCreateUsuarioModal() { alert('Aquí se abriría el modal para crear usuario'); }
-function openCreateParticipeModal() { alert('Aquí se abriría el modal para crear partícipe'); }
+function crearFilaParticipesSelect(clientes, selectedId = '', condicion = '') {
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2 mb-2';
+    const clienteOptions = clientes.map(c => `
+        <option value="${c.id}" ${c.id == selectedId ? 'selected' : ''}>
+            ${c.nombres || 'Sin nombre'}
+        </option>`).join('');
 
-// Submit del formulario de edición
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('editExpedienteForm');
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        const formData = new FormData(form);
-        const expedienteId = formData.get('expediente_id');
+    row.innerHTML = `
+        <button type="button" onclick="this.parentElement.remove()" 
+            class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center 
+                   text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+        <select name="participes_id[]" 
+            class="flex-1 px-3 py-2 border border-gray-300 rounded-md 
+                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+            <option value="">Seleccione</option>
+            ${clienteOptions}
+        </select>
+        <select name="participes_condicion[]" 
+            class="w-40 px-3 py-2 border border-gray-300 rounded-md 
+                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+            <option value="">Condición</option>
+            <option value="Demandante" ${condicion === 'Demandante' ? 'selected' : ''}>Demandante</option>
+            <option value="Demandado" ${condicion === 'Demandado' ? 'selected' : ''}>Demandado</option>
+        </select>
+    `;
+    return row;
+}
 
-        const data = {
-            usuario_id: formData.get('usuario_id') || 1,
-            nombre: formData.get('numero') + '/' + formData.get('anio'),
-            numero: formData.get('numero'),
-            anio: parseInt(formData.get('anio')),
-            etapa_procesal: formData.get('etapa_procesal'),
-            estado: formData.get('estado'),
-            inicio_proceso: formData.get('inicio_proceso'),
-            tipo_proceso: formData.get('tipo_proceso'),
-            arbitros: formData.getAll('arbitros[]').filter(v => v),
-            adjutadores: formData.getAll('adjutadores[]').filter(v => v),
-            secretarios_tecnicos: formData.getAll('secretarios_tecnicos[]').filter(v => v),
-            fecha_laudo: formData.get('fecha_laudo'),
-            fecha_resolucion: formData.get('fecha_resolucion')
-        };
+// ====================== CARGAR EXPEDIENTE ======================
+async function loadExpedienteToForm(id) {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    try {
+        const res = await fetch(`/api/expedientes/${id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.message || 'No se pudo obtener expediente');
 
-        const participesIds = formData.getAll('participes_id[]').filter(v => v);
-        const participesCondiciones = formData.getAll('participes_condicion[]');
-        data.participes = participesIds.map((id, index) => ({ id: parseInt(id), condicion: participesCondiciones[index] || null }));
+        const exp = json.data;
+        const form = document.getElementById('editExpedienteForm');
 
-        try {
-            const response = await fetch(`/api/expedientes/${expedienteId}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-            const result = await response.json();
-            if (response.ok) {
-                alert('Expediente actualizado correctamente');
-                closeEditModal();
-                if (typeof loadExpedientes === 'function') loadExpedientes();
-            } else {
-                alert('Error: ' + (result.message || 'No se pudo actualizar el expediente'));
-            }
-        } catch (error) {
-            console.error('Error al actualizar expediente:', error);
-            alert('Error al actualizar expediente');
-        }
-    });
-});
+        // Campos principales
+        form.querySelector('input[name="expediente_id"]').value = exp.id || '';
+        form.querySelector('input[name="usuario_id"]').value = exp.usuario?.id || '';
+        form.querySelector('input[name="numero"]').value = exp.numero || '';
+        form.querySelector('input[name="anio"]').value = exp.anio || '';
+        if (form.querySelector('select[name="codigo"]'))
+            form.querySelector('select[name="codigo"]').value = exp.codigo || '';
+        form.querySelector('select[name="etapa_procesal"]').value = exp.etapa_procesal || '';
+        form.querySelector('input[name="inicio_proceso"]').value = exp.inicio_proceso || '';
+        form.querySelector('select[name="tipo_proceso"]').value = exp.tipo_proceso || '';
+        form.querySelector('select[name="estado"]').value = exp.estado || '';
+
+        const usuarios = window.listaUsuariosEdit || [];
+        const clientes = window.listaParticipesEdit || [];
+
+        // --- FECHAS ---
+        const fLaudoCont = document.getElementById('editFechasLaudoContainer');
+        fLaudoCont.innerHTML = '';
+        const laudoRow = document.createElement('div');
+        laudoRow.className = 'flex items-center gap-2 mb-2';
+        laudoRow.innerHTML = `
+            <button type="button" onclick="this.parentElement.remove()" 
+                class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center 
+                    text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+            <input type="date" name="fecha_laudo" 
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-md 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                value="${exp.fecha_laudo || ''}">
+        `;
+        fLaudoCont.appendChild(laudoRow);
+
+        const fResCont = document.getElementById('editFechasResolucionContainer');
+        fResCont.innerHTML = '';
+        const resRow = document.createElement('div');
+        resRow.className = 'flex items-center gap-2 mb-2';
+        resRow.innerHTML = `
+            <button type="button" onclick="this.parentElement.remove()" 
+                class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center 
+                    text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+            <input type="date" name="fecha_resolucion" 
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-md 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                value="${exp.fecha_resolucion || ''}">
+        `;
+        fResCont.appendChild(resRow);
+
+        // --- ÁRBITROS ---
+        const arbContainer = document.getElementById('editArbitrosContainer');
+        arbContainer.innerHTML = '';
+        if (exp.arbitros && exp.arbitros.length)
+            exp.arbitros.forEach(a =>
+                arbContainer.appendChild(
+                    crearFilaUsuarioSelect('arbitros[]', usuarios, a.usuario_id || a.usuario?.id)
+                )
+            );
+        else arbContainer.appendChild(crearFilaUsuarioSelect('arbitros[]', usuarios));
+
+        // --- ADJUTADORES ---
+        const adjContainer = document.getElementById('editAdjudicadoresContainer');
+        adjContainer.innerHTML = '';
+        if (exp.adjutadores && exp.adjutadores.length)
+            exp.adjutadores.forEach(a =>
+                adjContainer.appendChild(
+                    crearFilaUsuarioSelect('adjutadores[]', usuarios, a.usuario_id || a.usuario?.id)
+                )
+            );
+        else adjContainer.appendChild(crearFilaUsuarioSelect('adjutadores[]', usuarios));
+
+        // --- SECRETARIOS TÉCNICOS ---
+        const secContainer = document.getElementById('editSecretariosTecnicosContainer');
+        secContainer.innerHTML = '';
+        if (exp.secretarios_tecnicos && exp.secretarios_tecnicos.length)
+            exp.secretarios_tecnicos.forEach(s =>
+                secContainer.appendChild(
+                    crearFilaUsuarioSelect('secretarios_tecnicos[]', usuarios, s.usuario_id || s.usuario?.id)
+                )
+            );
+        else secContainer.appendChild(crearFilaUsuarioSelect('secretarios_tecnicos[]', usuarios));
+
+        // --- PARTÍCIPES ---
+        const partsContainer = document.getElementById('editParticipesContainer');
+        partsContainer.innerHTML = '';
+        if (exp.participes && exp.participes.length)
+            exp.participes.forEach(p =>
+                partsContainer.appendChild(
+                    crearFilaParticipesSelect(clientes, p.participe_id || p.participe?.id, p.condicion)
+                )
+            );
+        else partsContainer.appendChild(crearFilaParticipesSelect(clientes));
+
+    } catch (error) {
+        console.error('Error cargando expediente:', error);
+        alert('No se pudo cargar el expediente para edición');
+        if (typeof closeEditModal === 'function') closeEditModal();
+    }
+}
 </script>

@@ -10,9 +10,11 @@ class Expediente extends Model
 
     protected $fillable = [
         'usuario_id',
+        'estado',
         'nombre',
         'numero',
         'anio',
+        'codigo',
         'etapa_procesal',
         'inicio_proceso',
         'tipo_proceso',

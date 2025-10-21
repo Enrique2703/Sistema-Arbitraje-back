@@ -1,400 +1,255 @@
 @extends('layouts.app')
-
-@section('title', 'Expedientes')
 @include('expedientes.create')
 @include('expedientes.edit')
-@section('styles')
-<style>
-    /* Header Section */
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 30px;
-    }
-
-    .header h1 {
-        font-size: 24px;
-        color: #2D3748;
-    }
-
-    /* Search and Filters */
-    .filters {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-        gap: 20px;
-    }
-
-    .search-box {
-        flex: 1;
-        max-width: 400px;
-        position: relative;
-    }
-
-    .search-box input {
-        width: 100%;
-        padding: 10px 40px 10px 15px;
-        border: 1px solid #E2E8F0;
-        border-radius: 6px;
-        font-size: 14px;
-    }
-
-    .search-box .search-icon {
-        position: absolute;
-        right: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #A0AEC0;
-    }
-
-    .filter-button {
-        background-color: #F7FAFC;
-        border: 1px solid #E2E8F0;
-        padding: 10px;
-        border-radius: 6px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .btn-new {
-        background-color: #000;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: background-color 0.3s;
-    }
-
-    .btn-new:hover {
-        background-color: #2D3748;
-    }
-
-    /* Table */
-    .table-container {
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    th,
-    td {
-        padding: 15px;
-        text-align: left;
-        border-bottom: 1px solid #E2E8F0;
-    }
-
-    th {
-        background-color: #737373;
-        color: white;
-        font-weight: 500;
-    }
-
-    td {
-        color: #2D3748;
-    }
-
-    .status-badge {
-        background-color: #E2E8F0;
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-size: 12px;
-    }
-
-    .status-active {
-        background-color: #C6F6D5;
-        color: #2F855A;
-    }
-
-    .status-proveido {
-        background-color: #FEEBC8;
-        color: #C05621;
-    }
-
-    /* Action Buttons */
-    .btn-action {
-        padding: 6px 12px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 12px;
-        margin-right: 5px;
-        text-decoration: none;
-    }
-
-    .btn-documents {
-        background-color: #000;
-        color: white;
-    }
-
-    .btn-history {
-        background-color: #2D3748;
-        color: white;
-    }
-
-    .btn-edit {
-        color: #4A5568;
-        text-decoration: none;
-    }
-
-    .btn-delete {
-        color: #E53E3E;
-        text-decoration: none;
-    }
-
-    /* Pagination */
-    .pagination {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 20px;
-        padding: 20px;
-    }
-
-    .pagination-numbers {
-        display: flex;
-        gap: 5px;
-    }
-
-    .pagination-numbers a {
-        padding: 8px 12px;
-        border-radius: 4px;
-        text-decoration: none;
-        color: #737373;
-    }
-
-    .pagination-numbers a.active {
-        background-color: #000;
-        color: white;
-    }
-
-    .pagination-nav {
-        color: #737373;
-        text-decoration: none;
-    }
-</style>
-@endsection
 
 @section('content')
-<div class="header">
-    <h1>Expedientes</h1>
-</div>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
 
-<div class="filters">
-    <div class="search-box">
-        <input type="text" placeholder="Buscar" id="searchInput">
-        <span class="search-icon">🔍</span>
+<div class="min-h-screen bg-gray-100 flex">
+    <div class="flex-1 flex flex-col">
+        <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl font-semibold text-gray-900">Expedientes</h1>
+                <div class="flex items-center space-x-4">
+                    <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                        <img src="{{ asset('img/folder.png') }}" alt="Folder Icon" class="w-6 h-6">
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 p-6">
+            <div class="mb-6 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <input type="text" id="searchInput"
+                            class="block w-80 pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Buscar">
+                    </div>
+
+                    <!-- Botón de filtro -->
+                    <button id="filterButton"
+                        class="p-2 bg-gray-200 hover:bg-gray-300 rounded-md border border-gray-300 flex items-center justify-center">
+                        <i class="bi bi-funnel-fill text-black text-lg"></i>
+                    </button>
+                </div>
+
+                <button onclick="openCreateModal()"
+                    class="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors font-medium">
+                    Nuevo expediente
+                </button>
+            </div>
+
+            <!-- Tabla -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead style="background-color: #737373;">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Estado</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Partícipes</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Expediente</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Inicio</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Actualización</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-white uppercase tracking-wider">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expedientesTableBody" class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="7" class="px-6 py-4 text-center text-gray-500">Cargando expedientes...</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Paginación -->
+                <div id="paginationContainer" class="px-6 py-4 border-t bg-white">
+                    <nav id="paginationControls" class="flex items-center justify-between" aria-label="Pagination"></nav>
+                </div>
+            </div>
+        </div>
     </div>
-    <button class="filter-button" id="filterButton">
-        <span>Filtros</span>
-        <span>▼</span>
-    </button>
-    <button class="btn-new" onclick="openCreateModal()">Nuevo expediente</button>
 </div>
 
-<div class="table-container">
-    <table>
-        <thead>
-            <tr>
-                <th>Expediente</th>
-                <th>Estado</th>
-                <th>Partícipes</th>
-                <th>Documentos</th>
-                <th>Inicio</th>
-                <th>Actualización</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody id="expedientesTableBody">
-            <!-- Los datos se cargarán dinámicamente aquí -->
-        </tbody>
-    </table>
+<!-- 🔽 MODAL DE FILTRO -->
+<div id="filterModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-lg w-96 p-6">
+        <h2 class="text-lg font-semibold mb-4 text-gray-800">Filtrar expedientes</h2>
+
+        <label class="block text-sm text-gray-700 mb-2">Estado:</label>
+        <select id="estadoFilter"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-6">
+            <option value="Todos">Todos</option>
+            <option value="Archivado">Archivado</option>
+            <option value="En tramite">En trámite</option>
+            <option value="Suspendido">Suspendido</option>
+            <option value="Concluido">Concluido</option>
+        </select>
+
+        <div class="flex justify-end space-x-3">
+            <button id="closeFilterModal" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-gray-800">
+                Cancelar
+            </button>
+            <button id="applyFilter"
+                class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                Aplicar
+            </button>
+        </div>
+    </div>
 </div>
 
-<div class="pagination">
-    <a href="#" class="pagination-nav" id="prevPage">← Anterior</a>
-    <div class="pagination-numbers" id="paginationNumbers"></div>
-    <a href="#" class="pagination-nav" id="nextPage">Siguiente →</a>
-</div>
-@endsection
-
-@section('scripts')
 <script>
     let currentPage = 1;
+    let lastPage = 1;
+    let perPage = 7;
+    let allExpedientes = [];
+    let estadoSeleccionado = 'Todos';
 
-    async function loadExpedientes(page = 1, search = '') {
+    document.addEventListener('DOMContentLoaded', () => {
+        loadExpedientes(currentPage, perPage);
+
+        document.getElementById('filterButton').addEventListener('click', () => {
+            document.getElementById('filterModal').classList.remove('hidden');
+        });
+
+        document.getElementById('closeFilterModal').addEventListener('click', () => {
+            document.getElementById('filterModal').classList.add('hidden');
+        });
+
+        document.getElementById('applyFilter').addEventListener('click', () => {
+            estadoSeleccionado = document.getElementById('estadoFilter').value;
+            document.getElementById('filterModal').classList.add('hidden');
+            loadExpedientes(1, perPage, document.getElementById('searchInput').value.trim(), estadoSeleccionado);
+        });
+    });
+
+    async function loadExpedientes(page = 1, pageSize = perPage, search = '', estado = estadoSeleccionado) {
+        const tbody = document.getElementById('expedientesTableBody');
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-gray-500">Cargando...</td></tr>`;
+
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const response = await fetch(`/api/expedientes?page=${page}&search=${search}`, {
+            const url = `/api/expedientes?page=${page}&per_page=${pageSize}&search=${search}&estado=${estado}`;
+            const res = await fetch(url, {
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
                 }
             });
 
-            if (!response.ok) {
-                throw new Error('Error al cargar expedientes');
-            }
+            if (!res.ok) throw new Error('Error al obtener expedientes');
+            const data = await res.json();
 
-            const data = await response.json();
-            renderExpedientes(data.registros);
-            renderPagination(data.meta);
+            allExpedientes = data.registros || [];
+            currentPage = data.meta.current_page;
+            lastPage = data.meta.last_page;
+            perPage = data.meta.per_page;
+
+            renderExpedientes(allExpedientes);
+            renderPagination();
         } catch (error) {
-            console.error('Error:', error);
+            console.error(error);
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-red-500 py-6">Error al cargar expedientes</td></tr>`;
         }
     }
 
-    function renderExpedientes(expedientes) {
+    function renderExpedientes(list) {
         const tbody = document.getElementById('expedientesTableBody');
-
-        if (!expedientes || expedientes.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No hay expedientes registrados</td></tr>`;
+        if (!list.length) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-gray-500">No hay expedientes registrados</td></tr>`;
             return;
         }
 
-        tbody.innerHTML = expedientes.map(expediente => `
-            <tr>
-                <td>${expediente.id}</td>
-                <td>${expediente.estado}</td>
-                <td>${expediente.cantidad_participes}</td>
-                <td>${expediente.expediente}</td>
-                <td>${expediente.fecha_creacion || '—'}</td>
-                <td>${expediente.fecha_actualizacion ? new Date(expediente.fecha_actualizacion).toLocaleDateString() : '—'}</td>
-                <td>
-                    <a href="/expedientes/${expediente.id}/documentos" class="btn-action btn-documents">Documentos</a>
-                    <a href="/expedientes/${expediente.id}/historial" class="btn-action btn-history">Historial</a>
-                    <button type="button" onclick="openExpedienteModal(${expediente.id})" class="btn-edit">Editar</button>
-                    <a href="#" onclick="deleteExpediente(${expediente.id})" class="btn-delete">Eliminar</a>
-                </td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = '';
+        list.forEach(exp => {
+            tbody.innerHTML += `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">${String(exp.id).padStart(4, '0')}</td>
+                    <td class="px-6 py-4">${exp.estado}</td>
+                    <td class="px-6 py-4">${exp.cantidad_participes || 0}</td>
+                    <td class="px-6 py-4">${exp.expediente || '0'}</td>
+                    <td class="px-6 py-4">${exp.fecha_creacion || '—'}</td>
+                    <td class="px-6 py-4">${exp.fecha_actualizacion || '—'}</td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex justify-end space-x-3">
+                            <button onclick="openEditModal(${exp.id})" class="text-gray-900 font-medium hover:underline">Editar</button>
+                            <button onclick="deleteExpediente(${exp.id})" class="text-red-500 hover:underline">Eliminar</button>
+                        </div>
+                    </td>
+                </tr>`;
+        });
     }
 
-    function renderPagination(meta) {
-        const paginationDiv = document.getElementById('paginationNumbers');
-        const totalPages = meta.last_page;
-        let html = '';
+    function renderPagination() {
+        const container = document.getElementById('paginationControls');
+        container.innerHTML = '';
 
-        for (let i = 1; i <= totalPages; i++) {
-            html += `<a href="#" class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</a>`;
+        const prevDisabled = currentPage <= 1;
+        const nextDisabled = currentPage >= lastPage;
+
+        const prevBtn = `<button ${prevDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage-1})" class="px-3 py-2 text-sm ${prevDisabled ? 'text-gray-400' : 'text-gray-700'}">&larr; Anterior</button>`;
+        const nextBtn = `<button ${nextDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage+1})" class="px-3 py-2 text-sm ${nextDisabled ? 'text-gray-400' : 'text-gray-700'}">Siguiente &rarr;</button>`;
+
+        let pagesHtml = '';
+        const maxPages = 4;
+        let start = Math.max(1, currentPage - 2);
+        let end = Math.min(lastPage, start + maxPages - 1);
+
+        for (let i = start; i <= end; i++) {
+            pagesHtml += `<button onclick="goToPage(${i})" class="mx-1 px-2 py-1 text-sm ${i === currentPage ? 'bg-gray-100 rounded' : 'text-gray-500'}">${i}</button>`;
         }
 
-        paginationDiv.innerHTML = html;
-
-        document.getElementById('prevPage').style.visibility = currentPage === 1 ? 'hidden' : 'visible';
-        document.getElementById('nextPage').style.visibility = currentPage === totalPages ? 'hidden' : 'visible';
+        container.innerHTML = `
+            <div class="flex items-center justify-between w-full">
+                <div>${prevBtn}</div>
+                <div class="flex items-center">${pagesHtml}</div>
+                <div>${nextBtn}</div>
+            </div>
+        `;
     }
 
-    function changePage(page) {
-        currentPage = page;
-        loadExpedientes(page, document.getElementById('searchInput').value);
+    function goToPage(page) {
+        if (page < 1 || page > lastPage) return;
+        loadExpedientes(page);
     }
 
     async function deleteExpediente(id) {
-        if (!confirm('¿Está seguro de que desea eliminar este expediente?')) {
-            return;
-        }
+        if (!confirm('¿Seguro que deseas eliminar este expediente?')) return;
 
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const response = await fetch(`/api/expedientes/${id}`, {
+            const res = await fetch(`/api/expedientes/${id}`, {
                 method: 'DELETE',
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
                 }
             });
 
-            if (response.ok) {
+            if (res.ok) {
+                alert('Expediente eliminado correctamente');
                 loadExpedientes(currentPage);
             } else {
-                alert('Error al eliminar el expediente');
+                alert('Error al eliminar expediente');
             }
         } catch (error) {
-            console.error('Error:', error);
-            alert('Error al eliminar el expediente');
+            console.error(error);
+            alert('Error al conectar con el servidor');
         }
     }
 
-    // Búsqueda con debounce
+    // Buscar con debounce
     let searchTimeout;
     document.getElementById('searchInput').addEventListener('input', function(e) {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            currentPage = 1;
-            loadExpedientes(1, e.target.value);
+            loadExpedientes(1, perPage, e.target.value.trim(), estadoSeleccionado);
         }, 300);
-    });
-
-    // Cargar expedientes al iniciar
-    document.addEventListener('DOMContentLoaded', () => {
-        loadExpedientes();
-    });
-
-    // Helper to open modal de editar independientemente de dónde esté definida
-    function openExpedienteModal(id) {
-        // Si la función openEditModal existe (se define en el partial edit), la llamamos
-        if (typeof openEditModal === 'function') {
-            openEditModal(id);
-            return;
-        }
-
-        // Fallback: intentar mostrar el overlay directamente
-        const overlay = document.getElementById('editModalOverlay');
-        if (overlay) {
-            overlay.classList.remove('hidden');
-        } else {
-            console.warn('Modal de edición no cargado. Asegúrate de incluir el partial edit.blade.php');
-        }
-    }
-
-    // Mostrar y ocultar modal
-    function openCreateModal() {
-        document.getElementById('createModalOverlay').classList.remove('hidden');
-    }
-
-    function closeCreateModal() {
-        document.getElementById('createModalOverlay').classList.add('hidden');
-    }
-
-    // Manejar el envío del formulario
-    document.getElementById('createExpedienteForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        const formData = new FormData(this);
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-
-        try {
-            const response = await fetch('/api/expedientes', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                alert('✅ Expediente creado correctamente');
-                closeCreateModal();
-                loadExpedientes(); // recarga la tabla
-            } else {
-                alert('❌ Error al crear expediente: ' + (data.message || 'Error desconocido'));
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error al conectar con el servidor');
-        }
     });
 </script>
 @endsection

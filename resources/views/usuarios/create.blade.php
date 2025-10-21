@@ -60,3 +60,33 @@
         </div>
     </div>
 </div>
+<script>
+    // 🟢 Abre el modal de usuario
+    function openCreateUsuarioModal() {
+        const modal = document.getElementById('createModalOverlay');
+        modal.classList.remove('hidden');
+    }
+
+    // 🔴 Cierra el modal de usuario
+    function closeCreateModal() {
+        const modal = document.getElementById('createModalOverlay');
+        modal.classList.add('hidden');
+        document.getElementById('createUserForm').reset(); // limpia el formulario
+    }
+
+    // 🟡 Cierra el modal al hacer clic fuera del contenido
+    document.getElementById('createModalOverlay').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeCreateModal();
+        }
+    });
+
+    // 🟣 Maneja el envío del formulario
+    document.getElementById('createUserForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Aquí puedes hacer la petición a Laravel (AJAX)
+        alert('Usuario creado correctamente');
+        closeCreateModal();
+    });
+</script>

@@ -22,7 +22,7 @@ class AuthController extends Controller
 
         if (!$user) {
             return response()->json([
-                'message' => 'El nombre de usuario es incorrecto.',
+                'message' => 'Este usuario no está registrado.',
             ], 403);
         }
 
