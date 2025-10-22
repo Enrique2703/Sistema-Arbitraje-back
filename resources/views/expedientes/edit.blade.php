@@ -431,42 +431,29 @@
     // Funciones para agregar campos dinámicos en edit
     function editAddArbitro() {
         const container = document.getElementById('editArbitrosContainer');
-        const row = document.createElement('div');
-        row.className = 'flex items-center gap-2 mb-2';
-        row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
-        <select name="arbitros[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">${editUsuariosOptions}</select>`;
+        const usuarios = window.listaUsuariosEdit || [];
+        const row = crearFilaUsuarioSelect('arbitros[]', usuarios);
         container.appendChild(row);
     }
 
     function editAddAdjudicador() {
         const container = document.getElementById('editAdjudicadoresContainer');
-        const row = document.createElement('div');
-        row.className = 'flex items-center gap-2 mb-2';
-        row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
-        <select name="adjutadores[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">${editUsuariosOptions}</select>`;
+        const usuarios = window.listaUsuariosEdit || [];
+        const row = crearFilaUsuarioSelect('adjutadores[]', usuarios);
         container.appendChild(row);
     }
 
     function editAddSecretarioTecnico() {
         const container = document.getElementById('editSecretariosTecnicosContainer');
-        const row = document.createElement('div');
-        row.className = 'flex items-center gap-2 mb-2';
-        row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
-        <select name="secretarios_tecnicos[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">${editUsuariosOptions}</select>`;
+        const usuarios = window.listaUsuariosEdit || [];
+        const row = crearFilaUsuarioSelect('secretarios_tecnicos[]', usuarios);
         container.appendChild(row);
     }
 
     function editAddParticipe() {
         const container = document.getElementById('editParticipesContainer');
-        const row = document.createElement('div');
-        row.className = 'flex items-center gap-2 mb-2';
-        row.innerHTML = `<button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
-        <select name="participes_id[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">${editClientesOptions}</select>
-        <select name="participes_condicion[]" class="w-40 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-            <option value="">Condición</option>
-            <option value="Demandante">Demandante</option>
-            <option value="Demandado">Demandado</option>
-        </select>`;
+        const participes = window.listaParticipesEdit || [];
+        const row = crearFilaParticipesSelect(participes);
         container.appendChild(row);
     }
 
