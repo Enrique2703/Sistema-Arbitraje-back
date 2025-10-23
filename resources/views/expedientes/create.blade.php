@@ -1,5 +1,9 @@
 
 
+<!-- Tom Select CSS y JS -->
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
 <!-- Modal Overlay para Crear Expediente -->
 <div id="createModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
     <div class="flex items-center justify-center min-h-screen p-4">
@@ -431,7 +435,10 @@
     }
 
     function openCreateParticipeModal() {
-        alert('Aquí se abriría el modal para crear partícipe');
+        const modal = document.getElementById('createParticipeModalOverlay');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
     }
 
     // Submit del formulario
@@ -522,16 +529,62 @@
             const data = await res.json();
             const usuarios = data.registros || [];
 
-            // Llenar todos los select existentes
-            llenarSelectUsuarios(document.querySelectorAll('select[name="arbitros[]"]'), usuarios);
-            llenarSelectUsuarios(document.querySelectorAll('select[name="adjutadores[]"]'), usuarios);
-            llenarSelectUsuarios(document.querySelectorAll('select[name="secretarios_tecnicos[]"]'), usuarios);
+            // Inicializar Tom Select en los selects
+            inicializarTomSelect(document.querySelectorAll('select[name="arbitros[]"]'), usuarios);
+            inicializarTomSelect(document.querySelectorAll('select[name="adjutadores[]"]'), usuarios);
+            inicializarTomSelect(document.querySelectorAll('select[name="secretarios_tecnicos[]"]'), usuarios);
 
             // Guardar los usuarios globalmente por si se agregan nuevos selects
             window.listaUsuarios = usuarios;
         } catch (error) {
             console.error('Error cargando usuarios:', error);
         }
+    }
+
+    function inicializarTomSelect(selects, usuarios) {
+        selects.forEach(select => {
+            // Destruir instancia anterior si existe
+            if (select.tomselect) {
+                select.tomselect.destroy();
+            }
+
+            new TomSelect(select, {
+                valueField: 'id',
+                labelField: 'nombres',
+                searchField: ['nombres', 'email'],
+                options: usuarios,
+                create: false,
+                placeholder: 'Buscar usuario...',
+                render: {
+                    option: function(item, escape) {
+                        return `<div class="py-2 px-3">
+                            <div class="font-medium">${escape(item.nombres)}</div>
+                            <div class="text-sm text-gray-600">${escape(item.email || '')}</div>
+                        </div>`;
+                    },
+                    item: function(item, escape) {
+                        return `<div>${escape(item.nombres)}</div>`;
+                    }
+                },
+                loadingClass: 'loading',
+                load: async function(query, callback) {
+                    try {
+                        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                        const response = await fetch(`/api/usuarios?search=${encodeURIComponent(query)}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Accept': 'application/json'
+                            }
+                        });
+                        const json = await response.json();
+                        callback(json.registros || []);
+                    } catch (e) {
+                        console.error('Error cargando usuarios:', e);
+                        callback();
+                    }
+                }
+            });
+        });
     }
 
     function llenarSelectUsuarios(selects, usuarios) {
@@ -563,7 +616,9 @@
         </select>
     `;
         container.appendChild(div);
-        if (window.listaUsuarios) llenarSelectUsuarios([div.querySelector('select')], window.listaUsuarios);
+        if (window.listaUsuarios) {
+            inicializarTomSelect([div.querySelector('select')], window.listaUsuarios);
+        }
     }
 
     function addAdjudicador() {
@@ -579,7 +634,9 @@
         </select>
     `;
         container.appendChild(div);
-        if (window.listaUsuarios) llenarSelectUsuarios([div.querySelector('select')], window.listaUsuarios);
+        if (window.listaUsuarios) {
+            inicializarTomSelect([div.querySelector('select')], window.listaUsuarios);
+        }
     }
 
     function addSecretarioTecnico() {
@@ -595,7 +652,9 @@
         </select>
     `;
         container.appendChild(div);
-        if (window.listaUsuarios) llenarSelectUsuarios([div.querySelector('select')], window.listaUsuarios);
+        if (window.listaUsuarios) {
+            inicializarTomSelect([div.querySelector('select')], window.listaUsuarios);
+        }
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -660,128 +719,9 @@
     }
 </script>
 
-<!-- Modal Overlay para Crear Usuario -->
-<div id="createUserModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-screen overflow-y-auto">
-            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                <h3 class="text-lg font-semibold text-gray-900">Nuevo usuario</h3>
-                <button onclick="closeCreateUserModal()" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            <div class="px-6 py-4">
-                <form id="createUserForm">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Nombres</label>
-                        <input type="text" name="nombres" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                        <input type="email" name="email" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Contraseña</label>
-                        <input type="password" name="password" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Nivel de usuario</label>
-                            <select name="nivel_usuario" required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                <option value="" disabled selected>Seleccionar</option>
-                                <option value="administrador">Administrador</option>
-                                <option value="staff">Staff</option>
-                                <option value="participe">Participe</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
-                            <select name="estado" required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                <option value="" disabled selected>Seleccionar</option>
-                                <option value="Activo">Activo</option>
-                                <option value="Inactivo">Inactivo</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="flex justify-end space-x-3">
-                        <button type="button" onclick="closeCreateUserModal()"
-                            class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300">Cancelar</button>
-                        <button type="submit"
-                            class="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800">Crear</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    // Inicializar eventos del modal de crear usuario cuando el DOM esté listo
-    document.addEventListener('DOMContentLoaded', function() {
-        const createUserModalOverlay = document.getElementById('createUserModalOverlay');
-        const createUserForm = document.getElementById('createUserForm');
-
-        // Cerrar modal al hacer clic fuera del contenido
-        if (createUserModalOverlay) {
-            createUserModalOverlay.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeCreateUserModal();
-                }
-            });
-        }
-
-        // Maneja el envío del formulario de crear usuario
-        if (createUserForm) {
-            createUserForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                const formData = new FormData(this);
-
-                const data = {
-                    nombres: formData.get('nombres'),
-                    email: formData.get('email'),
-                    password: formData.get('password'),
-                    nivel_usuario: formData.get('nivel_usuario'),
-                    estado: formData.get('estado')
-                };
-
-                try {
-                    const response = await fetch('/api/usuarios', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(data)
-                    });
-
-                    const result = await response.json();
-
-                    if (response.ok) {
-                        alert('Usuario creado correctamente');
-                        closeCreateUserModal();
-                        // Recargar la lista de usuarios
-                        await cargarUsuarios();
-                    } else {
-                        alert('Error: ' + (result.message || 'No se pudo crear el usuario'));
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Error al crear el usuario');
-                }
-            });
-        }
-    });
-</script>
+<!-- Incluir los modales -->
+@include('usuarios.create')
+@include('participes.create')
 
 <style>
     /* Estilos adicionales para mejorar la apariencia */

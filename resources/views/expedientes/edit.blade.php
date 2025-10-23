@@ -322,7 +322,10 @@
     }
 
     function openCreateParticipeModal() {
-        alert('Aquí se abriría el modal para crear partícipe');
+        const modal = document.getElementById('createParticipeModalOverlay');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
     }
 
     document.addEventListener('DOMContentLoaded', function() {

@@ -12,6 +12,7 @@ use App\Models\ExpedienteFechaResolucion;
 use App\Models\SecretarioTecnico;
 use Illuminate\Http\Request;
 
+
 class ExpedienteController extends Controller
 {
     /**
@@ -19,7 +20,7 @@ class ExpedienteController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = $request->query('per_page', 7);
+        $perPage = $request->query('per_page', 20);
         $search = $request->query('search');
         $estado = $request->query('estado'); // 🟢 Nuevo parámetro de filtro por estado
 

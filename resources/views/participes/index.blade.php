@@ -375,12 +375,12 @@
 
     // Modales
     function openCreateModal() {
-        document.getElementById('createModalOverlay').classList.remove('hidden');
+        document.getElementById('createParticipeModalOverlay').classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     }
 
     function closeCreateModal() {
-        document.getElementById('createModalOverlay').classList.add('hidden');
+        document.getElementById('createParticipeModalOverlay').classList.add('hidden');
         document.body.style.overflow = 'auto';
         document.getElementById('createUserForm').reset();
     }

@@ -12,7 +12,7 @@ class ParticipeController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = $request->query('per_page', 7);
+        $perPage = $request->query('per_page', 20);
 
         $query = Participe::with('credencial');
 

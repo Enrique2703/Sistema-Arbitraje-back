@@ -4,11 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title') - Red Nacional de Arbitraje</title>
+    <title>Red Nacional de Arbitraje</title>
 
     <!-- Agregar Tailwind (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <link rel="icon" href="{{ asset('/img/logo2.png') }}" type="image/png">
     <!-- Bootstrap Icons opcional -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -21,9 +22,30 @@
             font-family: Arial, sans-serif;
         }
 
+        .hamburger-button {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: #525252;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
         body {
             display: flex;
             min-height: 100vh;
+            overflow: hidden;
         }
 
         .sidebar {
@@ -31,10 +53,38 @@
             background-color: #525252;
             color: white;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            transition: transform 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                transform: translateX(-100%);
+                z-index: 50;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .hamburger-button {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding-top: 80px;
+            }
         }
 
         .sidebar-logo {
             margin-bottom: 40px;
+            flex-shrink: 0;
         }
 
         .sidebar-logo img {
@@ -45,7 +95,9 @@
             list-style: none;
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 120px);
+            flex-grow: 1;
+            margin: 0;
+            padding: 0;
         }
 
         .sidebar-menu li:not(:last-child) {
@@ -75,6 +127,8 @@
             flex: 1;
             padding: 30px;
             background-color: #F7FAFC;
+            height: 100vh;
+            overflow-y: auto;
         }
 
         /* Estilos del modal de logout */
@@ -130,6 +184,13 @@
 </head>
 
 <body>
+    <!-- Botón Hamburguesa -->
+    <button class="hamburger-button" onclick="toggleSidebar()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z" />
+        </svg>
+    </button>
+
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-logo">
@@ -166,6 +227,32 @@
     </div>
 
     <script>
+        // Función para alternar la visibilidad del sidebar
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        // Cerrar el sidebar al hacer clic en un enlace (en pantallas pequeñas)
+        document.querySelectorAll('.sidebar-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    document.querySelector('.sidebar').classList.remove('active');
+                }
+            });
+        });
+
+        // Cerrar el sidebar al hacer clic fuera de él (en pantallas pequeñas)
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768) {
+                const sidebar = document.querySelector('.sidebar');
+                const hamburgerButton = document.querySelector('.hamburger-button');
+                if (!sidebar.contains(e.target) && !hamburgerButton.contains(e.target) && sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                }
+            }
+        });
+
         function showLogoutModal() {
             document.getElementById('logoutModal').style.display = 'block';
         }

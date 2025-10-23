@@ -1,10 +1,10 @@
 <!-- Modal Overlay para Crear -->
-<div id="createModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+<div id="createParticipeModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
     <div class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-screen overflow-y-auto">
             <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                 <h3 class="text-lg font-semibold text-gray-900">Nuevo partícipe</h3>
-                <button onclick="closeCreateModal()" class="text-gray-400 hover:text-gray-600">
+                <button onclick="closeCreateParticipeModal()" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />
@@ -40,7 +40,7 @@
                         </div>
                     </div>
                     <div class="flex justify-end space-x-3">
-                        <button type="button" onclick="closeCreateModal()"
+                        <button type="button" onclick="closeCreateParticipeModal()"
                             class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300">Cancelar</button>
                         <button type="submit"
                             class="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800">Crear</button>
@@ -50,3 +50,74 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Abrir modal de partícipe
+    function openCreateParticipeModal() {
+        const modal = document.getElementById('createParticipeModalOverlay');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+    }
+
+    // Cerrar modal de partícipe
+    function closeCreateParticipeModal() {
+        const modal = document.getElementById('createParticipeModalOverlay');
+        if (modal) {
+            modal.classList.add('hidden');
+            const form = document.getElementById('createParticipeForm');
+            if (form) form.reset();
+        }
+    }
+
+    // Cerrar modal al hacer clic fuera
+    document.getElementById('createParticipeModalOverlay')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeCreateParticipeModal();
+        }
+    });
+
+    // Manejar envío del formulario
+    document.getElementById('createParticipeForm')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const formData = new FormData(this);
+
+        const data = {
+            nombres: formData.get('nombres'),
+            apellidos: formData.get('apellidos'),
+            documento: formData.get('documento'),
+            email: formData.get('email'),
+            telefono: formData.get('telefono'),
+            estado: formData.get('estado')
+        };
+
+        try {
+            const response = await fetch('/api/participes', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('Partícipe creado correctamente');
+                closeCreateParticipeModal();
+                // Recargar la lista de partícipes
+                if (typeof cargarParticipes === 'function') {
+                    await cargarParticipes();
+                }
+            } else {
+                alert('Error: ' + (result.message || 'No se pudo crear el partícipe'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al crear el partícipe');
+        }
+    });
+</script>
