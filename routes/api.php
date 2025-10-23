@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('login', [AuthController::class, 'login']);
 Route::post('logout', [AuthController::class, 'logout']);
+Route::get('/expedientes/participes', [ExpedienteController::class, 'indexParticipes']);
 
 Route::middleware(['session.timeout'])->group(function () {
     Route::apiResource('usuarios', UsuarioController::class);

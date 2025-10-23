@@ -46,7 +46,7 @@ class ExpedienteController extends Controller
         // 🔹 Transformar los datos antes de enviar al frontend
         $registros = $expedientesPaginated->map(function ($expediente) {
             return [
-                'id' => $expediente->id,
+                'id' => $expediente->id ?? 'N/A',
                 'estado' => $expediente->estado ?? 'Sin estado',
                 'cantidad_participes' => $expediente->participes->count(),
                 'expediente' => 0,
