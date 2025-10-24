@@ -9,9 +9,10 @@ use App\Models\ExpedienteAdjutador;
 use App\Models\ExpedienteParticipe;
 use App\Models\ExpedienteFechaLaudo;
 use App\Models\ExpedienteFechaResolucion;
+use App\Models\Participe;
 use App\Models\SecretarioTecnico;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
 
 class ExpedienteController extends Controller
 {
@@ -66,6 +67,61 @@ class ExpedienteController extends Controller
         ]);
     }
 
+    public function indexParticipes(Request $request)
+    {
+        $credencial = auth('api')->user();
+
+        $participe = Auth::user()->participe;
+
+
+        if (!$participe) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No se encontró el participe asociado'
+            ], 404);
+        }
+
+        $perPage = $request->query('per_page', 10);
+        $search = $request->query('search');
+        $estado = $request->query('estado');
+
+        $query = Expediente::orderByDesc('id');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'like', "%$search%")
+                    ->orWhere('etapa_procesal', 'like', "%$search%")
+                    ->orWhere('tipo_proceso', 'like', "%$search%");
+            });
+        }
+
+        if ($estado && $estado !== 'Todos') {
+            $query->where('estado', $estado);
+        }
+
+        $expedientesPaginated = $query->paginate($perPage);
+
+        $registros = $expedientesPaginated->map(function ($expediente) {
+            return [
+                'id' => $expediente->id ?? 'N/A',
+                'estado' => $expediente->estado ?? 'Sin estado',
+                'cantidad_participes' => $expediente->participes->count(),
+                'expediente' => 0,
+                'fecha_creacion' => $expediente->created_at?->format('Y-m-d'),
+                'fecha_actualizacion' => $expediente->updated_at?->format('Y-m-d'),
+            ];
+        });
+
+        return response()->json([
+            'registros' => $registros,
+            'meta' => [
+                'current_page' => $expedientesPaginated->currentPage(),
+                'last_page' => $expedientesPaginated->lastPage(),
+                'per_page' => $expedientesPaginated->perPage(),
+                'total' => $expedientesPaginated->total(),
+            ],
+        ]);
+    }
 
 
     /**
