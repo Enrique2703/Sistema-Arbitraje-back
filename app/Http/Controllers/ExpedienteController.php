@@ -23,7 +23,7 @@ class ExpedienteController extends Controller
     {
         $perPage = $request->query('per_page', 20);
         $search = $request->query('search');
-        $estado = $request->query('estado'); // 🟢 Nuevo parámetro de filtro por estado
+        $estado = $request->query('estado'); //
 
         $query = Expediente::with('participes.participe')->orderBydesc('id');
 
@@ -70,9 +70,7 @@ class ExpedienteController extends Controller
     public function indexParticipes(Request $request)
     {
         $credencial = auth('api')->user();
-
         $participe = Auth::user()->participe;
-
 
         if (!$participe) {
             return response()->json([
@@ -81,12 +79,14 @@ class ExpedienteController extends Controller
             ], 404);
         }
 
-        $perPage = $request->query('per_page', 10);
-        $search = $request->query('search');
-        $estado = $request->query('estado');
+        $perPage = $request->query('per_page', 6);
+        $search = $request->query('search');           // Búsqueda por ID
+        $estado = $request->query('estado');           // Filtro por estado
+        $rol = $request->query('tipo_proceso');                 // Filtro por rol
 
         $query = Expediente::orderByDesc('id');
 
+        // 🔍 Búsqueda por ID, etapa_procesal o tipo_proceso
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('id', 'like', "%$search%")
@@ -95,17 +95,27 @@ class ExpedienteController extends Controller
             });
         }
 
+        // 🟢 Filtro por estado
         if ($estado && $estado !== 'Todos') {
             $query->where('estado', $estado);
         }
 
+        // 🟢 Filtro por rol (si es necesario filtrar por tipo de participante)
+        if ($rol && $rol !== 'Todos') {
+            $query->whereHas('participes', function ($q) use ($rol) {
+                $q->where('condicion', $rol);
+            });
+        }
+
         $expedientesPaginated = $query->paginate($perPage);
 
+        // 🔹 Transformar los datos antes de enviar al frontend
         $registros = $expedientesPaginated->map(function ($expediente) {
             return [
                 'id' => $expediente->id ?? 'N/A',
                 'estado' => $expediente->estado ?? 'Sin estado',
                 'cantidad_participes' => $expediente->participes->count(),
+                'mi_rol' => $expediente->participes->first()?->condicion ?? 'Demandado',
                 'expediente' => 0,
                 'fecha_creacion' => $expediente->created_at?->format('Y-m-d'),
                 'fecha_actualizacion' => $expediente->updated_at?->format('Y-m-d'),
@@ -122,7 +132,6 @@ class ExpedienteController extends Controller
             ],
         ]);
     }
-
 
     /**
      * Crear un nuevo expediente

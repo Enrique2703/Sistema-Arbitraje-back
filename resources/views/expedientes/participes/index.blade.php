@@ -749,11 +749,11 @@
                 `;
 
                 data.participes.forEach(p => {
-                    const nombre = p.participe?.nombre || p.nombre || 'N/A';
+                    const nombres = p.participe?.nombres || p.nombres || 'N/A';
                     const condicion = p.condicion || 'N/A';
                     html += `
                         <tr>
-                            <td>${nombre}</td>
+                            <td>${nombres}</td>
                             <td>${condicion}</td>
                         </tr>
                     `;
