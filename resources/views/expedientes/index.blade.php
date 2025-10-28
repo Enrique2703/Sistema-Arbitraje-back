@@ -104,6 +104,16 @@
 </div>
 
 <script>
+    function formatDate(dateString) {
+        if (!dateString) return '—';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    }
+
     let currentPage = 1;
     let lastPage = 1;
     let perPage = 7;
@@ -173,8 +183,8 @@
                     <td class="px-6 py-4">${exp.estado}</td>
                     <td class="px-6 py-4">${exp.cantidad_participes || 0}</td>
                     <td class="px-6 py-4">${exp.expediente || '0'}</td>
-                    <td class="px-6 py-4">${exp.fecha_creacion || '—'}</td>
-                    <td class="px-6 py-4">${exp.fecha_actualizacion || '—'}</td>
+                    <td class="px-6 py-4">${formatDate(exp.fecha_creacion) || '—'}</td>
+                    <td class="px-6 py-4">${formatDate(exp.fecha_actualizacion) || '—'}</td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex justify-end space-x-3">
                             <button onclick="openEditModal(${exp.id})" class="text-gray-900 font-medium hover:underline">Editar</button>

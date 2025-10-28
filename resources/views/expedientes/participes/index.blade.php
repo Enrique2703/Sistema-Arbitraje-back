@@ -15,6 +15,11 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             background-color: #f5f5f5;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         /* === HEADER === */
@@ -150,13 +155,27 @@
 
         /* === MAIN === */
         main {
-            padding: 60px 80px;
+            padding: 40px 80px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
         }
 
         h1 {
             font-size: 32px;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             font-weight: 400;
+        }
+
+        .table-scroll-container {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            margin: 20px 0;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .search-section {
@@ -493,8 +512,9 @@
             <button class="search-btn">Buscar</button>
         </div>
 
-        <table>
-            <thead>
+        <div class="table-scroll-container">
+            <table>
+                <thead>
                 <tr>
                     <th></th>
                     <th>ID</th>
@@ -511,6 +531,7 @@
                 </tr>
             </tbody>
         </table>
+        </div>
 
         <div class="pagination">
             <button class="pagination-btn" id="btnAnterior">← Anterior</button>
@@ -617,6 +638,16 @@
             }
         }
 
+        function formatearFecha(fecha) {
+            if (!fecha) return 'DD/MM/AA';
+            const date = new Date(fecha);
+            return date.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
         function renderExpedientes(expedientes) {
             const tbody = document.getElementById('expedientesTableBody');
             
@@ -632,7 +663,7 @@
                     <td><span class="badge ${exp.estado === 'Activo' ? 'activo' : ''}">${exp.estado}</span></td>
                     <td>Demandado</td>
                     <td>${exp.cantidad_participes}</td>
-                    <td>${exp.fecha_actualizacion || 'DD/MM/AA'}</td>
+                    <td>${formatearFecha(exp.fecha_actualizacion)}</td>
                     <td><button class="btn-seguir">Seguir trámite</button></td>
                 </tr>
             `).join('');
@@ -702,7 +733,7 @@
                     </div>
                     <div class="modal-field">
                         <label>Inicio del proceso:</label>
-                        <value>${data.inicio_proceso || 'DD/MM/AAAA'}</value>
+                        <value>${formatearFecha(data.inicio_proceso)}</value>
                     </div>
                     <div class="modal-field">
                         <label>Etapa procesal:</label>
@@ -718,7 +749,7 @@
                 html += `
                     <div class="modal-field">
                         <label>Fecha de Laudo Arbitral:</label>
-                        <value>${data.fecha_laudo}</value>
+                        <value>${formatearFecha(data.fecha_laudo)}</value>
                     </div>
                 `;
             }
@@ -727,7 +758,7 @@
                 html += `
                     <div class="modal-field">
                         <label>Fecha de Resolución que resuelve pedido contra Laudo Arbitral:</label>
-                        <value>${data.fecha_resolucion}</value>
+                        <value>${formatearFecha(data.fecha_resolucion)}</value>
                     </div>
                 `;
             }
