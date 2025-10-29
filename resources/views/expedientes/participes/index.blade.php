@@ -114,7 +114,7 @@
         }
 
         .modal-logout p {
-            color: #666;
+            color: #333;
             margin-bottom: 25px;
             font-size: 14px;
         }
@@ -257,13 +257,27 @@
             padding: 5px 15px;
             border-radius: 15px;
             font-size: 12px;
-            background-color: #d4d4d4;
-            color: #333;
+            font-weight: 500;
         }
 
-        .badge.activo {
-            background-color: #c8d4c0;
-            color: #2d5016;
+        .badge.en-tramite {
+            background-color: #FFF3CD;
+            color: #856404;
+        }
+
+        .badge.suspendido {
+            background-color: #F8D7DA;
+            color: #721C24;
+        }
+
+        .badge.archivado {
+            background-color: #D4EDDA;
+            color: #155724;
+        }
+
+        .badge.concluido {
+            background-color: #CCE5FF;
+            color: #004085;
         }
 
         .btn-seguir {
@@ -388,11 +402,38 @@
         }
 
         .modal-body {
-            padding: 25px;
+            padding: 30px;
+            overflow-y: auto;
+            max-height: 70vh;
         }
 
         .modal-section {
             margin-bottom: 30px;
+        }
+
+        .expediente-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .expediente-nombre {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .expediente-detalles {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+            padding-left: 2px;
+        }
+
+        .expediente-detalles span {
+            display: inline-flex;
+            align-items: center;
         }
 
         .modal-section h3 {
@@ -483,8 +524,6 @@
             width: 20px;
             height: auto;
         }
-
-        
     </style>
 </head>
 
@@ -515,22 +554,22 @@
         <div class="table-scroll-container">
             <table>
                 <thead>
-                <tr>
-                    <th></th>
-                    <th>ID</th>
-                    <th>Estado</th>
-                    <th>Mi rol</th>
-                    <th>Documentos</th>
-                    <th>Actualización</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody id="expedientesTableBody">
-                <tr>
-                    <td colspan="7" class="loading">Cargando expedientes...</td>
-                </tr>
-            </tbody>
-        </table>
+                    <tr>
+                        <th></th>
+                        <th>ID</th>
+                        <th>Estado</th>
+                        <th>Mi rol</th>
+                        <th>Documentos</th>
+                        <th>Actualización</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="expedientesTableBody">
+                    <tr>
+                        <td colspan="7" class="loading">Cargando expedientes...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
         <div class="pagination">
@@ -626,20 +665,27 @@
 
                 const result = await response.json();
                 renderExpedientes(result.registros);
-                
+
                 currentPage = result.meta.current_page;
                 totalPages = result.meta.last_page;
-                
+
                 actualizarPaginacion();
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('expedientesTableBody').innerHTML = 
+                document.getElementById('expedientesTableBody').innerHTML =
                     `<tr><td colspan="7" class="error">Error al cargar los expedientes</td></tr>`;
             }
         }
 
+        function formatearNombreExpediente(expediente) {
+            const nombre = expediente.numero || 'Expediente';
+            const anio = expediente.anio || '—';
+            const codigo = expediente.codigo || '—';
+            return `${nombre} - ${anio}/${codigo}`;
+        }
+
         function formatearFecha(fecha) {
-            if (!fecha) return 'DD/MM/AA';
+            if (!fecha) return '—';
             const date = new Date(fecha);
             return date.toLocaleDateString('es-ES', {
                 day: '2-digit',
@@ -648,9 +694,25 @@
             });
         }
 
+        function getEstadoClass(estado) {
+            switch (estado.toLowerCase()) {
+                case 'en trámite':
+                case 'en tramite':
+                    return 'en-tramite';
+                case 'suspendido':
+                    return 'suspendido';
+                case 'archivado':
+                    return 'archivado';
+                case 'concluido':
+                    return 'concluido';
+                default:
+                    return '';
+            }
+        }
+
         function renderExpedientes(expedientes) {
             const tbody = document.getElementById('expedientesTableBody');
-            
+
             if (expedientes.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" class="loading">No hay expedientes</td></tr>';
                 return;
@@ -659,12 +721,12 @@
             tbody.innerHTML = expedientes.map(exp => `
                 <tr>
                     <td><button class="btn-ver" data-id="${exp.id}">Ver</button></td>
-                    <td>${exp.id}</td>
-                    <td><span class="badge ${exp.estado === 'Activo' ? 'activo' : ''}">${exp.estado}</span></td>
+                    <td>${exp.numero || exp.id}</td>
+                    <td><span class="badge ${getEstadoClass(exp.estado)}">${exp.estado}</span></td>
                     <td>Demandado</td>
-                    <td>${exp.cantidad_participes}</td>
+                    <td>${exp.cantidad_documentos || '0'}</td>
                     <td>${formatearFecha(exp.fecha_actualizacion)}</td>
-                    <td><button class="btn-seguir">Seguir trámite</button></td>
+                    <td><button class="btn-seguir" data-id="${exp.id}" data-nombre="${formatearNombreExpediente(exp)}">Seguir trámite</button></td>
                 </tr>
             `).join('');
 
@@ -676,7 +738,7 @@
                 btn.addEventListener('click', async function() {
                     const expedienteId = this.getAttribute('data-id');
                     const token = getToken();
-                    
+
                     if (!token) {
                         alert('Token no encontrado. Por favor inicia sesión.');
                         return;
@@ -693,11 +755,11 @@
                                 'Accept': 'application/json'
                             }
                         });
-                        
+
                         if (!response.ok) throw new Error('Error al cargar el expediente');
 
                         const result = await response.json();
-                        
+
                         if (result.status && result.data) {
                             renderModalContent(result.data);
                         } else {
@@ -712,9 +774,9 @@
 
             document.querySelectorAll('.btn-seguir').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    const row = this.closest('tr');
-                    const id = row.querySelector('td:nth-child(2)').textContent;
-                    console.log('Seguir trámite:', id);
+                    const id = this.getAttribute('data-id');
+                    const nombre = this.getAttribute('data-nombre');
+                    window.location.href = `${window.location.origin}/expedientes/participes/seguimiento?id=${id}&nombre=${encodeURIComponent(nombre)}`;
                 });
             });
         }
@@ -724,8 +786,18 @@
                 <div class="modal-section">
                     <h3>Información del caso</h3>
                     <div class="modal-field">
-                        <label>Número de expediente:</label>
-                        <value>${data.numero || 'N/A'}</value>
+                        <label>Nombre del expediente:</label>
+                        <div class="expediente-info">
+                            <value class="expediente-nombre">${data.numero || 'N/A'}</value>
+                        </div>
+                    </div>
+                    <div class="modal-field">
+                        <label>Año:</label>
+                        <value>${data.anio || 'N/A'}</value>
+                    </div>
+                    <div class="modal-field">
+                        <label>Codigo:</label>
+                        <value>${data.codigo|| 'N/A'}</value>
                     </div>
                     <div class="modal-field">
                         <label>Tipo de expediente:</label>
@@ -741,7 +813,7 @@
                     </div>
                     <div class="modal-field">
                         <label>Documentos subidos:</label>
-                        <value>${data.cantidad_participes || 0}</value>
+                        <value>${data.cantidad_documentos || 0}</value>
                     </div>
             `;
 
@@ -764,39 +836,6 @@
             }
 
             html += `</div>`;
-
-            if (data.participes && data.participes.length > 0) {
-                html += `
-                    <div class="modal-section">
-                        <h3>Partícipes</h3>
-                        <table class="participes-table">
-                            <thead>
-                                <tr>
-                                    <th>Nombres Apellidos</th>
-                                    <th>Condición</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
-
-                data.participes.forEach(p => {
-                    const nombres = p.participe?.nombres || p.nombres || 'N/A';
-                    const condicion = p.condicion || 'N/A';
-                    html += `
-                        <tr>
-                            <td>${nombres}</td>
-                            <td>${condicion}</td>
-                        </tr>
-                    `;
-                });
-
-                html += `
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-            }
-
             document.getElementById('modalBody').innerHTML = html;
         }
 

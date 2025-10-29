@@ -104,6 +104,22 @@
 </div>
 
 <script>
+    function getEstadoClass(estado) {
+        switch(estado.toLowerCase()) {
+            case 'en trámite':
+            case 'en tramite':
+                return 'bg-yellow-100 text-yellow-800';
+            case 'suspendido':
+                return 'bg-red-100 text-red-800';
+            case 'archivado':
+                return 'bg-green-100 text-green-800';
+            case 'concluido':
+                return 'bg-blue-100 text-blue-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
+        }
+    }
+
     function formatDate(dateString) {
         if (!dateString) return '—';
         const date = new Date(dateString);
@@ -180,7 +196,11 @@
             tbody.innerHTML += `
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4">${String(exp.id).padStart(4, '0')}</td>
-                    <td class="px-6 py-4">${exp.estado}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-3 py-1 rounded-full text-sm font-medium ${getEstadoClass(exp.estado)}">
+                            ${exp.estado}
+                        </span>
+                    </td>
                     <td class="px-6 py-4">${exp.cantidad_participes || 0}</td>
                     <td class="px-6 py-4">${exp.expediente || '0'}</td>
                     <td class="px-6 py-4">${formatDate(exp.fecha_creacion) || '—'}</td>

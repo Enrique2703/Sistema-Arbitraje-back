@@ -29,3 +29,7 @@ Route::get('/auditoria', function () {
 Route::get('/expedientes/participes', function () {
     return view('expedientes.participes.index');
 })->name('expedientes.participes.index');
+
+Route::get('/expedientes/participes/seguimiento', function () {
+    return view('expedientes.participes.se_tramite');
+})->name('expedientes.participes.seguimiento');

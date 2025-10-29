@@ -1,3 +1,7 @@
+<!-- Tom Select CSS y JS -->
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
 <!-- Modal Overlay para Editar Expediente -->
 <div id="editModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden">
     <div class="flex items-center justify-center min-h-screen p-4">
@@ -387,6 +391,58 @@
     });
 </script>
 <script>
+    function inicializarTomSelect(selects, datos, selectedId = '') {
+        selects.forEach(select => {
+            // Destruir instancia anterior si existe
+            if (select.tomselect) {
+                select.tomselect.destroy();
+            }
+
+            new TomSelect(select, {
+                valueField: 'id',
+                labelField: 'nombres',
+                searchField: ['nombres', 'email', 'nombre'],
+                options: datos,
+                create: false,
+                placeholder: select.name.includes('participes') ? 'Buscar partícipe...' : 'Buscar usuario...',
+                render: {
+                    option: function(item, escape) {
+                        return `<div class="py-2 px-3">
+                            <div class="font-medium">${escape(item.nombres || item.nombre || '')}</div>
+                            <div class="text-sm text-gray-600">${escape(item.email || '')}</div>
+                        </div>`;
+                    },
+                    item: function(item, escape) {
+                        return `<div>${escape(item.nombres || item.nombre || '')}</div>`;
+                    }
+                },
+                loadingClass: 'loading',
+                load: async function(query, callback) {
+                    try {
+                        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                        const endpoint = select.name.includes('participes') ? '/api/participes' : '/api/usuarios';
+                        const response = await fetch(`${endpoint}?search=${encodeURIComponent(query)}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Accept': 'application/json'
+                            }
+                        });
+                        const json = await response.json();
+                        callback(json.registros || []);
+                    } catch (e) {
+                        console.error('Error cargando datos:', e);
+                        callback();
+                    }
+                }
+            });
+
+            // Si hay un selectedId, seleccionarlo
+            if (selectedId && select.tomselect) {
+                select.tomselect.setValue(selectedId);
+            }
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
         await cargarUsuariosEdit();
         await cargarParticipesEdit();
@@ -404,6 +460,12 @@
             if (!res.ok) throw new Error('Error al obtener usuarios');
             const data = await res.json();
             window.listaUsuariosEdit = data.registros || data || [];
+
+            // Inicializar Tom Select en todos los selects de usuarios
+            inicializarTomSelect(
+                document.querySelectorAll('select[name="arbitros[]"], select[name="adjutadores[]"], select[name="secretarios_tecnicos[]"]'),
+                window.listaUsuariosEdit
+            );
         } catch (error) {
             console.error('Error cargando usuarios (editar):', error);
         }
@@ -421,6 +483,12 @@
             if (!res.ok) throw new Error('Error al obtener partícipes');
             const data = await res.json();
             window.listaParticipesEdit = data.registros || data || [];
+
+            // Inicializar Tom Select en todos los selects de partícipes
+            inicializarTomSelect(
+                document.querySelectorAll('select[name="participes_id[]"]'),
+                window.listaParticipesEdit
+            );
         } catch (error) {
             console.error('Error cargando partícipes (editar):', error);
         }
@@ -429,10 +497,6 @@
     function crearFilaUsuarioSelect(name, usuarios, selectedId = '') {
         const row = document.createElement('div');
         row.className = 'flex items-center gap-2 mb-2';
-        const options = usuarios.map(u => `
-        <option value="${u.id}" ${u.id == selectedId ? 'selected' : ''}>
-            ${u.nombres || 'Sin nombre'}
-        </option>`).join('');
 
         row.innerHTML = `
         <button type="button" onclick="this.parentElement.remove()"
@@ -441,20 +505,19 @@
         <select name="${name}"
             class="flex-1 px-3 py-2 border border-gray-300 rounded-md
                     focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-            <option value="">Seleccione</option>
-            ${options}
+            <option value="">Seleccionar usuario</option>
         </select>
     `;
+        const select = row.querySelector('select');
+        if (usuarios && usuarios.length) {
+            inicializarTomSelect([select], usuarios, selectedId);
+        }
         return row;
     }
 
     function crearFilaParticipesSelect(clientes, selectedId = '', condicion = '') {
         const row = document.createElement('div');
         row.className = 'flex items-center gap-2 mb-2';
-        const clienteOptions = clientes.map(c => `
-        <option value="${c.id}" ${c.id == selectedId ? 'selected' : ''}>
-            ${c.nombres || 'Sin nombre'}
-        </option>`).join('');
 
         row.innerHTML = `
         <button type="button" onclick="this.parentElement.remove()"
@@ -463,8 +526,7 @@
         <select name="participes_id[]"
             class="flex-1 px-3 py-2 border border-gray-300 rounded-md
                     focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-            <option value="">Seleccione</option>
-            ${clienteOptions}
+            <option value="">Seleccionar partícipe</option>
         </select>
         <select name="participes_condicion[]"
             class="w-40 px-3 py-2 border border-gray-300 rounded-md
@@ -474,6 +536,12 @@
             <option value="Demandado" ${condicion === 'Demandado' ? 'selected' : ''}>Demandado</option>
         </select>
     `;
+        
+        const select = row.querySelector('select[name="participes_id[]"]');
+        if (clientes && clientes.length) {
+            inicializarTomSelect([select], clientes, selectedId);
+        }
+        
         return row;
     }
 
