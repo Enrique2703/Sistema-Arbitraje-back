@@ -691,9 +691,49 @@
             cargarDocumentos();
 
             // Configurar handlers para el modal de nuevo documento
-            window.presentarDocumento = function() {
+            window.presentarDocumento = async function() {
                 const modal = document.getElementById('modalNuevoDocumento');
-                modal.classList.add('active');
+                const expedienteId = new URLSearchParams(window.location.search).get('id');
+                
+                try {
+                    const token = getToken();
+                    if (!token) {
+                        throw new Error('No se encontró el token de autenticación');
+                    }
+
+                    // Obtener el expediente actual con el rol del usuario
+                    const response = await fetch(`/api/expedientes/${expedienteId}`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Error al cargar el expediente');
+                    }
+
+                    const result = await response.json();
+                    
+                    // Buscar el participe que coincide con el usuario actual
+                    const usuario = getUsuario();
+                    if (result.status && result.data && result.data.participes) {
+                        const participeActual = result.data.participes.find(p => 
+                            p.participe_id === usuario.id
+                        );
+
+                        if (participeActual) {
+                            document.getElementById('parte').value = participeActual.condicion;
+                            console.log('Rol establecido:', participeActual.condicion);
+                        }
+                    }
+
+                    modal.classList.add('active');
+                } catch (error) {
+                    console.error('Error al obtener el rol:', error);
+                    modal.classList.add('active');
+                }
             };
 
             window.cerrarModalNuevoDocumento = function() {
@@ -977,7 +1017,8 @@
         }
 
         function presentarDocumento() {
-            console.log('Presentar documento');
+            // Esta función es reemplazada por la versión en window.presentarDocumento
+            window.presentarDocumento();
         }
 
         function verDocumento(id) {

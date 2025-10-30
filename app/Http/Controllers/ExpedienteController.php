@@ -110,15 +110,18 @@ class ExpedienteController extends Controller
         $expedientesPaginated = $query->paginate($perPage);
 
         // 🔹 Transformar los datos antes de enviar al frontend
-        $registros = $expedientesPaginated->map(function ($expediente) {
+        $registros = $expedientesPaginated->map(function ($expediente) use ($participe) {
+            // Get the participant role for this specific expediente
+            $participeExpediente = $expediente->participes()->first();
+
             return [
-                'id' => $expediente->id ?? 'N/A',
-                'estado' => $expediente->estado ?? 'Sin estado',
-                'cantidad_participes' => $expediente->participes->count(),
-                'mi_rol' => $expediente->participes->first()?->condicion ?? 'Demandado',
-                'expediente' => 0,
-                'fecha_creacion' => $expediente->created_at?->format('Y-m-d'),
-                'fecha_actualizacion' => $expediente->updated_at?->format('Y-m-d'),
+            'id' => $expediente->id ?? 'N/A',
+            'estado' => $expediente->estado ?? 'Sin estado',
+            'cantidad_participes' => $expediente->participes->count(),
+            'condicion' => $participeExpediente?->condicion ?? 'Sin rol',
+            'expediente' => 0,
+            'fecha_creacion' => $expediente->created_at?->format('Y-m-d'),
+            'fecha_actualizacion' => $expediente->updated_at?->format('Y-m-d'),
             ];
         });
 

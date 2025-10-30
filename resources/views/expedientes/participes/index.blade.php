@@ -723,7 +723,7 @@
                     <td><button class="btn-ver" data-id="${exp.id}">Ver</button></td>
                     <td>${exp.numero || exp.id}</td>
                     <td><span class="badge ${getEstadoClass(exp.estado)}">${exp.estado}</span></td>
-                    <td>Demandado</td>
+                    <td>${exp.condicion || exp.participesCondiciones}</td></td>
                     <td>${exp.cantidad_documentos || '0'}</td>
                     <td>${formatearFecha(exp.fecha_actualizacion)}</td>
                     <td><button class="btn-seguir" data-id="${exp.id}" data-nombre="${formatearNombreExpediente(exp)}">Seguir trámite</button></td>

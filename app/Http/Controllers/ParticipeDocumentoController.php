@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Expediente;
 use App\Models\ParticipeDocumento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -48,7 +49,6 @@ class ParticipeDocumentoController extends Controller
         $participe = Auth::user()->participe;
         $validator = Validator::make($request->all(), [
             'expediente_id' => 'required|exists:expedientes,id',
-            'parte' => 'nullable|string|max:255',
             'sumilla' => 'nullable|string',
             'enlace_descarga' => 'nullable|string|max:255',
             'archivos.*' => 'nullable|file|max:10240', // máximo 10MB por archivo
@@ -64,12 +64,15 @@ class ParticipeDocumentoController extends Controller
         // Iniciar transacción
         DB::beginTransaction();
 
+        $expediente = Expediente::find($request->expediente_id);
+        $participeExpediente = $expediente->participes()->first();
+        
         try {
             // Crear el documento
             $documento = ParticipeDocumento::create([
                 'participe_id' => $participe->id,
                 'expediente_id' => $request->expediente_id,
-                'parte' => $request->parte,
+                'parte' => $participeExpediente->condicion,
                 'sumilla' => $request->sumilla,
                 'enlace_descarga' => $request->enlace_descarga,
             ]);
