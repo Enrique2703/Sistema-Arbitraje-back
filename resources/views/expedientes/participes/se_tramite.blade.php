@@ -499,6 +499,62 @@
             border: 1px solid #f5c6cb;
         }
 
+        /* === MODAL VER ARCHIVOS === */
+        .modal-ver-archivos {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .modal-ver-archivos h2 {
+            font-size: 24px;
+            margin: 0 0 25px 0;
+            color: #333;
+        }
+
+        .archivos-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .archivo-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            gap: 15px;
+        }
+
+        .archivo-icon {
+            width: 24px;
+            height: 24px;
+            opacity: 0.7;
+        }
+
+        .archivo-nombre {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .btn-abrir-archivo {
+            padding: 8px 20px;
+            background: #000;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-abrir-archivo:hover {
+            background: #333;
+        }
+
         @media (max-width: 1200px) {
             .main-content {
                 padding: 40px 40px;
@@ -575,6 +631,19 @@
             <div class="modal-logout-buttons">
                 <button class="btn-confirmar-logout" id="btnConfirmarLogout">Cerrar sesión</button>
                 <button class="btn-cancelar-logout" id="btnCancelarLogout">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VER ARCHIVOS -->
+    <div class="modal-overlay" id="modalVerArchivos">
+        <div class="modal-ver-archivos">
+            <h2>Archivos del documento</h2>
+            <div class="archivos-list" id="archivosDocumentoList">
+                <!-- Los archivos se cargarán aquí dinámicamente -->
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancelar" onclick="cerrarModalVerArchivos()">Cerrar</button>
             </div>
         </div>
     </div>
@@ -701,7 +770,7 @@
                         throw new Error('No se encontró el token de autenticación');
                     }
 
-                    // Obtener el expediente actual con el rol del usuario
+                    // Obtener el expediente actual
                     const response = await fetch(`/api/expedientes/${expedienteId}`, {
                         method: 'GET',
                         headers: {
@@ -716,17 +785,11 @@
 
                     const result = await response.json();
                     
-                    // Buscar el participe que coincide con el usuario actual
-                    const usuario = getUsuario();
-                    if (result.status && result.data && result.data.participes) {
-                        const participeActual = result.data.participes.find(p => 
-                            p.participe_id === usuario.id
-                        );
-
-                        if (participeActual) {
-                            document.getElementById('parte').value = participeActual.condicion;
-                            console.log('Rol establecido:', participeActual.condicion);
-                        }
+                    // Obtener la condición del primer participe
+                    if (result.status && result.data && result.data.participes && result.data.participes.length > 0) {
+                        const primerParticipe = result.data.participes[0];
+                        document.getElementById('parte').value = primerParticipe.condicion;
+                        console.log('Condición establecida:', primerParticipe.condicion);
                     }
 
                     modal.classList.add('active');
@@ -1021,9 +1084,67 @@
             window.presentarDocumento();
         }
 
-        function verDocumento(id) {
-            console.log('Ver documento:', id);
+        async function verDocumento(id) {
+            try {
+                const token = getToken();
+                if (!token) {
+                    throw new Error('No se encontró el token de autenticación');
+                }
+
+                const response = await fetch(`/api/participe-documentos/${id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al cargar el documento');
+                }
+
+                const result = await response.json();
+                if (result.registro && result.registro.archivos) {
+                    mostrarArchivosEnModal(result.registro.archivos);
+                } else {
+                    alert('No se encontraron archivos adjuntos');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message || 'Error al cargar los archivos');
+            }
         }
+
+        function mostrarArchivosEnModal(archivos) {
+            const container = document.getElementById('archivosDocumentoList');
+            container.innerHTML = archivos.map(archivo => `
+                <div class="archivo-item">
+                    <svg class="archivo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                        <polyline points="13 2 13 9 20 9"></polyline>
+                    </svg>
+                    <span class="archivo-nombre">${archivo.archivo_adjunto.split('/').pop()}</span>
+                    <button class="btn-abrir-archivo" onclick="abrirArchivo('${archivo.archivo_adjunto}')">Abrir</button>
+                </div>
+            `).join('');
+
+            document.getElementById('modalVerArchivos').classList.add('active');
+        }
+
+        function abrirArchivo(ruta) {
+            window.open('/storage/' + ruta, '_blank');
+        }
+
+        function cerrarModalVerArchivos() {
+            document.getElementById('modalVerArchivos').classList.remove('active');
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('modalVerArchivos').addEventListener('click', (e) => {
+            if (e.target.id === 'modalVerArchivos') {
+                cerrarModalVerArchivos();
+            }
+        });
 
         function descargarDocumento(id) {
             console.log('Descargar documento:', id);
