@@ -767,7 +767,7 @@
                     throw new Error('No se encontró el token de autenticación');
                 }
 
-                const url = new URL('/api/expedientes/participes/documentos', window.location.origin);
+                const url = new URL('/api/participe-documentos', window.location.origin);
                 url.searchParams.append('expediente_id', expedienteId);
 
                 const response = await fetch(url, {
