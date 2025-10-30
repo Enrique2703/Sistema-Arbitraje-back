@@ -169,6 +169,37 @@
             margin-top: 10px;
         }
 
+        .selected-files {
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .selected-file {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+
+        .selected-file-name {
+            font-size: 13px;
+            color: #333;
+            margin-right: 10px;
+        }
+
+        .remove-file {
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
         .modal-actions {
             display: flex;
             justify-content: flex-end;
@@ -230,7 +261,7 @@
             margin-bottom: 15px;
             color: #333;
         }
-        
+
 
         .modal-logout-buttons {
             display: flex;
@@ -553,30 +584,33 @@
         <div class="modal-nuevo-documento">
             <h2>Nuevo documento</h2>
             <form id="formNuevoDocumento" class="form-nuevo-documento">
+                <input type="hidden" name="expediente_id" id="expediente_id">
+
                 <div class="form-group">
                     <label>Parte</label>
-                    <input type="text" value="Demandante" readonly class="form-control">
+                    <input type="text" name="parte" id="parte" class="form-control" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label>Sumilla</label>
-                    <input type="text" placeholder="Placeholder" class="form-control">
+                    <input type="text" name="sumilla" id="sumilla" placeholder="Ingrese la sumilla del documento" class="form-control" required>
                 </div>
 
                 <div class="form-group">
                     <label>Cargar del escritorio</label>
                     <div class="file-upload-area">
                         <div class="file-upload-button">
-                            <span>Adjuntar archivos (PDF)</span>
-                            <input type="file" accept=".pdf" class="file-input">
+                            <span>Adjuntar archivos (PDF, PNG, JPG)</span>
+                            <input type="file" accept=".pdf,.png,.jpg,.jpeg" name="archivos[]" class="file-input" id="archivos" multiple>
                         </div>
+                        <div id="selectedFiles" class="selected-files"></div>
                     </div>
                     <p class="file-size-note">Si el archivo no supera los 10mb adjuntar en el siguiente recuadro en formato pdf, en caso superar el límite configurar el link de descarga</p>
                 </div>
 
                 <div class="form-group">
                     <label>Insertar enlace de descarga</label>
-                    <input type="text" placeholder="Enlace" class="form-control">
+                    <input type="text" name="enlace_descarga" id="enlace_descarga" placeholder="Enlace para archivos que superan 10mb" class="form-control">
                 </div>
 
                 <div class="modal-actions">
@@ -651,7 +685,7 @@
             // Obtener y mostrar el nombre del expediente
             const params = new URLSearchParams(window.location.search);
             const expedienteId = params.get('id');
-            
+
             // Cargar detalles del expediente
             cargarDetallesExpediente(expedienteId);
             cargarDocumentos();
@@ -675,11 +709,109 @@
                 }
             });
 
+            // Configurar el input de archivos
+            const archivosInput = document.getElementById('archivos');
+            const selectedFilesDiv = document.getElementById('selectedFiles');
+
+            archivosInput.addEventListener('change', function(e) {
+                selectedFilesDiv.innerHTML = '';
+                Array.from(this.files).forEach((file, index) => {
+                    const fileDiv = document.createElement('div');
+                    fileDiv.className = 'selected-file';
+                    fileDiv.innerHTML = `
+                        <span class="selected-file-name">${file.name}</span>
+                        <button type="button" class="remove-file" data-index="${index}">×</button>
+                    `;
+                    selectedFilesDiv.appendChild(fileDiv);
+                });
+
+                // Agregar event listeners para los botones de eliminar
+                selectedFilesDiv.querySelectorAll('.remove-file').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const dt = new DataTransfer();
+                        const {
+                            files
+                        } = archivosInput;
+                        const index = parseInt(this.dataset.index);
+
+                        for (let i = 0; i < files.length; i++) {
+                            if (i !== index) dt.items.add(files[i]);
+                        }
+
+                        archivosInput.files = dt.files;
+                        this.closest('.selected-file').remove();
+
+                        // Actualizar los índices de los botones restantes
+                        selectedFilesDiv.querySelectorAll('.remove-file').forEach((btn, idx) => {
+                            btn.dataset.index = idx;
+                        });
+                    });
+                });
+            });
+
             // Manejar el envío del formulario
             document.getElementById('formNuevoDocumento').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                // Aquí irá la lógica para enviar el documento
-                cerrarModalNuevoDocumento();
+                
+                try {
+                    const token = getToken();
+                    if (!token) {
+                        throw new Error('No se encontró el token de autenticación');
+                    }
+
+                    const formData = new FormData();
+                    
+                    // Obtener los valores de los campos
+                    const expedienteId = new URLSearchParams(window.location.search).get('id');
+                    const parte = document.getElementById('parte').value;
+                    const sumilla = document.getElementById('sumilla').value;
+                    const enlaceDescarga = document.getElementById('enlace_descarga').value;
+                    
+                    console.log('Valores a enviar:', {
+                        expediente_id: expedienteId,
+                        parte: parte,
+                        sumilla: sumilla,
+                        enlace_descarga: enlaceDescarga
+                    });
+
+                    // Agregar los campos al FormData
+                    formData.append('expediente_id', expedienteId);
+                    formData.append('parte', parte);
+                    formData.append('sumilla', sumilla);
+                    formData.append('enlace_descarga', enlaceDescarga);
+                    
+                    // Agregar los archivos
+                    const archivosInput = document.getElementById('archivos');
+                    for (let i = 0; i < archivosInput.files.length; i++) {
+                        formData.append('archivos[]', archivosInput.files[i]);
+                    }
+
+                    console.log('Enviando petición...');
+                    
+                    const response = await fetch('/api/participe-documentos', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    console.log('Respuesta del servidor:', result);
+
+                    if (!response.ok) {
+                        throw new Error(result.message || 'Error al enviar el documento');
+                    }
+
+                    alert('Documento presentado exitosamente');
+                    cerrarModalNuevoDocumento();
+                    cargarDocumentos(); // Recargar la lista de documentos
+                } catch (error) {
+                    console.error('Error:', error);
+                    console.log('Detalles del error:', error);
+                    alert(error.message || 'Error al presentar el documento');
+                }
             });
         });
 
@@ -700,13 +832,6 @@
         });
 
         // Manejar el envío del formulario
-        document.getElementById('formNuevoDocumento').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            // Aquí irá la lógica para enviar el documento
-            // Por ahora solo cerramos el modal
-            cerrarModalNuevoDocumento();
-        });
-
         function getUsuario() {
             const usuarioStr = localStorage.getItem('usuario') || sessionStorage.getItem('usuario');
             return usuarioStr ? JSON.parse(usuarioStr) : null;
@@ -823,8 +948,8 @@
                     <div class="documento-contenido">
                         <div class="documento-info">
                             <p><span class="label">Presentado por</span> ${doc.participe?.nombres || doc.nombre_participe || 'Nombre Apellido'}</p>
-                            <p><span class="label">Condición</span> ${doc.condicion || 'Demandante'}</p>
-                            <p><span class="label">Asunto</span> ${doc.asunto || 'Demanda'}</p>
+                            <p><span class="label">Condición</span> ${doc.parte || '-'}</p>
+                            <p><span class="label">Asunto</span> ${doc.sumilla || '-'}</p>
                             <p><span class="label">Fecha y hora</span> ${formatearFecha(doc.fecha_presentacion) || 'DD/MM/AAAA, 00:00:00'}</p>
                             <p><span class="label">Proveído</span> ${doc.proveido || '—'}</p>
                             <p><span class="label">Fecha de proveído</span> ${formatearFecha(doc.fecha_proveido) || '—'}</p>

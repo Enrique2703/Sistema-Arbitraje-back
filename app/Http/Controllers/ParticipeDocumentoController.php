@@ -50,7 +50,7 @@ class ParticipeDocumentoController extends Controller
             'expediente_id' => 'required|exists:expedientes,id',
             'parte' => 'nullable|string|max:255',
             'sumilla' => 'nullable|string',
-            'enlace_descarga' => 'required|string|max:255',
+            'enlace_descarga' => 'nullable|string|max:255',
             'archivos.*' => 'nullable|file|max:10240', // máximo 10MB por archivo
         ]);
 
