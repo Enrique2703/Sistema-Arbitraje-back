@@ -1146,8 +1146,46 @@
             }
         });
 
-        function descargarDocumento(id) {
-            console.log('Descargar documento:', id);
+        async function descargarDocumento(id) {
+            try {
+                const token = getToken();
+                if (!token) {
+                    throw new Error('No se encontró el token de autenticación');
+                }
+
+                const response = await fetch(`/api/participe-documentos/${id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al cargar el documento');
+                }
+
+                const result = await response.json();
+                if (result.registro && result.registro.archivos && result.registro.archivos.length > 0) {
+                    // Si hay múltiples archivos, descarga el primero
+                    const archivo = result.registro.archivos[0];
+                    const nombreArchivo = archivo.archivo_adjunto.split('/').pop();
+                    const url = `/storage/${archivo.archivo_adjunto}`;
+                    
+                    // Crear un enlace temporal y simular clic
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = nombreArchivo; // Esto sugiere al navegador que descargue en lugar de abrir
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } else {
+                    alert('No se encontraron archivos para descargar');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message || 'Error al descargar el archivo');
+            }
         }
 
         function verResolucion(id) {
