@@ -207,6 +207,8 @@
                     <td class="px-6 py-4">${formatDate(exp.fecha_actualizacion) || '—'}</td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex justify-end space-x-3">
+                            <button onclick="verDocumentos(${exp.id})" class="bg-black text-white px-2 py-1 rounded text-sm">Documentos</button>
+                            <button onclick="verHistorial(${exp.id})" class="bg-black text-white px-2 py-1 rounded text-sm">Historial</button>
                             <button onclick="openEditModal(${exp.id})" class="text-gray-900 font-medium hover:underline">Editar</button>
                             <button onclick="deleteExpediente(${exp.id})" class="text-red-500 hover:underline">Eliminar</button>
                         </div>
@@ -281,5 +283,16 @@
             loadExpedientes(1, perPage, e.target.value.trim(), estadoSeleccionado);
         }, 300);
     });
+
+    function verDocumentos(id) {
+        // Redirigir a la página de documentos del expediente
+        window.location.href = `/expedientes/participes/se_tramite?id=${id}`;
+    }
+
+    function verHistorial(id) {
+        // Por implementar - Redirigir a la página de historial del expediente
+        alert('Funcionalidad de historial en desarrollo');
+        // window.location.href = `/expedientes/${id}/historial`;
+    }
 </script>
 @endsection
