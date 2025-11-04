@@ -50,7 +50,7 @@ class ExpedienteController extends Controller
                 'id' => $expediente->id ?? 'N/A',
                 'estado' => $expediente->estado ?? 'Sin estado',
                 'cantidad_participes' => $expediente->participes->count(),
-                'expediente' => 0,
+                'documentos' => $expediente->participeDocumentos()->count(),
                 'fecha_creacion' => $expediente->created_at ? $expediente->created_at->format('Y-m-d') : null,
                 'fecha_actualizacion' => $expediente->updated_at ? $expediente->updated_at->format('Y-m-d') : null,
             ];
@@ -80,13 +80,12 @@ class ExpedienteController extends Controller
         }
 
         $perPage = $request->query('per_page', 6);
-        $search = $request->query('search');           // Búsqueda por ID
-        $estado = $request->query('estado');           // Filtro por estado
-        $rol = $request->query('tipo_proceso');                 // Filtro por rol
+        $search = $request->query('search');
+        $estado = $request->query('estado');
+        $rol = $request->query('tipo_proceso');
 
         $query = Expediente::orderByDesc('id');
 
-        // 🔍 Búsqueda por ID, etapa_procesal o tipo_proceso
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('id', 'like', "%$search%")
@@ -95,12 +94,10 @@ class ExpedienteController extends Controller
             });
         }
 
-        // 🟢 Filtro por estado
         if ($estado && $estado !== 'Todos') {
             $query->where('estado', $estado);
         }
 
-        // 🟢 Filtro por rol (si es necesario filtrar por tipo de participante)
         if ($rol && $rol !== 'Todos') {
             $query->whereHas('participes', function ($q) use ($rol) {
                 $q->where('condicion', $rol);

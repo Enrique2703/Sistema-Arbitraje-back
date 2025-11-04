@@ -202,7 +202,7 @@
                         </span>
                     </td>
                     <td class="px-6 py-4">${exp.cantidad_participes || 0}</td>
-                    <td class="px-6 py-4">${exp.expediente || '0'}</td>
+                    <td class="px-6 py-4">${exp.documentos || '0'}</td>
                     <td class="px-6 py-4">${formatDate(exp.fecha_creacion) || '—'}</td>
                     <td class="px-6 py-4">${formatDate(exp.fecha_actualizacion) || '—'}</td>
                     <td class="px-6 py-4 text-right">
