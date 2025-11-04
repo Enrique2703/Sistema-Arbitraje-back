@@ -116,10 +116,15 @@ class ExpedienteController extends Controller
 
             return [
             'id' => $expediente->id ?? 'N/A',
+            'codigo' => sprintf('%s - %s/%s',
+                $expediente->numero ?? 'Expediente', 
+                $expediente->anio ?? '—',
+                $expediente->codigo ?? '—'
+            ),
             'estado' => $expediente->estado ?? 'Sin estado',
             'cantidad_participes' => $expediente->participes->count(),
             'condicion' => $participeExpediente?->condicion ?? 'Sin rol',
-            'expediente' => 0,
+            'cantidad_documentos' => $expediente->participeDocumentos->count() ?? 0,
             'fecha_creacion' => $expediente->created_at?->format('Y-m-d'),
             'fecha_actualizacion' => $expediente->updated_at?->format('Y-m-d'),
             ];

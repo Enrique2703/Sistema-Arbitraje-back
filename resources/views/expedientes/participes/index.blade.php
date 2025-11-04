@@ -556,7 +556,7 @@
                 <thead>
                     <tr>
                         <th></th>
-                        <th>ID</th>
+                        <th>Nombre de Expediente</th>
                         <th>Estado</th>
                         <th>Mi rol</th>
                         <th>Documentos</th>
@@ -721,7 +721,7 @@
             tbody.innerHTML = expedientes.map(exp => `
                 <tr>
                     <td><button class="btn-ver" data-id="${exp.id}">Ver</button></td>
-                    <td>${exp.numero || exp.id}</td>
+                    <td>${exp.codigo}</td>
                     <td><span class="badge ${getEstadoClass(exp.estado)}">${exp.estado}</span></td>
                     <td>${exp.condicion || exp.participesCondiciones}</td></td>
                     <td>${exp.cantidad_documentos || '0'}</td>

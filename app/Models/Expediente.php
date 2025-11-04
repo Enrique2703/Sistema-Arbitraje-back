@@ -59,4 +59,9 @@ class Expediente extends Model
     {
         return $this->hasOne(ExpedienteFechaResolucion::class, 'expediente_id');
     }
+
+    public function participeDocumentos()
+    {
+        return $this->hasMany(ParticipeDocumento::class, 'expediente_id');
+    }
 }
