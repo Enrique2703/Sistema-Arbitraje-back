@@ -972,14 +972,22 @@
 
         function formatearFecha(fecha) {
             if (!fecha) return '—';
-            const date = new Date(fecha);
-            return date.toLocaleDateString('es-ES', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            try {
+                const date = new Date(fecha);
+                if (isNaN(date.getTime())) return '—';
+                return date.toLocaleString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+            } catch (error) {
+                console.error('Error al formatear fecha:', error);
+                return '—';
+            }
         }
 
         async function cargarDocumentos() {
@@ -1050,10 +1058,10 @@
                 <div class="documento-card">
                     <div class="documento-contenido">
                         <div class="documento-info">
-                            <p><span class="label">Presentado por</span> ${doc.participe?.nombres || doc.nombre_participe || 'Nombre Apellido'}</p>
+                                                        <p><span class="label">Presentado por</span> ${doc.participe?.nombres || doc.nombre_participe || 'Nombre Apellido'}</p>
                             <p><span class="label">Condición</span> ${doc.parte || '-'}</p>
                             <p><span class="label">Asunto</span> ${doc.sumilla || '-'}</p>
-                            <p><span class="label">Fecha y hora</span> ${formatearFecha(doc.fecha_presentacion) || 'DD/MM/AAAA, 00:00:00'}</p>
+                            <p><span class="label">Fecha y hora</span> ${formatearFecha(doc.created_at)}</p>
                             <p><span class="label">Proveído</span> ${doc.proveido || '—'}</p>
                             <p><span class="label">Fecha de proveído</span> ${formatearFecha(doc.fecha_proveido) || '—'}</p>
                             
