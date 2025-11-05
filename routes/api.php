@@ -19,6 +19,7 @@ Route::get('/expedientes/participes/documentos', [DocumentoController::class, 'g
 
 Route::middleware(['session.timeout'])->group(function () {
     Route::apiResource('usuarios', UsuarioController::class);
+    Route::get('participes/export', [ParticipeController::class, 'exportToExcel']);
     Route::apiResource('participes', ParticipeController::class);
     Route::apiResource('participe-documentos', ParticipeDocumentoController::class);
 

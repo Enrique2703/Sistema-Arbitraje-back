@@ -95,10 +95,26 @@ class ParticipeController extends Controller
     public function destroy($id)
     {
         $participe = Participe::findOrFail($id);
-
         $participe->credencial()->delete();
         $participe->delete();
-
         return response()->json(['message' => 'Participe eliminado correctamente']);
+    }
+
+    public function exportToExcel()
+    {
+        $participes = Participe::with('credencial')
+            ->withCount('documentos')
+            ->get()
+            ->map(function ($participe) {
+                return [
+                    'ID' => str_pad($participe->id, 4, '0', STR_PAD_LEFT),
+                    'NOMBRES' => $participe->nombres,
+                    'ESTADO' => $participe->estado,
+                    'EMAIL' => $participe->credencial ? $participe->credencial->email : '',
+                    'EXPEDIENTES' => $participe->documentos_count
+                ];
+            });
+
+        return response()->json($participes);
     }
 }
