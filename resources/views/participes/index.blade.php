@@ -399,8 +399,12 @@
             ws['!cols'] = colWidths;
 
             console.log('Descargando archivo...');
-            // Descargar el archivo
-            XLSX.writeFile(wb, `Participes_${new Date().toISOString().split('T')[0]}.xlsx`);
+            // Descargar el archivo con formato de fecha DD-MM-YYYY
+            const today = new Date();
+            const day = String(today.getDate()).padStart(2, '0');
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const year = today.getFullYear();
+            XLSX.writeFile(wb, `Participes_${day}-${month}-${year}.xlsx`);
             console.log('Exportación completada');
 
         } catch (error) {
