@@ -195,7 +195,7 @@
         list.forEach(exp => {
             tbody.innerHTML += `
                 <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4">${String(exp.id).padStart(4, '0')}</td>
+                    <td class="px-6 py-4">${String(exp.numero).padStart(4, '0')} - ${exp.anio}/${exp.codigo || ''}</td>
                     <td class="px-6 py-4">
                         <span class="px-3 py-1 rounded-full text-sm font-medium ${getEstadoClass(exp.estado)}">
                             ${exp.estado}

@@ -48,6 +48,9 @@ class ExpedienteController extends Controller
         $registros = $expedientesPaginated->map(function ($expediente) {
             return [
                 'id' => $expediente->id ?? 'N/A',
+                'numero' => $expediente->numero,
+                'anio' => $expediente->anio,
+                'codigo' => $expediente->codigo,
                 'estado' => $expediente->estado ?? 'Sin estado',
                 'cantidad_participes' => $expediente->participes->count(),
                 'documentos' => $expediente->participeDocumentos()->count(),
