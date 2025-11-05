@@ -47,6 +47,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Nombres</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Estado</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Email</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Expedientes</th>
                             <th class="px-6 py-3 text-right text-xs font-medium text-white uppercase tracking-wider">Acciones</th>
                         </tr>
                     </thead>
@@ -131,7 +132,7 @@
 
             if (!res.ok) {
                 if (res.status === 401) {
-                    
+
                     window.location.href = '/login';
                     return;
                 }
@@ -240,13 +241,12 @@
                     }">${usuario.estado}</span>
                 </td>
                 <td class="px-6 py-4">${usuario.credencial?.email || 'Sin correo'}</td>
+                <td class="px-6 py-4">12</td>
                 <td class="px-6 py-4">
-                    <div class="flex items-center justify-between">
-                        <button onclick="openPasswordModal(${usuario.id})" class="bg-black text-white px-4 py-2 rounded-sm mr-4 w-28 text-center">Contraseña</button>
-                        <div class="flex flex-col items-end space-y-1">
-                            <button onclick="openEditModal(${usuario.id})" class="text-gray-900 font-medium hover:underline">Editar</button>
-                            <button onclick="deleteUsuario(${usuario.id})" class="text-red-500 hover:underline">Eliminar</button>
-                        </div>
+                    <div class="flex items-center justify-end gap-2">
+                        <button onclick="openPasswordModal(${usuario.id})" class="bg-black text-white px-3 py-1.5 rounded-sm text-center">Contraseña</button>
+                        <button onclick="openEditModal(${usuario.id})" class="text-gray-900 font-medium hover:underline ml-2">Editar</button>
+                        <button onclick="deleteUsuario(${usuario.id})" class="text-red-500 hover:underline ml-2">Eliminar</button>
                     </div>
                 </td>
             </tr>`;
@@ -525,4 +525,3 @@
     }
 </script>
 @endsection
-
