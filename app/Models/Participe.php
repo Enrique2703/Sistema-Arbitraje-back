@@ -18,4 +18,9 @@ class Participe extends Model
     {
         return $this->belongsTo(Credencial::class, 'credencial_id');
     }
+
+    public function documentos()
+    {
+        return $this->hasMany(ParticipeDocumento::class, 'participe_id');
+    }
 }

@@ -14,7 +14,8 @@ class ParticipeController extends Controller
     {
         $perPage = $request->query('per_page', 20);
 
-        $query = Participe::with('credencial');
+        $query = Participe::with('credencial')
+            ->withCount('documentos');
 
         if ($search = $request->query('search')) {
             $query->where('nombres', 'like', "%$search%");

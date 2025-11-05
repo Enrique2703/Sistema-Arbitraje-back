@@ -241,7 +241,7 @@
                     }">${usuario.estado}</span>
                 </td>
                 <td class="px-6 py-4">${usuario.credencial?.email || 'Sin correo'}</td>
-                <td class="px-6 py-4">12</td>
+                <td class="px-6 py-4">${usuario.documentos_count || 0}</td>
                 <td class="px-6 py-4">
                     <div class="flex items-center justify-end gap-2">
                         <button onclick="openPasswordModal(${usuario.id})" class="bg-black text-white px-3 py-1.5 rounded-sm text-center">Contraseña</button>
