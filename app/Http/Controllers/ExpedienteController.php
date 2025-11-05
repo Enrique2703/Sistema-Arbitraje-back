@@ -13,9 +13,57 @@ use App\Models\Participe;
 use App\Models\SecretarioTecnico;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ExpedienteController extends Controller
 {
+    public function export()
+    {
+        try {
+            \Log::info('Iniciando exportación de expedientes');
+            
+            $expedientes = Expediente::all();
+            \Log::info('Expedientes recuperados', ['count' => count($expedientes)]);
+
+            if ($expedientes->isEmpty()) {
+                \Log::warning('No se encontraron expedientes para exportar');
+                return response()->json(['error' => 'No hay expedientes para exportar'], 404);
+            }
+
+            $data = $expedientes->map(function ($expediente) {
+                $datos = [
+                    'id' => $expediente->id,
+                    'numero' => $expediente->numero,
+                    'anio' => $expediente->anio,
+                    'codigo' => $expediente->codigo ?? '',
+                    'estado' => $expediente->estado,
+                    'cantidad_participes' => 0,
+                    'documentos' => 0,
+                    'fecha_creacion' => $expediente->created_at,
+                    'fecha_actualizacion' => $expediente->updated_at
+                ];
+                \Log::debug('Procesando expediente', ['id' => $expediente->id, 'datos' => $datos]);
+                return $datos;
+            });
+
+            \Log::info('Datos procesados exitosamente', ['count' => count($data)]);
+            return response()->json($data->toArray());
+            
+        } catch (\Exception $e) {
+            \Log::error('Error al exportar expedientes', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'error' => 'Error al cargar expedientes',
+                'details' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
+        }
+    }
+
     /**
      * Listar todos los expedientes
      */
