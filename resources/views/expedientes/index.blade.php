@@ -51,7 +51,7 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead style="background-color: #737373;">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Nombre de Expediente</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Estado</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Partícipes</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Documentos</th>

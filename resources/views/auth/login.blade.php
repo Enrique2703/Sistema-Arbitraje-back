@@ -327,8 +327,7 @@
                     storage.setItem('usuario', JSON.stringify(data.usuario));
 
                     const tipoUsuario = data.usuario.tipo_usuario;
-                    const ruta = tipoUsuario === 'participe' ? '/expedientes/participes' : '/usuarios';
-
+                    const ruta = tipoUsuario === 'participe' ? '/expedientes/participes' : '/expedientes';
                     showModal('', data.message || 'Inicio de sesión exitoso', 'success', ruta);
 
                 } else {

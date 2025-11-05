@@ -20,6 +20,9 @@ class ParticipeController extends Controller
         if ($search = $request->query('search')) {
             $query->where('nombres', 'like', "%$search%");
         }
+        if ($estado = $request->query('estado')) {
+            $query->where('estado', $estado);
+        }
 
         $participesPaginated = $query->paginate($perPage);
 
