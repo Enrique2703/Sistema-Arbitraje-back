@@ -146,6 +146,7 @@
     <script>
         let expedienteId = null;
         let currentPage = 1;
+        let rolSeleccionado = 'Todos';
 
         document.addEventListener('DOMContentLoaded', function() {
             // Obtener el ID del expediente de la URL
@@ -157,6 +158,28 @@
                 window.location.href = '/expedientes';
                 return;
             }
+
+            // Configurar eventos del filtro
+            document.getElementById('filterButton').addEventListener('click', () => {
+                document.getElementById('filterModal').classList.remove('hidden');
+            });
+
+            document.getElementById('closeFilterModal').addEventListener('click', () => {
+                document.getElementById('filterModal').classList.add('hidden');
+            });
+
+            document.getElementById('applyFilter').addEventListener('click', () => {
+                rolSeleccionado = document.getElementById('rolFilter').value;
+                document.getElementById('filterModal').classList.add('hidden');
+                cargarDocumentos();
+            });
+
+            // Cerrar modal al hacer clic fuera
+            document.getElementById('filterModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    document.getElementById('filterModal').classList.add('hidden');
+                }
+            });
 
             cargarDocumentos();
             configurarBuscador();
@@ -182,7 +205,7 @@
                 tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Cargando...</td></tr>';
 
                 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                const response = await fetch(`/api/expedientes/${expedienteId}/documentos?search=${searchTerm}&page=${currentPage}`, {
+                const response = await fetch(`/api/expedientes/${expedienteId}/documentos?search=${searchTerm}&page=${currentPage}&rol=${rolSeleccionado}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json'
@@ -203,14 +226,20 @@
 
         function renderizarDocumentos(documentos) {
             const tbody = document.getElementById('documentosTableBody');
+            
+            // Filtrar documentos según el rol seleccionado
+            const documentosFiltrados = documentos.filter(doc => {
+                if (rolSeleccionado === 'Todos') return true;
+                return doc.estado === rolSeleccionado;
+            });
 
-            if (!documentos.length) {
-                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No hay documentos registrados</td></tr>';
+            if (!documentosFiltrados.length) {
+                tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No hay documentos registrados para el rol seleccionado</td></tr>';
                 return;
             }
 
             tbody.innerHTML = '';
-            documentos.forEach(doc => {
+            documentosFiltrados.forEach(doc => {
                 const fecha = new Date(doc.created_at).toLocaleDateString('es-ES', {
                     day: '2-digit',
                     month: '2-digit',
@@ -656,6 +685,31 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal de Filtro -->
+    <div id="filterModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-lg w-96 p-6">
+            <h2 class="text-lg font-semibold mb-4 text-gray-800">Filtrar documentos</h2>
+
+            <label class="block text-sm text-gray-700 mb-2">Rol:</label>
+            <select id="rolFilter"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-6">
+                <option value="Todos">Todos</option>
+                <option value="Demandado">Demandado</option>
+                <option value="Demandante">Demandante</option>
+            </select>
+
+            <div class="flex justify-end space-x-3">
+                <button id="closeFilterModal" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-gray-800">
+                    Cancelar
+                </button>
+                <button id="applyFilter"
+                    class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                    Aplicar
+                </button>
+            </div>
         </div>
     </div>
 
