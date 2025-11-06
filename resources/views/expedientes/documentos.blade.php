@@ -53,20 +53,16 @@
         <!-- Tabla de documentos -->
         <div class="bg-white rounded-lg shadow overflow-hidden">
             <table class="min-w-full divide-y divide-gray-200">
-                <thead style="background-color: #737373;">
+                                <thead style="background-color: #737373;">
                     <tr>
-                        <th class="w-16 px-6 py-3">
-                            <div class="flex items-center">
-                                <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                            </div>
-                        </th>
-                        <th class="w-24 px-6 py-3 text-left text-xs font-medium text-white uppercase">Habilitado</th>
-                        <th class="w-32 px-6 py-3 text-left text-xs font-medium text-white uppercase">Fecha</th>
-                        <th class="w-32 px-6 py-3 text-left text-xs font-medium text-white uppercase">Hora</th>
+                        <th class="w-24 px-6 py-3 text-center text-xs font-medium text-white uppercase"></th>
+                        <th class="w-24 px-6 py-3 text-center text-xs font-medium text-white uppercase">Habilitado</th>
+                        <th class="w-32 px-6 py-3 text-center text-xs font-medium text-white uppercase">Fecha</th>
+                        <th class="w-32 px-6 py-3 text-center text-xs font-medium text-white uppercase">Hora</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase">Título</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase">Usuario</th>
                         <th class="w-32 px-6 py-3 text-left text-xs font-medium text-white uppercase">Rol</th>
-                        <th class="w-48 px-6 py-3 text-right text-xs font-medium text-white uppercase">Acciones</th>
+                        <th class="w-48 px-6 py-3 text-center text-xs font-medium text-white uppercase"></th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200" id="documentosTableBody">
@@ -220,27 +216,34 @@ function renderizarDocumentos(documentos) {
             month: '2-digit',
             year: 'numeric'
         });
+        const hora = new Date(doc.created_at).toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
 
         tbody.innerHTML += `
             <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4">${doc.titulo}</td>
-                <td class="px-6 py-4">
-                    <span class="px-3 py-1 rounded-full text-sm font-medium ${doc.estado === 'Aprobado' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
-                        ${doc.estado || 'Pendiente'}
-                    </span>
+                <td class="px-6 py-4 text-center">
+                    <span class="font-medium">${doc.cedula || 'Cédula'}</span>
                 </td>
-                <td class="px-6 py-4">${fecha}</td>
+                <td class="px-6 py-4 text-center">
+                    <input type="checkbox" ${doc.habilitado ? 'checked' : ''} class="form-checkbox h-5 w-5 text-gray-600" disabled>
+                </td>
+                <td class="px-6 py-4 text-center">${fecha}</td>
+                <td class="px-6 py-4 text-center">${hora}</td>
+                <td class="px-6 py-4">${doc.titulo}</td>
                 <td class="px-6 py-4">${doc.usuario_nombre || 'Sistema'}</td>
                 <td class="px-6 py-4">
-                    <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                        ${doc.rol || 'Usuario'}
+                    <span class="px-2 py-1 text-xs rounded-full ${doc.rol === 'Demandado' ? 'bg-gray-200' : 'bg-gray-200'}">
+                        ${doc.rol || 'Demandante'}
                     </span>
                 </td>
-                <td class="px-6 py-4 text-right">
-                    <div class="flex justify-end space-x-3">
-                        <button onclick="verDocumento(${doc.id})" class="bg-black text-white px-2 py-1 rounded text-sm">Ver</button>
-                        <button onclick="revisarDocumento(${doc.id})" class="bg-black text-white px-2 py-1 rounded text-sm">Revisar</button>
-                        <button onclick="deleteDocumento(${doc.id})" class="text-red-500 hover:underline">Eliminar</button>
+                <td class="px-6 py-4">
+                    <div class="flex justify-end space-x-2">
+                        <button onclick="revisarDocumento(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">Revisar</button>
+                        <button onclick="verDocumento(${doc.id})" class="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm">Ver</button>
+                        <button onclick="generarDocumentos(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">Generados</button>
                     </div>
                 </td>
             </tr>
@@ -296,6 +299,11 @@ async function revisarDocumento(id) {
 async function verDocumento(id) {
     // Implementar función para ver documento
     console.log('Ver documento:', id);
+}
+
+async function generarDocumentos(id) {
+    // Implementar función para mostrar documentos generados
+    console.log('Mostrar documentos generados:', id);
 }
 
 function actualizarPaginacion(meta) {
