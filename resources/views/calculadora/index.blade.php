@@ -29,45 +29,28 @@
         </div>
         <div class="flex-1 p-6">
             <div class="bg-white rounded-lg shadow overflow-hidden">
-                                <div class="p-8">
-                                    <h2 class="text-lg font-medium text-gray-900 mb-6">Cuantía determinada</h2>
+                <div class="p-8">
+                    <h2 class="text-lg font-medium text-gray-900 mb-6">Cuantía determinada</h2>
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="text-base font-medium text-gray-900">Gastos administrativos</h3>
                         <button onclick="agregarRangoGastosAdmin()" class="flex items-center text-sm text-gray-600 hover:text-gray-900">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                             </svg>
                             Agregar cuantía
                         </button>
                     </div>
                     <div id="gastosAdminRangos" class="space-y-3">
-                        <div class="grid grid-cols-6 gap-4 items-center">
+                        <div class="grid grid-cols-6 gap-4 mb-4">
                             <div class="flex items-center">
-                                <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
-                                <span class="ml-2 text-sm text-gray-500">2</span>
+                                <button type="button" onclick="this.parentElement.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
                             </div>
-                            <input type="text" placeholder="Rango min" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
-                            <div class="flex items-center justify-center text-gray-400">-</div>
-                            <input type="text" placeholder="Rango max" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
-                            <input type="text" placeholder="%" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
-                            <div class="grid grid-cols-2 gap-4">
-                                <input type="text" placeholder="# de regla" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
-                                <input type="text" placeholder="Monto máximo" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-6 gap-4 items-center">
-                            <div class="flex items-center">
-                                <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
-                                <span class="ml-2 text-sm text-gray-500">2</span>
-                            </div>
-                            <input type="text" placeholder="Rango min" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
-                            <div class="flex items-center justify-center text-gray-400">-</div>
-                            <input type="text" placeholder="Rango max" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
-                            <input type="text" placeholder="%" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
-                            <div class="grid grid-cols-2 gap-4">
-                                <input type="text" placeholder="# de regla" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
-                                <input type="text" placeholder="Monto máximo" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
-                            </div>
+                            <input type="text" placeholder="Rango min" class="border rounded-lg px-3 py-2">
+                            <span class="flex items-center justify-center">-</span>
+                            <input type="text" placeholder="Rango max" class="border rounded-lg px-3 py-2">
+                            <input type="text" placeholder="%" class="border rounded-lg px-3 py-2">
+                            <input type="text" placeholder="# de regla" class="border rounded-lg px-3 py-2">
+                            <input type="text" placeholder="Monto máximo" class="border rounded-lg px-3 py-2">
                         </div>
                     </div>
                 </div>
@@ -78,14 +61,16 @@
                         <h3 class="text-base font-medium text-gray-900">Tribunal arbitral</h3>
                         <button type="button" onclick="agregarRangoTribunal()" class="flex items-center text-sm text-gray-600 hover:text-gray-900">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                             </svg>
                             Agregar cuantía
                         </button>
                     </div>
                     <div id="tribunalRangos">
                         <div class="grid grid-cols-6 gap-4 mb-4">
-                                <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+                            <div class="flex items-center">
+                                <button type="button" onclick="this.parentElement.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+                            </div>
                             <input type="text" placeholder="Rango min" class="border rounded-lg px-3 py-2">
                             <span class="flex items-center justify-center">-</span>
                             <input type="text" placeholder="Rango max" class="border rounded-lg px-3 py-2">
@@ -133,11 +118,9 @@
         const nuevoRango = document.createElement('div');
         nuevoRango.className = 'grid grid-cols-6 gap-4 mb-4';
         nuevoRango.innerHTML = `
-        <button onclick="eliminarRango(this)" class="text-red-500 hover:text-red-700">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-            </svg>
-        </button>
+        <div class="flex items-center">
+            <button type="button" onclick="this.parentElement.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+        </div>
         <input type="text" placeholder="Rango min" class="border rounded-lg px-3 py-2">
         <span class="flex items-center justify-center">-</span>
         <input type="text" placeholder="Rango max" class="border rounded-lg px-3 py-2">
@@ -154,11 +137,9 @@
         const nuevoRango = document.createElement('div');
         nuevoRango.className = 'grid grid-cols-6 gap-4 mb-4';
         nuevoRango.innerHTML = `
-        <button onclick="eliminarRango(this)" class="text-red-500 hover:text-red-700">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-            </svg>
-        </button>
+        <div class="flex items-center">
+            <button type="button" onclick="this.parentElement.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+        </div>
         <input type="text" placeholder="Rango min" class="border rounded-lg px-3 py-2">
         <span class="flex items-center justify-center">-</span>
         <input type="text" placeholder="Rango max" class="border rounded-lg px-3 py-2">
