@@ -4,6 +4,7 @@
 
 @section('content')
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 <div class="min-h-screen bg-gray-100 flex">
 
     <div class="flex-1 flex flex-col">
@@ -11,7 +12,7 @@
             <div class="flex items-center justify-between">
                 <h1 class="text-2xl font-semibold text-gray-900">Usuarios</h1>
                 <div class="flex items-center space-x-4">
-                    <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                    <button onclick="exportToExcel()" class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
                         <img src="{{ asset('img/folder.png') }}" alt="User Icon" class="w-6 h-6">
                     </button>
                 </div>
@@ -531,6 +532,69 @@
     }
     if (!localStorage.getItem('token') && !sessionStorage.getItem('token')) {
         window.location.href = '/login';
+    }
+
+    async function exportToExcel() {
+        try {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            console.log('Iniciando exportación...');
+
+            // Obtener todos los usuarios sin paginación
+            const response = await fetch('/api/usuarios?per_page=1000', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                console.error('Error en la respuesta:', response.status);
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+                throw new Error('Error al exportar datos');
+            }
+
+            const data = await response.json();
+            console.log('Datos recibidos:', data);
+
+            // Transformar los datos para el Excel
+            const excelData = data.registros.map(usuario => ({
+                'ID': String(usuario.id).padStart(4, '0'),
+                'NOMBRES': usuario.nombres,
+                'ESTADO': usuario.estado,
+                'EMAIL': usuario.credencial?.email || '',
+                'NIVEL': usuario.nivel_usuario
+            }));
+
+            // Crear libro de Excel
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Usuarios");
+
+            // Ajustar el ancho de las columnas
+            const colWidths = [
+                { wch: 8 },  // ID
+                { wch: 30 }, // NOMBRES
+                { wch: 15 }, // ESTADO
+                { wch: 35 }, // EMAIL
+                { wch: 20 }  // NIVEL
+            ];
+            ws['!cols'] = colWidths;
+
+            // Descargar archivo
+            const today = new Date();
+            const day = String(today.getDate()).padStart(2, '0');
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const year = today.getFullYear();
+            XLSX.writeFile(wb, `Usuarios_${day}-${month}-${year}.xlsx`);
+            console.log('Exportación completada');
+
+        } catch (error) {
+            console.error('Error detallado:', error);
+            alert('Error al exportar los datos: ' + error.message);
+        }
     }
 </script>
 @endsection
