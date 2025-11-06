@@ -42,8 +42,8 @@
                             Agregar cuantía
                         </button>
                     </div>
-                    <div id="gastosAdminRangos">
-                        <div class="grid grid-cols-6 gap-4 mb-4 items-center">
+                    <div id="gastosAdminRangos" class="space-y-3">
+                        <div class="grid grid-cols-6 gap-4 items-center">
                             <div class="flex items-center">
                                 <button class="text-gray-400 hover:text-gray-600">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,12 +52,32 @@
                                 </button>
                                 <span class="ml-2 text-sm text-gray-500">2</span>
                             </div>
-                            <input type="text" placeholder="Rango min" class="border border-gray-300 rounded px-3 py-2 text-sm">
-                            <span class="flex items-center justify-center text-gray-400">-</span>
-                            <input type="text" placeholder="Rango max" class="border border-gray-300 rounded px-3 py-2 text-sm">
-                            <input type="text" placeholder="%" class="border border-gray-300 rounded px-3 py-2 text-sm">
-                            <input type="text" placeholder="# de regla" class="border border-gray-300 rounded px-3 py-2 text-sm">
-                            <input type="text" placeholder="Monto máximo" class="border border-gray-300 rounded px-3 py-2 text-sm">
+                            <input type="text" placeholder="Rango min" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                            <div class="flex items-center justify-center text-gray-400">-</div>
+                            <input type="text" placeholder="Rango max" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                            <input type="text" placeholder="%" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="text" placeholder="# de regla" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                                <input type="text" placeholder="Monto máximo" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-6 gap-4 items-center">
+                            <div class="flex items-center">
+                                <button class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                                    </svg>
+                                </button>
+                                <span class="ml-2 text-sm text-gray-500">2</span>
+                            </div>
+                            <input type="text" placeholder="Rango min" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                            <div class="flex items-center justify-center text-gray-400">-</div>
+                            <input type="text" placeholder="Rango max" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                            <input type="text" placeholder="%" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="text" placeholder="# de regla" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                                <input type="text" placeholder="Monto máximo" class="border border-gray-300 rounded px-3 py-2 text-sm w-full">
+                            </div>
                         </div>
                     </div>
                 </div>
