@@ -35,7 +35,7 @@
                         </div>
                         <input type="text" id="searchInput"
                             class="block w-80 pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Buscar">
+                            placeholder="Buscar por título o usuario">
                     </div>
 
                     <button id="filterButton"
@@ -187,25 +187,40 @@
 
         function configurarBuscador() {
             const searchInput = document.getElementById('searchInput');
-            let timeout = null;
+            let searchTimeout;
 
-            searchInput.addEventListener('input', function() {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => {
-                    cargarDocumentos();
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.trim();
+                clearTimeout(searchTimeout);
+                
+                // Usar un temporizador para evitar demasiadas peticiones mientras se escribe
+                searchTimeout = setTimeout(() => {
+                    currentPage = 1; // Resetear a la primera página cuando se busca
+                    cargarDocumentos().then(() => {
+                        console.log('Búsqueda completada para:', searchTerm);
+                    }).catch(error => {
+                        console.error('Error en la búsqueda:', error);
+                    });
                 }, 300);
             });
         }
 
         async function cargarDocumentos() {
             const tbody = document.getElementById('documentosTableBody');
-            const searchTerm = document.getElementById('searchInput').value;
+            const searchTerm = document.getElementById('searchInput').value.trim();
 
             try {
                 tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Cargando...</td></tr>';
 
                 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                const response = await fetch(`/api/expedientes/${expedienteId}/documentos?search=${searchTerm}&page=${currentPage}&rol=${rolSeleccionado}`, {
+                const params = new URLSearchParams({
+                    search: searchTerm,
+                    page: currentPage,
+                    rol: rolSeleccionado,
+                    searchFields: 'titulo,usuario_nombre' // Especificamos los campos en los que buscar
+                });
+                
+                const response = await fetch(`/api/expedientes/${expedienteId}/documentos?${params.toString()}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json'
@@ -226,15 +241,27 @@
 
         function renderizarDocumentos(documentos) {
             const tbody = document.getElementById('documentosTableBody');
+            const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
             
-            // Filtrar documentos según el rol seleccionado
+            // Filtrar documentos según el rol seleccionado y el término de búsqueda
             const documentosFiltrados = documentos.filter(doc => {
-                if (rolSeleccionado === 'Todos') return true;
-                return doc.estado === rolSeleccionado;
+                // Primero verificar el rol
+                if (rolSeleccionado !== 'Todos' && doc.estado !== rolSeleccionado) {
+                    return false;
+                }
+                
+                // Si hay término de búsqueda, verificar título y usuario
+                if (searchTerm) {
+                    const tituloCoincide = doc.titulo.toLowerCase().includes(searchTerm);
+                    const usuarioCoincide = (doc.usuario_nombre || '').toLowerCase().includes(searchTerm);
+                    return tituloCoincide || usuarioCoincide;
+                }
+                
+                return true;
             });
 
             if (!documentosFiltrados.length) {
-                tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No hay documentos registrados para el rol seleccionado</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No se encontraron documentos que coincidan con la búsqueda</td></tr>';
                 return;
             }
 
