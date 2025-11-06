@@ -49,3 +49,7 @@ Route::get('/expedientes/documentos', function () {
 Route::get('/expedientes/historial', function () {
     return view('expedientes.historial');
 })->name('expedientes.historial');
+
+Route::get('/expedientes/cedulas', function () {
+    return view('expedientes.cedulas');
+})->name('expedientes.cedulas');

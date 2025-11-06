@@ -35,7 +35,7 @@
                         </div>
                         <input type="text" id="searchInput"
                             class="block w-80 pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Buscar por título o usuario">
+                            placeholder="Buscar">
                     </div>
 
                     <button id="filterButton"
@@ -192,7 +192,7 @@
             searchInput.addEventListener('input', function(e) {
                 const searchTerm = e.target.value.trim();
                 clearTimeout(searchTimeout);
-                
+
                 // Usar un temporizador para evitar demasiadas peticiones mientras se escribe
                 searchTimeout = setTimeout(() => {
                     currentPage = 1; // Resetear a la primera página cuando se busca
@@ -219,7 +219,7 @@
                     rol: rolSeleccionado,
                     searchFields: 'titulo,usuario_nombre' // Especificamos los campos en los que buscar
                 });
-                
+
                 const response = await fetch(`/api/expedientes/${expedienteId}/documentos?${params.toString()}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -242,21 +242,21 @@
         function renderizarDocumentos(documentos) {
             const tbody = document.getElementById('documentosTableBody');
             const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
-            
+
             // Filtrar documentos según el rol seleccionado y el término de búsqueda
             const documentosFiltrados = documentos.filter(doc => {
                 // Primero verificar el rol
                 if (rolSeleccionado !== 'Todos' && doc.estado !== rolSeleccionado) {
                     return false;
                 }
-                
+
                 // Si hay término de búsqueda, verificar título y usuario
                 if (searchTerm) {
                     const tituloCoincide = doc.titulo.toLowerCase().includes(searchTerm);
                     const usuarioCoincide = (doc.usuario_nombre || '').toLowerCase().includes(searchTerm);
                     return tituloCoincide || usuarioCoincide;
                 }
-                
+
                 return true;
             });
 
@@ -308,7 +308,9 @@
                         Revisar
                     </button>
                         <button onclick="verDocumento(${doc.id})" class="bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm ${!isHabilitado ? 'opacity-75' : ''}" ${!isHabilitado ? 'disabled' : ''}>Ver</button>
-                        <button onclick="generarDocumentos(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm ${!isHabilitado ? 'opacity-75' : ''}" ${!isHabilitado ? 'disabled' : ''}>Generados</button>
+                    <button onclick="verCedulasGeneradas(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">
+                        Generados
+                    </button>                    
                     </div>
                 </td>
             </tr>
@@ -435,6 +437,12 @@
         async function verDocumento(id) {
             // Implementar función para ver documento
             console.log('Ver documento:', id);
+        }
+
+        function verCedulasGeneradas(id) {
+            const expedienteId = new URLSearchParams(window.location.search).get('id');
+            // Redirigir a la página de cédulas con el ID del documento y del expediente
+            window.location.href = `/expedientes/cedulas?expediente_id=${expedienteId}&documento_id=${id}`;
         }
 
         async function generarDocumentos(id) {
@@ -760,31 +768,29 @@
                         placeholder="Ingrese sus comentarios"></textarea>
                 </div>
 
+
+
                 <div class="space-y-4">
                     <div class="flex justify-between items-center">
                         <label class="block text-sm font-medium text-gray-700">Enviar por correo</label>
-                        <button type="button" onclick="agregarUsuario()" class="flex items-center text-sm text-blue-600 hover:text-blue-700">
-                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                            </svg>
+                        <button type="button" onclick="agregarUsuario()" class="flex items-center text-sm text-black-600 hover:text-black-700">
+                            <span class="w-5 h-5 border-2 border-gray-700 rounded-full flex items-center justify-center mr-1.5 text-lg leading-none">+</span>
                             Agregar usuario
                         </button>
                     </div>
 
                     <div id="listaUsuarios" class="space-y-2">
                         <div class="usuario-item flex items-center space-x-2">
+                            <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+
                             <select name="usuarios[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                 <option>Usuario 1</option>
                                 <!-- Opciones se llenarán dinámicamente -->
                             </select>
-                            <button type="button" onclick="eliminarUsuario(this)" class="text-red-500 hover:text-red-700">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-                                </svg>
-                            </button>
                         </div>
                     </div>
                 </div>
+
 
                 <div class="flex justify-end space-x-3 pt-4">
                     <button type="button" onclick="closeGenerarCedulaModal()"
