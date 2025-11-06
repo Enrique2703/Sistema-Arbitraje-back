@@ -1,69 +1,73 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gray-100 flex">
-    <div class="flex-1 flex flex-col">
-        <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
-            <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-semibold text-gray-900">Calculadora</h1>
-                <div class="flex items-center space-x-4">
-                    <button onclick="downloadTarifario()" class="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800">
-                        Subir tarifario
-                    </button>
-                    <input type="text" id="tipoCambio" placeholder="Tipo de cambio ($)" 
-                            class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
+<div class="min-h-screen bg-gray-100">
+    <div class="flex-1">
+        <!-- Título y controles principales -->
+        <div class="flex justify-between items-center px-6 py-4">
+            <h1 class="text-xl font-medium text-gray-900">Calculadora</h1>
+            <div class="flex items-center space-x-3">
+                <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                    <img src="{{ asset('img/folder.png') }}" alt="Folder Icon" class="w-6 h-6">
+                </button>
             </div>
-        </header>
-
-        <div class="flex-1 p-6">
+        </div>
+        
+        <!-- Barra de controles -->
+        <div class="flex justify-between items-center px-6 py-2 bg-white border-y border-gray-200">
+            <div class="flex items-center space-x-4">
+                <button onclick="downloadTarifario()" class="px-4 py-2 bg-black text-white text-sm font-medium rounded hover:bg-gray-800">
+                    Subir tarifario
+                </button>
+                <input type="text" id="tipoCambio" placeholder="Tipo de cambio (1$)" 
+                        class="border border-gray-300 rounded px-3 py-2 text-sm w-44">
+            </div>
+            <button onclick="cambiarTipo('indeterminada')" class="px-4 py-2 bg-black text-white text-sm font-medium rounded hover:bg-gray-800">
+                Indeterminada
+            </button>
+        </div>        <div class="flex-1 p-6">
             <div class="bg-white rounded-lg shadow overflow-hidden p-6">
-                <!-- Selector de tipo -->
-                <div class="flex justify-end space-x-4 mb-6">
-                    <button id="btnDeterminada" onclick="cambiarTipo('determinada')"
-                            class="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800">
-                        Cuantía determinada
-                    </button>
-                    <button id="btnIndeterminada" onclick="cambiarTipo('indeterminada')"
-                            class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
-                        Indeterminada
-                    </button>
-                </div>
-
-                <!-- Sección de Gastos Administrativos -->
-                <div class="mb-8">
+                <!-- Contenido principal -->
+                <div class="px-6 py-4">
+                    <h2 class="text-lg font-medium text-gray-900 mb-6">Cuantía determinada</h2>
+                </div>                <!-- Sección de Gastos Administrativos -->
+                <!-- Sección Gastos Administrativos -->
+                <div class="px-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-semibold text-gray-900">Gastos administrativos</h2>
-                        <button onclick="agregarRangoGastosAdmin()" class="flex items-center text-blue-600 hover:text-blue-800">
-                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <h3 class="text-base font-medium text-gray-900">Gastos administrativos</h3>
+                        <button onclick="agregarRangoGastosAdmin()" class="flex items-center text-sm text-gray-600 hover:text-gray-900">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                             </svg>
                             Agregar cuantía
                         </button>
                     </div>
                     <div id="gastosAdminRangos">
-                        <div class="grid grid-cols-6 gap-4 mb-4">
-                            <button class="text-red-500 hover:text-red-700">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-                                </svg>
-                            </button>
-                            <input type="text" placeholder="Rango min" class="border rounded-lg px-3 py-2">
-                            <span class="flex items-center justify-center">-</span>
-                            <input type="text" placeholder="Rango max" class="border rounded-lg px-3 py-2">
-                            <input type="text" placeholder="%" class="border rounded-lg px-3 py-2">
-                            <input type="text" placeholder="# de regla" class="border rounded-lg px-3 py-2">
-                            <input type="text" placeholder="Monto máximo" class="border rounded-lg px-3 py-2">
+                        <div class="grid grid-cols-6 gap-4 mb-4 items-center">
+                            <div class="flex items-center">
+                                <button class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                                    </svg>
+                                </button>
+                                <span class="ml-2 text-sm text-gray-500">2</span>
+                            </div>
+                            <input type="text" placeholder="Rango min" class="border border-gray-300 rounded px-3 py-2 text-sm">
+                            <span class="flex items-center justify-center text-gray-400">-</span>
+                            <input type="text" placeholder="Rango max" class="border border-gray-300 rounded px-3 py-2 text-sm">
+                            <input type="text" placeholder="%" class="border border-gray-300 rounded px-3 py-2 text-sm">
+                            <input type="text" placeholder="# de regla" class="border border-gray-300 rounded px-3 py-2 text-sm">
+                            <input type="text" placeholder="Monto máximo" class="border border-gray-300 rounded px-3 py-2 text-sm">
                         </div>
                     </div>
                 </div>
 
                 <!-- Sección de Tribunal Arbitral -->
-                <div class="mb-8">
+                <div class="px-6 mt-8">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-semibold text-gray-900">Tribunal arbitral</h2>
-                        <button onclick="agregarRangoTribunal()" class="flex items-center text-blue-600 hover:text-blue-800">
-                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <h2 class="text-base font-medium text-gray-900">Tribunal arbitral</h2>
+                        <button onclick="agregarRangoTribunal()" class="flex items-center text-sm text-gray-600 hover:text-gray-900">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                             </svg>
                             Agregar cuantía
@@ -87,9 +91,9 @@
                 </div>
 
                 <!-- Botón de Editar -->
-                <div class="flex justify-end">
+                <div class="bg-gray-50 px-6 py-4 mt-8">
                     <button onclick="guardarCambios()" 
-                            class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300">
+                            class="px-4 py-2 bg-gray-200 text-sm font-medium text-gray-800 rounded">
                         Editar
                     </button>
                 </div>
