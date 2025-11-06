@@ -227,7 +227,7 @@ function renderizarDocumentos(documentos) {
         tbody.innerHTML += `
             <tr class="${!isHabilitado ? 'bg-opacity-40' : ''} hover:bg-gray-50">
                 <td class="px-6 py-4 text-center">
-                    <button class="bg-black text-white px-3 py-1 rounded text-sm">
+                    <button onclick="openGenerarCedulaModal()" class="bg-black text-white px-3 py-1 rounded text-sm">
                         ${doc.cedula || 'Cédula'}
                     </button>
                 </td>
@@ -467,5 +467,128 @@ document.getElementById('documentForm').addEventListener('submit', async functio
         alert(error.message || 'Error al crear el documento');
     }
 });
+
+// Modal para generar cédula
+const generarCedulaModal = document.getElementById('generarCedulaModal');
+function openGenerarCedulaModal() {
+    document.getElementById('generarCedulaModal').classList.remove('hidden');
+}
+
+function closeGenerarCedulaModal() {
+    document.getElementById('generarCedulaModal').classList.add('hidden');
+    document.getElementById('formGenerarCedula').reset();
+}
+
+// Agregar usuario a la lista
+function agregarUsuario() {
+    const listaUsuarios = document.getElementById('listaUsuarios');
+    const template = document.querySelector('.usuario-item').cloneNode(true);
+    template.classList.remove('hidden');
+    listaUsuarios.appendChild(template);
+}
+
+// Eliminar usuario de la lista
+function eliminarUsuario(btn) {
+    const item = btn.closest('.usuario-item');
+    if (item && !item.classList.contains('hidden')) {
+        item.remove();
+    }
+}
+
+// Manejar el envío del formulario de cédula
+document.getElementById('formGenerarCedula').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    try {
+        const formData = new FormData(this);
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        
+        const response = await fetch('/api/documentos/generar-cedula', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al generar la cédula');
+        }
+
+        alert('Cédula generada exitosamente');
+        closeGenerarCedulaModal();
+        await cargarDocumentos();
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al generar la cédula');
+    }
+});
+
+// Cerrar modal al hacer clic fuera
+document.getElementById('generarCedulaModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeGenerarCedulaModal();
+    }
+});
 </script>
+
+<!-- Modal para Generar Cédula -->
+<div id="generarCedulaModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold text-gray-900">Generar cédula</h2>
+            <button onclick="closeGenerarCedulaModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        
+        <form id="formGenerarCedula" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Comentarios</label>
+                <textarea name="comentarios" rows="4"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Ingrese sus comentarios"></textarea>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <label class="block text-sm font-medium text-gray-700">Enviar por correo</label>
+                    <button type="button" onclick="agregarUsuario()" class="flex items-center text-sm text-blue-600 hover:text-blue-700">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Agregar usuario
+                    </button>
+                </div>
+                
+                <div id="listaUsuarios" class="space-y-2">
+                    <div class="usuario-item flex items-center space-x-2">
+                        <select name="usuarios[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option>Usuario 1</option>
+                            <!-- Opciones se llenarán dinámicamente -->
+                        </select>
+                        <button type="button" onclick="eliminarUsuario(this)" class="text-red-500 hover:text-red-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-4">
+                <button type="button" onclick="closeGenerarCedulaModal()" 
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                    Cancelar
+                </button>
+                <button type="submit" 
+                    class="px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800">
+                    Enviar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection
