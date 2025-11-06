@@ -222,28 +222,35 @@ function renderizarDocumentos(documentos) {
             second: '2-digit'
         });
 
+        const isHabilitado = doc.habilitado || false;
+
         tbody.innerHTML += `
-            <tr class="hover:bg-gray-50">
+            <tr class="${!isHabilitado ? 'bg-opacity-40' : ''} hover:bg-gray-50">
                 <td class="px-6 py-4 text-center">
-                    <span class="font-medium">${doc.cedula || 'Cédula'}</span>
+                    <button class="bg-black text-white px-3 py-1 rounded text-sm">
+                        ${doc.cedula || 'Cédula'}
+                    </button>
                 </td>
                 <td class="px-6 py-4 text-center">
-                    <input type="checkbox" ${doc.habilitado ? 'checked' : ''} class="form-checkbox h-5 w-5 text-gray-600" disabled>
+                    <input type="checkbox" 
+                            ${isHabilitado ? 'checked' : ''} 
+                            onchange="toggleHabilitado(${doc.id}, this.checked)"
+                            class="form-checkbox h-5 w-5 text-gray-600 cursor-pointer">
                 </td>
-                <td class="px-6 py-4 text-center">${fecha}</td>
-                <td class="px-6 py-4 text-center">${hora}</td>
-                <td class="px-6 py-4">${doc.titulo}</td>
-                <td class="px-6 py-4">${doc.usuario_nombre || 'Sistema'}</td>
+                <td class="px-6 py-4 text-center text-gray-900">${fecha}</td>
+                <td class="px-6 py-4 text-center text-gray-900">${hora}</td>
+                <td class="px-6 py-4 text-gray-900">${doc.titulo}</td>
+                <td class="px-6 py-4 text-gray-900">${doc.usuario_nombre || 'Sistema'}</td>
                 <td class="px-6 py-4">
-                    <span class="px-2 py-1 text-xs rounded-full ${doc.rol === 'Demandado' ? 'bg-gray-200' : 'bg-gray-200'}">
-                        ${doc.rol || 'Demandante'}
+                    <span class="px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-800">
+                        ${doc.estado || 'Demandado'}
                     </span>
                 </td>
                 <td class="px-6 py-4">
                     <div class="flex justify-end space-x-2">
-                        <button onclick="revisarDocumento(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">Revisar</button>
-                        <button onclick="verDocumento(${doc.id})" class="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm">Ver</button>
-                        <button onclick="generarDocumentos(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">Generados</button>
+                        <button onclick="revisarDocumento(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm ${!isHabilitado ? 'opacity-75' : ''}" ${!isHabilitado ? 'disabled' : ''}>Revisar</button>
+                        <button onclick="verDocumento(${doc.id})" class="bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm ${!isHabilitado ? 'opacity-75' : ''}" ${!isHabilitado ? 'disabled' : ''}>Ver</button>
+                        <button onclick="generarDocumentos(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm ${!isHabilitado ? 'opacity-75' : ''}" ${!isHabilitado ? 'disabled' : ''}>Generados</button>
                     </div>
                 </td>
             </tr>
@@ -352,6 +359,34 @@ function actualizarPaginacion(meta) {
 function irAPagina(pagina) {
     currentPage = pagina;
     cargarDocumentos();
+}
+
+async function toggleHabilitado(id, estado) {
+    try {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const response = await fetch(`/api/documentos/${id}/habilitar`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ habilitado: estado })
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al actualizar el estado del documento');
+        }
+
+        // Recargar los documentos para reflejar los cambios
+        await cargarDocumentos();
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al actualizar el estado del documento');
+        // Revertir el estado del checkbox si hubo error
+        const checkbox = event.target;
+        checkbox.checked = !checkbox.checked;
+    }
 }
 
 async function deleteDocumento(id) {
