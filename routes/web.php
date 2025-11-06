@@ -37,3 +37,7 @@ Route::get('/expedientes/participes/seguimiento', function () {
 Route::get('/expedientes/documentos', function () {
     return view('expedientes.documentos');
 })->name('expedientes.documentos');
+
+Route::get('/expedientes/historial', function () {
+    return view('expedientes.historial');
+})->name('expedientes.historial');

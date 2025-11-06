@@ -18,6 +18,11 @@ Route::get('/expedientes/participes', [ExpedienteController::class, 'indexPartic
 Route::get('/expedientes/participes/documentos', [DocumentoController::class, 'getDocumentosPorExpediente']);
 
 Route::middleware(['session.timeout'])->group(function () {
+    // Rutas para documentos
+    Route::get('/expedientes/{id}/documentos', [DocumentoController::class, 'index']);
+    Route::post('/documentos', [DocumentoController::class, 'store']);
+    Route::delete('/documentos/{id}', [DocumentoController::class, 'destroy']);
+    Route::get('/documentos/{id}', [DocumentoController::class, 'show']);
     Route::get('/expedientes/export', [ExpedienteController::class, 'export']);
     Route::apiResource('usuarios', UsuarioController::class);
     Route::get('participes/export', [ParticipeController::class, 'exportToExcel']);

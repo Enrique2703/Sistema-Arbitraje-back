@@ -106,7 +106,7 @@
 
 <script>
     function getEstadoClass(estado) {
-        switch(estado.toLowerCase()) {
+        switch (estado.toLowerCase()) {
             case 'en trámite':
             case 'en tramite':
                 return 'bg-yellow-100 text-yellow-800';
@@ -280,7 +280,7 @@
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             console.log('Iniciando exportación...');
-            
+
             const response = await fetch('/api/expedientes/export', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -292,7 +292,7 @@
                 console.error('Error en la respuesta:', response.status);
                 const errorData = await response.json();
                 console.error('Detalle del error:', errorData);
-                
+
                 if (response.status === 401) {
                     window.location.href = '/login';
                     return;
@@ -302,7 +302,7 @@
 
             const data = await response.json();
             console.log('Datos recibidos:', data);
-            
+
             // Transformar los datos para el Excel
             const excelData = data.map(exp => ({
                 'ID': exp.id,
@@ -320,14 +320,27 @@
             XLSX.utils.book_append_sheet(wb, ws, "Expedientes");
 
             // Ajustar el ancho de las columnas
-            const colWidths = [
-                { wch: 8 },   // ID
-                { wch: 35 },  // NOMBRE DE EXPEDIENTE
-                { wch: 15 },  // ESTADO
-                { wch: 12 },  // PARTÍCIPES
-                { wch: 12 },  // DOCUMENTOS
-                { wch: 12 },  // INICIO
-                { wch: 15 }   // ACTUALIZACIÓN
+            const colWidths = [{
+                    wch: 8
+                }, // ID
+                {
+                    wch: 35
+                }, // NOMBRE DE EXPEDIENTE
+                {
+                    wch: 15
+                }, // ESTADO
+                {
+                    wch: 12
+                }, // PARTÍCIPES
+                {
+                    wch: 12
+                }, // DOCUMENTOS
+                {
+                    wch: 12
+                }, // INICIO
+                {
+                    wch: 15
+                } // ACTUALIZACIÓN
             ];
             ws['!cols'] = colWidths;
 
@@ -361,8 +374,7 @@
 
     function verHistorial(id) {
         // Por implementar - Redirigir a la página de historial del expediente
-        alert('Funcionalidad de historial en desarrollo');
-        // window.location.href = `/expedientes/${id}/historial`;
+        window.location.href = `/expedientes/historial?id=${id}`;
     }
 </script>
 @endsection
