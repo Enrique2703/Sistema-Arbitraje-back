@@ -298,6 +298,54 @@ async function verDocumento(id) {
     console.log('Ver documento:', id);
 }
 
+function actualizarPaginacion(meta) {
+    const container = document.getElementById('paginationControls');
+    if (!meta) return;
+
+    const currentPage = meta.current_page;
+    const lastPage = meta.last_page;
+    const prevDisabled = currentPage <= 1;
+    const nextDisabled = currentPage >= lastPage;
+
+    let pagesHtml = '';
+    const maxPages = 4;
+    let start = Math.max(1, currentPage - 2);
+    let end = Math.min(lastPage, start + maxPages - 1);
+
+    if (start > 1) {
+        pagesHtml += `<button onclick="irAPagina(1)" class="mx-1 text-sm text-gray-500">1</button>`;
+        if (start > 2) pagesHtml += `<span class="mx-1 text-sm text-gray-400">...</span>`;
+    }
+
+    for (let i = start; i <= end; i++) {
+        if (i === currentPage) {
+            pagesHtml += `<button class="mx-1 px-2 py-1 text-sm bg-gray-100 rounded">${i}</button>`;
+        } else {
+            pagesHtml += `<button onclick="irAPagina(${i})" class="mx-1 text-sm text-gray-500">${i}</button>`;
+        }
+    }
+
+    if (end < lastPage) {
+        if (end < lastPage - 1) pagesHtml += `<span class="mx-1 text-sm text-gray-400">...</span>`;
+        pagesHtml += `<button onclick="irAPagina(${lastPage})" class="mx-1 text-sm text-gray-500">${lastPage}</button>`;
+    }
+
+    container.innerHTML = `
+        <div class="flex items-center justify-between w-full">
+            <button ${prevDisabled ? 'disabled' : ''} onclick="irAPagina(${currentPage-1})" 
+                class="px-3 py-2 text-sm ${prevDisabled ? 'text-gray-400' : 'text-gray-700'}">&larr; Anterior</button>
+            <div class="flex items-center">${pagesHtml}</div>
+            <button ${nextDisabled ? 'disabled' : ''} onclick="irAPagina(${currentPage+1})" 
+                class="px-3 py-2 text-sm ${nextDisabled ? 'text-gray-400' : 'text-gray-700'}">Siguiente &rarr;</button>
+        </div>
+    `;
+}
+
+function irAPagina(pagina) {
+    currentPage = pagina;
+    cargarDocumentos();
+}
+
 async function deleteDocumento(id) {
     if (!confirm('¿Está seguro que desea eliminar este documento?')) return;
 

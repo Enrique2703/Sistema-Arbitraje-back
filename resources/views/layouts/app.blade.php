@@ -198,12 +198,12 @@
             <img src="/img/logo2.png" alt="Red Nacional de Arbitraje">
         </div>
         <ul class="sidebar-menu">
-            <li><a href="/expedientes" class="{{ request()->is('expedientes*') ? 'active' : '' }}">Expedientes</a></li>
-            <li><a href="/participes" class="{{ request()->is('participes*') ? 'active' : '' }}">Partícipes</a></li>
-            <li><a href="/usuarios" class="{{ request()->is('usuarios*') ? 'active' : '' }}">Usuarios</a></li>
-            <li><a href="/auditoria" class="{{ request()->is('auditoria*') ? 'active' : '' }}">Auditoría</a></li>
-            <li><a href="/calculadora" class="{{ request()->is('calculadora*') ? 'active' : '' }}">Calculadora</a></li>
-            <li><a href="/solicitudes" class="{{ request()->is('solicitudes*') ? 'active' : '' }}">Solicitudes</a></li>
+            <li id="menu-expedientes"><a href="/expedientes">Expedientes</a></li>
+            <li id="menu-participes"><a href="/participes">Partícipes</a></li>
+            <li id="menu-usuarios"><a href="/usuarios">Usuarios</a></li>
+            <li id="menu-auditoria"><a href="/auditoria">Auditoría</a></li>
+            <li id="menu-calculadora"><a href="/calculadora">Calculadora</a></li>
+            <li id="menu-solicitudes"><a href="/solicitudes">Solicitudes</a></li>
             <li><a href="#" onclick="showLogoutModal()">Salir</a></li>
         </ul>
     </div>
@@ -313,6 +313,25 @@
         }
     </script>
     @yield('scripts')
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const usuario = JSON.parse(localStorage.getItem('usuario')) || JSON.parse(sessionStorage.getItem('usuario'));
+
+            if (!usuario) return;
+
+            const tipo = usuario.tipo_usuario;
+
+            if (tipo === 'staff') {
+                document.getElementById('menu-usuarios').style.display = 'none';
+                document.getElementById('menu-auditoria').style.display = 'none';
+                document.getElementById('menu-calculadora').style.display = 'none';
+                document.getElementById('menu-solicitudes').style.display = 'none';
+            }
+
+        });
+    </script>
+
 </body>
 
 </html>
