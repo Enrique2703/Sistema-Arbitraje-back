@@ -188,32 +188,19 @@ function actualizarPaginacion(meta) {
     container.innerHTML = `
         <div class="flex items-center justify-between w-full">
             <button onclick="irAPagina(${currentPage - 1})" 
-                    class="px-3 py-2 text-sm text-gray-700" 
-                    ${prevDisabled ? 'disabled' : ''}>
+                    ${prevDisabled ? 'disabled' : ''}
+                    class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-500">
                 &larr; Anterior
             </button>
             <div class="flex items-center space-x-2">
                 ${pagesHtml}
             </div>
-            <button onclick="irAPagina(${currentPage + 1})" 
-                    class="px-3 py-2 text-sm text-gray-700"
-                    ${nextDisabled ? 'disabled' : ''}>
+            <button onclick="irAPagina(${currentPage + 1})"
+                    ${nextDisabled ? 'disabled' : ''}
+                    class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-500">
                 Siguiente &rarr;
             </button>
-        </div>`;
-                        class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-500">
-                    Anterior
-                </button>
-                <div class="flex space-x-2">
-                    ${pagesHtml}
-                </div>
-                <button onclick="irAPagina(${currentPage + 1})"
-                        ${currentPage === lastPage ? 'disabled' : ''}
-                        class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-500">
-                    Siguiente
-                </button>
-            </div>
-        </nav>
+        </div>
     `;
 }
 

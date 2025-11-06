@@ -26,6 +26,14 @@ Route::get('/auditoria', function () {
     return view('auditoria.index');
 })->name('auditoria.index');
 
+Route::get('/calculadora', function () {
+    return view('calculadora.index');
+})->name('calculadora.index');
+
+Route::get('/solicitudes', function () {
+    return view('solicitudes.index');
+})->name('solicitudes.index');
+
 Route::get('/expedientes/participes', function () {
     return view('expedientes.participes.index');
 })->name('expedientes.participes.index');
