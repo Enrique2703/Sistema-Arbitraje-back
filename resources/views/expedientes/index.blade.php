@@ -356,7 +356,7 @@
 
     function verDocumentos(id) {
         // Redirigir a la página de documentos del expediente
-        window.location.href = `/expedientes/participes/se_tramite?id=${id}`;
+        window.location.href = `/expedientes/documentos?id=${id}`;
     }
 
     function verHistorial(id) {

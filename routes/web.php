@@ -33,3 +33,7 @@ Route::get('/expedientes/participes', function () {
 Route::get('/expedientes/participes/seguimiento', function () {
     return view('expedientes.participes.se_tramite');
 })->name('expedientes.participes.seguimiento');
+
+Route::get('/expedientes/documentos', function () {
+    return view('expedientes.documentos');
+})->name('expedientes.documentos');
