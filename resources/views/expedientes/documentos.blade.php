@@ -2,6 +2,9 @@
 
 @section('content')
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
+<!-- Tom Select CSS y JS -->
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 
 <div class="min-h-screen bg-gray-100 flex">
     <div class="flex-1 flex flex-col">
@@ -183,6 +186,8 @@
 
             cargarDocumentos();
             configurarBuscador();
+            // Cargar usuarios para los selects con Tom Select (buscador)
+            cargarUsuarios();
         });
 
         function configurarBuscador() {
@@ -307,7 +312,6 @@
                     <button onclick="revisarDocumento(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">
                         Revisar
                     </button>
-                        <button onclick="verDocumento(${doc.id})" class="bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm ${!isHabilitado ? 'opacity-75' : ''}" ${!isHabilitado ? 'disabled' : ''}>Ver</button>
                     <button onclick="verCedulasGeneradas(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">
                         Generados
                     </button>                    
@@ -607,6 +611,104 @@
             }
         });
 
+        // Funciones para cargar usuarios y configurar Tom Select
+        async function cargarUsuarios() {
+            try {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                const res = await fetch('/api/usuarios', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!res.ok) throw new Error('Error al obtener usuarios');
+
+                const data = await res.json();
+                const usuarios = data.registros || [];
+
+                // Inicializar Tom Select en los selects existentes (si los hay)
+                inicializarTomSelect(document.querySelectorAll('select[name="usuarios[]"]'), usuarios);
+
+                // Guardar los usuarios globalmente por si se agregan nuevos selects
+                window.listaUsuarios = usuarios;
+                return usuarios;
+            } catch (error) {
+                console.error('Error cargando usuarios:', error);
+                return [];
+            }
+        }
+
+        function inicializarTomSelect(selects, usuarios) {
+            selects.forEach(select => {
+                try {
+                    // Destruir instancia anterior si existe
+                    if (select.tomselect) {
+                        select.tomselect.destroy();
+                    }
+
+                    new TomSelect(select, {
+                        valueField: 'id',
+                        labelField: 'nombres',
+                        searchField: ['nombres', 'email'],
+                        options: usuarios.map(u => ({
+                            id: u.id,
+                            nombres: u.nombres,
+                            email: u.credencial?.email || ''
+                        })),
+                        create: false,
+                        placeholder: 'Buscar usuario...',
+                        render: {
+                            option: function(item, escape) {
+                                return `<div class="py-2 px-3">
+                                    <div class="font-medium">${escape(item.nombres)}</div>
+                                    <div class="text-sm text-gray-600">${escape(item.email || '')}</div>
+                                </div>`;
+                            },
+                            item: function(item, escape) {
+                                return `<div>${escape(item.nombres)}</div>`;
+                            }
+                        },
+                        loadingClass: 'loading',
+                        load: async function(query, callback) {
+                            // Si el query está vacío, devolver la lista ya cargada (mapeada)
+                            if (!query) {
+                                return callback(usuarios.map(u => ({
+                                    id: u.id,
+                                    nombres: u.nombres,
+                                    email: u.credencial?.email || ''
+                                })));
+                            }
+                            try {
+                                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                                const response = await fetch(`/api/usuarios?search=${encodeURIComponent(query)}`, {
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`,
+                                        'Accept': 'application/json'
+                                    }
+                                });
+                                if (!response.ok) return callback();
+                                const json = await response.json();
+                                const registros = json.registros || [];
+                                // Mapear los registros a la forma esperada por Tom Select
+                                const mapped = registros.map(u => ({
+                                    id: u.id,
+                                    nombres: u.nombres,
+                                    email: u.credencial?.email || ''
+                                }));
+                                callback(mapped);
+                            } catch (e) {
+                                console.error('Error cargando usuarios:', e);
+                                callback();
+                            }
+                        }
+                    });
+                } catch (e) {
+                    console.error('Error inicializando TomSelect:', e);
+                }
+            });
+        }
+
         // Modal para generar cédula
         const generarCedulaModal = document.getElementById('generarCedulaModal');
 
@@ -619,12 +721,18 @@
             document.getElementById('formGenerarCedula').reset();
         }
 
-        // Agregar usuario a la lista
+        // Agregar usuario a la lista (clona plantilla y convierte el select en Tom Select)
         function agregarUsuario() {
             const listaUsuarios = document.getElementById('listaUsuarios');
             const template = document.querySelector('.usuario-item').cloneNode(true);
             template.classList.remove('hidden');
             listaUsuarios.appendChild(template);
+
+            // Inicializar Tom Select en el nuevo select
+            const nuevoSelect = template.querySelector('select[name="usuarios[]"]');
+            if (nuevoSelect) {
+                inicializarTomSelect([nuevoSelect], window.listaUsuarios || []);
+            }
         }
 
         // Eliminar usuario de la lista
@@ -784,9 +892,9 @@
                             <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
 
                             <select name="usuarios[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                <option>Usuario 1</option>
-                                <!-- Opciones se llenarán dinámicamente -->
-                            </select>
+                                    <option value="" disabled selected>Seleccione un usuario</option>
+                                    <!-- Opciones se llenarán dinámicamente -->
+                                </select>
                         </div>
                     </div>
                 </div>
