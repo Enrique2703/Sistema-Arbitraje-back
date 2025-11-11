@@ -288,7 +288,7 @@
                 tbody.innerHTML += `
             <tr class="${!isHabilitado ? 'bg-opacity-40' : ''} hover:bg-gray-50">
                 <td class="px-6 py-4 text-center">
-                    <button onclick="openGenerarCedulaModal()" class="bg-black text-white px-3 py-1 rounded text-sm">
+                    <button onclick="openGenerarCedulaModal(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">
                         ${doc.cedula || 'Cédula'}
                     </button>
                 </td>
@@ -712,7 +712,11 @@
         // Modal para generar cédula
         const generarCedulaModal = document.getElementById('generarCedulaModal');
 
-        function openGenerarCedulaModal() {
+        // Abrir modal de generar cédula y asignar documento
+        function openGenerarCedulaModal(documentoId) {
+            // Setear el id del documento en el input hidden
+            const hidden = document.getElementById('formGenerarCedula_documento_id');
+            if (hidden) hidden.value = documentoId || '';
             document.getElementById('generarCedulaModal').classList.remove('hidden');
         }
 
@@ -763,9 +767,27 @@
                     throw new Error('Error al generar la cédula');
                 }
 
+                // Intentar leer la respuesta (por si el backend devuelve la cédula creada)
+                let created = null;
+                try {
+                    created = await response.json();
+                } catch (e) {
+                    console.warn('No se obtuvo JSON de la respuesta:', e);
+                }
+
                 alert('Cédula generada exitosamente');
                 closeGenerarCedulaModal();
-                await cargarDocumentos();
+
+                // Obtener documento_id del formulario (hidden) para redirigir a la vista de cédulas
+                const documentoId = formData.get('documento_id') || (created && created.id) || '';
+                // Redirigir al listado de cédulas del expediente, mostrando la cédula generada
+                const expedienteIdParam = expedienteId || new URLSearchParams(window.location.search).get('id');
+                if (expedienteIdParam) {
+                    window.location.href = `/expedientes/cedulas?expediente_id=${expedienteIdParam}&documento_id=${documentoId}`;
+                } else {
+                    // Si no hay expedienteId, recargar la lista de documentos
+                    await cargarDocumentos();
+                }
             } catch (error) {
                 console.error('Error:', error);
                 alert('Error al generar la cédula');
@@ -869,6 +891,7 @@
             </div>
 
             <form id="formGenerarCedula" class="space-y-6">
+                <input type="hidden" name="documento_id" id="formGenerarCedula_documento_id" value="">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Comentarios</label>
                     <textarea name="comentarios" rows="4"
