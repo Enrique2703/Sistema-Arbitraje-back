@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CedulaController;
 use App\Http\Controllers\ExpedienteController;
 use App\Http\Controllers\ParticipeController;
 use App\Http\Controllers\ParticipeDocumentoController;
@@ -20,7 +21,7 @@ Route::get('/expedientes/participes/documentos', [DocumentoController::class, 'g
 Route::middleware(['session.timeout'])->group(function () {
     // Rutas para documentos
     Route::get('/expedientes/{id}/documentos', [DocumentoController::class, 'index']);
-    Route::post('/documentos', [DocumentoController::class, 'store']);
+    Route::post('/documentos', [DocumentoController::class, 'generarCedula']);
     Route::delete('/documentos/{id}', [DocumentoController::class, 'destroy']);
     Route::get('/documentos/{id}', [DocumentoController::class, 'show']);
     Route::get('/expedientes/export', [ExpedienteController::class, 'export']);
@@ -35,4 +36,5 @@ Route::middleware(['session.timeout'])->group(function () {
         ->name('participe-documento-archivos.download');
     Route::apiResource('expedientes', ExpedienteController::class);
     Route::apiResource('participe-documentos', ParticipeDocumentoController::class);
+    Route::apiResource('cedulas', CedulaController::class);
 });
