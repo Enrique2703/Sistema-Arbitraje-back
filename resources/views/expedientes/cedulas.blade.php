@@ -287,28 +287,44 @@
 
     async function exportToExcel() {
         try {
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-
-            const response = await fetch('/api/cedulas/export', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Error al exportar cédulas');
+            console.log('Iniciando exportación...');
+            console.log('Total de cédulas cargadas:', allCedulas.length);
+            
+            // Verificar que tengamos datos
+            if (!allCedulas || allCedulas.length === 0) {
+                alert('No hay cédulas para exportar');
+                return;
             }
 
-            const data = await response.json();
+            // Verificar que XLSX esté disponible
+            if (typeof XLSX === 'undefined') {
+                alert('Error: La librería XLSX no está cargada');
+                return;
+            }
 
-            // Transformar los datos para el Excel
-            const excelData = data.map(cedula => ({
-                'FECHA': new Date(cedula.created_at).toLocaleDateString('es-ES'),
-                'HORA': new Date(cedula.created_at).toLocaleTimeString('es-ES'),
-                'USUARIO': cedula.usuario_nombre || 'Sistema',
-                'ENVIADO A': cedula.enviado_a || '—'
-            }));
+            // Transformar los datos para el Excel con el formato solicitado
+            const excelData = allCedulas.map(cedula => {
+                let fecha = '—';
+                let hora = '—';
+                if (cedula.created_at) {
+                    const fechaObj = new Date(cedula.created_at);
+                    fecha = fechaObj.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    hora = fechaObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                }
+                
+                const usuarioNombre = cedula.usuario?.nombres || cedula.usuario_nombre || 'Sistema';
+                const titulo = cedula.documento?.titulo || 'Sin título';
+                
+                return {
+                    'FECHA': fecha,
+                    'HORA': hora,
+                    'TITULO': titulo,
+                    'USUARIO': usuarioNombre,
+                    'ROL': 'Demandado'
+                };
+            });
+
+            console.log('Datos a exportar:', excelData);
 
             // Crear libro de Excel
             const ws = XLSX.utils.json_to_sheet(excelData);
@@ -316,29 +332,24 @@
             XLSX.utils.book_append_sheet(wb, ws, "Cédulas");
 
             // Ajustar el ancho de las columnas
-            const colWidths = [{
-                    wch: 12
-                }, // FECHA
-                {
-                    wch: 10
-                }, // HORA
-                {
-                    wch: 30
-                }, // USUARIO
-                {
-                    wch: 40
-                } // ENVIADO A
+            ws['!cols'] = [
+                { wch: 12 },  // FECHA
+                { wch: 10 },  // HORA
+                { wch: 30 },  // TITULO
+                { wch: 30 },  // USUARIO
+                { wch: 15 }   // ROL
             ];
-            ws['!cols'] = colWidths;
 
             // Descargar archivo
             const today = new Date();
             const fileName = `Cedulas_${today.toISOString().split('T')[0]}.xlsx`;
+            console.log('Descargando archivo:', fileName);
             XLSX.writeFile(wb, fileName);
+            console.log('Exportación completada');
 
         } catch (error) {
-            console.error('Error:', error);
-            alert('Error al exportar las cédulas');
+            console.error('Error completo en exportación:', error);
+            alert('Error al exportar las cédulas: ' + error.message);
         }
     }
 </script>

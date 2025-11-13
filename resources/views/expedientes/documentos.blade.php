@@ -5,6 +5,8 @@
 <!-- Tom Select CSS y JS -->
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+<!-- XLSX Library para exportar a Excel -->
+<script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 
 <div class="min-h-screen bg-gray-100 flex">
     <div class="flex-1 flex flex-col">
@@ -150,6 +152,7 @@
         let expedienteId = null;
         let currentPage = 1;
         let rolSeleccionado = 'Todos';
+        let allDocumentos = []; // Variable global para almacenar todos los documentos
 
         document.addEventListener('DOMContentLoaded', function() {
                         // Siempre limpiar y recargar la tabla al cargar la página
@@ -375,6 +378,7 @@
         if (!response.ok) throw new Error('Error al cargar documentos');
 
         const data = await response.json();
+        allDocumentos = data.documentos; // Guardar en variable global
         renderizarDocumentos(data.documentos);
         actualizarPaginacion(data.meta);
 
@@ -460,32 +464,76 @@
 
         async function exportToFolder() {
             try {
-                const expedienteId = new URLSearchParams(window.location.search).get('id');
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                console.log('Iniciando exportación a Excel...');
+                console.log('Total de documentos:', allDocumentos.length);
 
-                const response = await fetch(`/api/expedientes/${expedienteId}/documentos/export`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Error al exportar documentos');
+                // Verificar que XLSX esté disponible
+                if (typeof XLSX === 'undefined') {
+                    console.error('XLSX library no está cargada');
+                    alert('Error: Biblioteca de Excel no disponible. Por favor, recarga la página.');
+                    return;
                 }
 
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `Documentos_Expediente_${expedienteId}_${new Date().toISOString().split('T')[0]}.zip`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
+                // Verificar que hay documentos para exportar
+                if (!allDocumentos || allDocumentos.length === 0) {
+                    alert('No hay documentos para exportar');
+                    return;
+                }
+
+                // Preparar datos para Excel con el formato especificado
+                const excelData = allDocumentos.map(doc => {
+                    const fecha = new Date(doc.created_at);
+                    const fechaStr = fecha.toLocaleDateString('es-PE', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric' 
+                    });
+                    const horaStr = fecha.toLocaleTimeString('es-PE', { 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        second: '2-digit',
+                        hour12: false 
+                    });
+
+                    return {
+                        FECHA: fechaStr,
+                        HORA: horaStr,
+                        TITULO: doc.titulo || '',
+                        USUARIO: doc.usuario_nombre || 'Sistema',
+                        ROL: 'Demandado' // Ajustar según la lógica de negocio
+                    };
+                });
+
+                console.log('Datos preparados para Excel:', excelData);
+
+                // Crear libro y hoja de trabajo
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(excelData);
+
+                // Ajustar ancho de columnas
+                ws['!cols'] = [
+                    { wch: 12 }, // FECHA
+                    { wch: 10 }, // HORA
+                    { wch: 30 }, // TITULO
+                    { wch: 20 }, // USUARIO
+                    { wch: 15 }  // ROL
+                ];
+
+                XLSX.utils.book_append_sheet(wb, ws, 'Documentos');
+
+                // Descargar archivo
+                const expedienteId = new URLSearchParams(window.location.search).get('expediente_id') || 
+                                    document.querySelector('input[name="expediente_id"]')?.value ||
+                                    'expediente';
+                const filename = `Documentos_${expedienteId}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                
+                console.log('Descargando archivo:', filename);
+                XLSX.writeFile(wb, filename);
+                
+                console.log('Exportación completada exitosamente');
             } catch (error) {
-                console.error('Error:', error);
-                alert('Error al exportar los documentos');
+                console.error('Error al exportar:', error);
+                alert('Error al exportar los documentos a Excel: ' + error.message);
             }
         }
 
