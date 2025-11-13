@@ -311,16 +311,15 @@
                     fecha = fechaObj.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     hora = fechaObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 }
-                
+
                 const usuarioNombre = cedula.usuario?.nombres || cedula.usuario_nombre || 'Sistema';
-                const titulo = cedula.documento?.titulo || 'Sin título';
-                
+                const enviadoA = cedula.enviado_a_nombres || cedula.enviado_a || '';
+
                 return {
                     'FECHA': fecha,
                     'HORA': hora,
-                    'TITULO': titulo,
                     'USUARIO': usuarioNombre,
-                    'ROL': 'Demandado'
+                    'ENVIADO A': enviadoA
                 };
             });
 
@@ -335,14 +334,16 @@
             ws['!cols'] = [
                 { wch: 12 },  // FECHA
                 { wch: 10 },  // HORA
-                { wch: 30 },  // TITULO
-                { wch: 30 },  // USUARIO
-                { wch: 15 }   // ROL
+                { wch: 20 },  // USUARIO
+                { wch: 30 }   // ENVIADO A
             ];
 
             // Descargar archivo
             const today = new Date();
-            const fileName = `Cedulas_${today.toISOString().split('T')[0]}.xlsx`;
+            const dia = String(today.getDate()).padStart(2, '0');
+            const mes = String(today.getMonth() + 1).padStart(2, '0');
+            const anio = today.getFullYear();
+            const fileName = `Cedulas_${dia}_${mes}_${anio}.xlsx`;
             console.log('Descargando archivo:', fileName);
             XLSX.writeFile(wb, fileName);
             console.log('Exportación completada');

@@ -522,10 +522,11 @@
                 XLSX.utils.book_append_sheet(wb, ws, 'Documentos');
 
                 // Descargar archivo
-                const expedienteId = new URLSearchParams(window.location.search).get('expediente_id') || 
-                                    document.querySelector('input[name="expediente_id"]')?.value ||
-                                    'expediente';
-                const filename = `Documentos_${expedienteId}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                    const fecha = new Date();
+                    const dia = String(fecha.getDate()).padStart(2, '0');
+                    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                    const anio = fecha.getFullYear();
+                    const filename = `Documentos_${dia}_${mes}_${anio}.xlsx`;
                 
                 console.log('Descargando archivo:', filename);
                 XLSX.writeFile(wb, filename);
