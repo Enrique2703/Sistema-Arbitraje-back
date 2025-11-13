@@ -821,12 +821,21 @@
         // Agregar usuario a la lista (clona plantilla y convierte el select en Tom Select)
         function agregarUsuario() {
             const listaUsuarios = document.getElementById('listaUsuarios');
-            const template = document.querySelector('.usuario-item').cloneNode(true);
-            template.classList.remove('hidden');
-            listaUsuarios.appendChild(template);
+            
+            // Crear un nuevo elemento en lugar de clonar
+            const nuevoItem = document.createElement('div');
+            nuevoItem.className = 'usuario-item flex items-center space-x-2';
+            nuevoItem.innerHTML = `
+                <button type="button" onclick="eliminarUsuario(this)" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+                <select name="usuarios[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="" disabled selected>Seleccione un usuario</option>
+                </select>
+            `;
+            
+            listaUsuarios.appendChild(nuevoItem);
 
             // Inicializar Tom Select en el nuevo select
-            const nuevoSelect = template.querySelector('select[name="usuarios[]"]');
+            const nuevoSelect = nuevoItem.querySelector('select[name="usuarios[]"]');
             if (nuevoSelect) {
                 inicializarTomSelect([nuevoSelect], window.listaUsuarios || []);
             }
