@@ -832,7 +832,7 @@
 
                     new TomSelect(select, {
                         valueField: 'id',
-                        labelField: 'nombres',
+                        labelField: 'email', // Mostrar el correo en el select
                         searchField: ['nombres', 'email'],
                         options: usuarios.map(u => ({
                             id: u.id,
@@ -849,7 +849,7 @@
                                 </div>`;
                             },
                             item: function(item, escape) {
-                                return `<div>${escape(item.nombres)}</div>`;
+                                return `<div>${escape(item.email || '')}</div>`;
                             }
                         },
                         loadingClass: 'loading',
