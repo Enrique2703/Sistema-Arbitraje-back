@@ -83,10 +83,20 @@
         expedienteId = urlParams.get('expediente_id');
         documentoId = urlParams.get('documento_id');
 
+        console.log('ExpedienteId detectado en cédulas:', expedienteId);
+        console.log('DocumentoId detectado en cédulas:', documentoId);
+
         // Configurar el enlace de regreso dinámicamente
         const regresarBtn = document.getElementById('regresarDocumentos');
-        if (regresarBtn && expedienteId) {
-            regresarBtn.setAttribute('href', `/expedientes/documentos?expediente_id=${expedienteId}`);
+        if (regresarBtn) {
+            if (expedienteId) {
+                const urlRegreso = `/expedientes/documentos?expediente_id=${expedienteId}`;
+                regresarBtn.setAttribute('href', urlRegreso);
+                console.log('URL de regreso configurada:', urlRegreso);
+            } else {
+                console.warn('No se encontró expedienteId, redirigiendo a /expedientes');
+                regresarBtn.setAttribute('href', '/expedientes');
+            }
         }
 
         if (!expedienteId) {

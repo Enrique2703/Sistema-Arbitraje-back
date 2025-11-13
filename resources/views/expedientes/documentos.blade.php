@@ -587,9 +587,22 @@
         }
 
         function verCedulasGeneradas(id) {
-            const expedienteId = new URLSearchParams(window.location.search).get('id');
+            // Obtener expedienteId de forma robusta (igual que en cargarDocumentos)
+            let urlParams = new URLSearchParams(window.location.search);
+            let expId = urlParams.get('id') || urlParams.get('expediente_id') || urlParams.get('expedienteId');
+            if (!expId) {
+                const hiddenInput = document.getElementById('expediente_id') || document.querySelector('input[name="expediente_id"]');
+                if (hiddenInput) expId = hiddenInput.value;
+            }
+            if (!expId) {
+                const pathMatch = window.location.pathname.match(/\/expedientes\/(\d+)/);
+                if (pathMatch) expId = pathMatch[1];
+            }
+            
+            console.log('Redirigiendo a cédulas con expedienteId:', expId, 'documentoId:', id);
+            
             // Redirigir a la página de cédulas con el ID del documento y del expediente
-            window.location.href = `/expedientes/cedulas?expediente_id=${expedienteId}&documento_id=${id}`;
+            window.location.href = `/expedientes/cedulas?expediente_id=${expId}&documento_id=${id}`;
         }
 
         async function generarDocumentos(id) {
