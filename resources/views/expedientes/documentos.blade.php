@@ -152,15 +152,27 @@
         let rolSeleccionado = 'Todos';
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Obtener el ID del expediente de la URL
-            const urlParams = new URLSearchParams(window.location.search);
-            expedienteId = urlParams.get('id');
+                // Obtener el ID del expediente de múltiples fuentes (parámetros URL, variable global, inputs ocultos o ruta)
+                const urlParams = new URLSearchParams(window.location.search);
+                expedienteId = urlParams.get('id') || urlParams.get('expediente_id') || urlParams.get('expedienteId');
 
-            if (!expedienteId) {
-                alert('No se proporcionó ID del expediente');
-                window.location.href = '/expedientes';
-                return;
-            }
+                // fallback a variable global si existe
+                if (!expedienteId && typeof window.expedienteId !== 'undefined') {
+                    expedienteId = window.expedienteId;
+                }
+
+                // fallback a input hidden en la página
+                if (!expedienteId) {
+                    const hiddenInput = document.getElementById('expediente_id') || document.querySelector('input[name="expediente_id"]');
+                    if (hiddenInput) expedienteId = hiddenInput.value || expedienteId;
+                }
+
+                // fallback a extracción desde la ruta (/expedientes/{id}/...)
+                if (!expedienteId) {
+                    const pathMatch = window.location.pathname.match(/\/expedientes\/(\d+)/);
+                    if (pathMatch) expedienteId = pathMatch[1];
+                }
+
 
             // Configurar eventos del filtro
             document.getElementById('filterButton').addEventListener('click', () => {
@@ -188,6 +200,91 @@
             configurarBuscador();
             // Cargar usuarios para los selects con Tom Select (buscador)
             cargarUsuarios();
+
+            // Manejar el envío del formulario de cédula (enviar JSON a /api/cedulas)
+            const formCedula = document.getElementById('formGenerarCedula');
+            if (formCedula) {
+                formCedula.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    console.log('🚀 Iniciando envío de cédula...');
+
+                    try {
+                        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                        console.log('Token encontrado:', token ? 'Sí' : 'No');
+
+                        // Recopilar datos del formulario
+                        const documentoId = document.getElementById('formGenerarCedula_documento_id')?.value || '';
+                        const comentarios = this.querySelector('textarea[name="comentarios"]')?.value || '';
+
+                        console.log('Documento ID:', documentoId);
+                        console.log('Comentarios:', comentarios);
+
+                        // Recolectar usuarios desde los selects name="usuarios[]"
+                        const usuarios = [];
+                        document.querySelectorAll('select[name="usuarios[]"]').forEach(s => {
+                            const val = s.value;
+                            console.log('Select value:', val);
+                            if (val) {
+                                const num = Number(val);
+                                if (!Number.isNaN(num)) usuarios.push(num);
+                            }
+                        });
+
+                        console.log('Usuarios seleccionados:', usuarios);
+
+                        const payload = {
+                            documento_id: Number(documentoId) || null,
+                            comentarios: comentarios || null,
+                            usuarios: usuarios
+                        };
+
+                        console.log('📦 Payload a enviar:', JSON.stringify(payload, null, 2));
+
+                        const response = await fetch('/api/cedulas', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        console.log('📡 Response status:', response.status);
+                        console.log('📡 Response ok:', response.ok);
+
+                        if (!response.ok) {
+                            const err = await response.json().catch(() => null);
+                            console.error('❌ Error response:', err);
+                            throw new Error((err && err.message) || 'Error al generar la cédula');
+                        }
+
+                        // Leer la respuesta (backend devuelve { status, id, cedula })
+                        const created = await response.json();
+                        console.log('✅ Cédula creada:', created);
+
+                        alert('Cédula generada exitosamente');
+                        closeGenerarCedulaModal();
+
+                        // Redirigir al listado de cédulas del expediente
+                        const documentoIdForRedirect = documentoId || (created && created.id) || '';
+                        const expedienteIdParam = expedienteId || new URLSearchParams(window.location.search).get('id');
+                        
+                        console.log('🔄 Redirigiendo con expedienteId:', expedienteIdParam, 'documentoId:', documentoIdForRedirect);
+                        
+                        if (expedienteIdParam) {
+                            window.location.href = `/expedientes/cedulas?expediente_id=${expedienteIdParam}&documento_id=${documentoIdForRedirect}`;
+                        } else {
+                            await cargarDocumentos();
+                        }
+                    } catch (error) {
+                        console.error('❌ Error completo:', error);
+                        alert(error.message || 'Error al generar la cédula');
+                    }
+                });
+            }
         });
 
         function configurarBuscador() {
@@ -265,10 +362,6 @@
                 return true;
             });
 
-            if (!documentosFiltrados.length) {
-                tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No se encontraron documentos que coincidan con la búsqueda</td></tr>';
-                return;
-            }
 
             tbody.innerHTML = '';
             documentosFiltrados.forEach(doc => {
@@ -746,53 +839,6 @@
                 item.remove();
             }
         }
-
-        // Manejar el envío del formulario de cédula
-        document.getElementById('formGenerarCedula').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            try {
-                const formData = new FormData(this);
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-
-                const response = await fetch('/api/documentos/generar-cedula', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    throw new Error('Error al generar la cédula');
-                }
-
-                // Intentar leer la respuesta (por si el backend devuelve la cédula creada)
-                let created = null;
-                try {
-                    created = await response.json();
-                } catch (e) {
-                    console.warn('No se obtuvo JSON de la respuesta:', e);
-                }
-
-                alert('Cédula generada exitosamente');
-                closeGenerarCedulaModal();
-
-                // Obtener documento_id del formulario (hidden) para redirigir a la vista de cédulas
-                const documentoId = formData.get('documento_id') || (created && created.id) || '';
-                // Redirigir al listado de cédulas del expediente, mostrando la cédula generada
-                const expedienteIdParam = expedienteId || new URLSearchParams(window.location.search).get('id');
-                if (expedienteIdParam) {
-                    window.location.href = `/expedientes/cedulas?expediente_id=${expedienteIdParam}&documento_id=${documentoId}`;
-                } else {
-                    // Si no hay expedienteId, recargar la lista de documentos
-                    await cargarDocumentos();
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al generar la cédula');
-            }
-        });
 
         // Cerrar modal al hacer clic fuera
         document.getElementById('generarCedulaModal').addEventListener('click', function(e) {

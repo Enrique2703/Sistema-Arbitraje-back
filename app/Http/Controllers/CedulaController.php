@@ -26,7 +26,12 @@ class CedulaController extends Controller
                 ->select('cedulas.*');
         }
 
-        // Definir cantidad por página (por defecto 10)
+        if ($request->has('documentos_id')) {
+            $documentoId = (int) $request->get('documentos_id');
+            $query->join('participe_documentos', 'cedulas.documentos_id', '=', 'participe_documentos.id')
+                ->where('participe_documentos.id', $documentoId);
+        }
+
         $perPage = $request->get('per_page', 10);
 
         // Aplicar paginación
@@ -93,9 +98,18 @@ class CedulaController extends Controller
             }
         }
 
-        DB::commit();
+            DB::commit();
 
-        return response()->json(['status' => true, 'message' => 'Cédula creada'], 201);
+            // Cargar relaciones para devolver en la respuesta
+            $cedula->load(['usuario', 'documento']);
+            $correos = CedulaCorreo::with('usuario')->where('cedulas_id', $cedula->id)->get();
+            $cedula->correos = $correos;
+
+            return response()->json([
+                'status' => true,
+                'id' => $cedula->id,
+                'cedula' => $cedula,
+            ], 201);
     }
 
 

@@ -130,7 +130,7 @@
                 per_page: pageSize
             });
 
-            const response = await fetch(`/api/documentos/${expedienteId}/cedulas?${params.toString()}`, {
+            const response = await fetch(`/api/cedulas/?documentos_id=${documentoId}&${params.toString()}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
@@ -140,10 +140,14 @@
             if (!response.ok) throw new Error('Error al obtener cédulas');
             const data = await response.json();
 
-            allCedulas = data.cedulas || [];
+            console.log('📋 Datos recibidos:', data);
+
+            allCedulas = data.registros || [];
             currentPage = data.meta.current_page;
             lastPage = data.meta.last_page;
             perPage = data.meta.per_page;
+
+            console.log('📊 Cédulas cargadas:', allCedulas.length);
 
             renderizarCedulas(allCedulas);
             renderizarPaginacion(data.meta);
@@ -158,15 +162,20 @@
         const tbody = document.getElementById('cedulasTableBody');
         const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
 
+        console.log('🎨 Renderizando cédulas:', cedulas.length);
+
         // Filtrar cédulas según el término de búsqueda
         const cedulasFiltradas = cedulas.filter(cedula => {
             if (searchTerm) {
-                const usuarioCoincide = (cedula.usuario_nombre || '').toLowerCase().includes(searchTerm);
+                const usuarioNombre = cedula.usuario?.nombres || cedula.usuario_nombre || '';
+                const usuarioCoincide = usuarioNombre.toLowerCase().includes(searchTerm);
                 const destinatariosCoinciden = (cedula.enviado_a || '').toLowerCase().includes(searchTerm);
                 return usuarioCoincide || destinatariosCoinciden;
             }
             return true;
         });
+
+        console.log('📊 Cédulas filtradas:', cedulasFiltradas.length);
 
         if (!cedulasFiltradas.length) {
             tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No se encontraron cédulas</td></tr>';
@@ -181,11 +190,13 @@
                 minute: '2-digit'
             });
 
+            const usuarioNombre = cedula.usuario?.nombres || cedula.usuario_nombre || 'Sistema';
+
             tbody.innerHTML += `
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${fecha}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${hora}</td>
-                    <td class="px-6 py-4 text-sm text-gray-900">${cedula.usuario_nombre || 'Sistema'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-900">${usuarioNombre}</td>
                     <td class="px-6 py-4 text-sm text-gray-900">${cedula.enviado_a || '—'}</td>
                     <td class="px-6 py-4 text-right">
                         <button onclick="verCedula(${cedula.id})" class="bg-black text-white px-3 py-1 rounded text-sm">Ver</button>

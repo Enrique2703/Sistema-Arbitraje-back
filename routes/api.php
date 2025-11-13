@@ -21,7 +21,10 @@ Route::get('/expedientes/participes/documentos', [DocumentoController::class, 'g
 Route::middleware(['session.timeout'])->group(function () {
     // Rutas para documentos
     Route::get('/expedientes/{id}/documentos', [DocumentoController::class, 'index']);
+    // Endpoint para crear documentos (original) y alias para generar cédula desde el frontend
     Route::post('/documentos', [DocumentoController::class, 'generarCedula']);
+    // Alias: aceptar POST /documentos/generar-cedula y delegar a CedulaController@store
+    Route::post('/documentos/generar-cedula', [CedulaController::class, 'store']);
     Route::delete('/documentos/{id}', [DocumentoController::class, 'destroy']);
     Route::get('/documentos/{id}', [DocumentoController::class, 'show']);
     Route::get('/expedientes/export', [ExpedienteController::class, 'export']);
