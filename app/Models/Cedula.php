@@ -27,6 +27,8 @@ class Cedula extends Model
         'usuario_id'
     ];
 
+    public $timestamps = true;
+
     /**
      * Atributos adicionales a incluir en JSON
      *

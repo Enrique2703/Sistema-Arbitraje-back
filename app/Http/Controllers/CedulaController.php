@@ -28,8 +28,8 @@ class CedulaController extends Controller
 
         if ($request->has('documentos_id')) {
             $documentoId = (int) $request->get('documentos_id');
-            $query->join('participe_documentos', 'cedulas.documentos_id', '=', 'participe_documentos.id')
-                ->where('participe_documentos.id', $documentoId);
+            $query->where('cedulas.documentos_id', $documentoId)
+                ->select('cedulas.*');
         }
 
         $perPage = $request->get('per_page', 10);

@@ -194,11 +194,16 @@
 
         tbody.innerHTML = '';
         cedulasFiltradas.forEach(cedula => {
-            const fecha = new Date(cedula.created_at).toLocaleDateString('es-ES');
-            const hora = new Date(cedula.created_at).toLocaleTimeString('es-ES', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            // Usar created_at para fecha y hora exacta de creación
+            console.log('Cedula ID:', cedula.id, 'created_at:', cedula.created_at);
+            let fecha = '—';
+            let hora = '—';
+            if (cedula.created_at) {
+                const fechaObj = new Date(cedula.created_at);
+                fecha = fechaObj.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                hora = fechaObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                console.log('Fecha formateada:', fecha, 'Hora:', hora);
+            }
 
             const usuarioNombre = cedula.usuario?.nombres || cedula.usuario_nombre || 'Sistema';
             const enviadoANombres = cedula.enviado_a_nombres || cedula.enviado_a || '—';
