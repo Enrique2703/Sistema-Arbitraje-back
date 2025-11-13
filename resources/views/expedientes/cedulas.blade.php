@@ -9,7 +9,7 @@
         <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-4">
-                    <a href="/expedientes/documentos" class="flex items-center text-gray-600 hover:text-gray-900">
+                    <a id="regresarDocumentos" href="#" class="flex items-center text-gray-600 hover:text-gray-900">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                         </svg>
@@ -83,6 +83,12 @@
         expedienteId = urlParams.get('expediente_id');
         documentoId = urlParams.get('documento_id');
 
+        // Configurar el enlace de regreso dinámicamente
+        const regresarBtn = document.getElementById('regresarDocumentos');
+        if (regresarBtn && expedienteId) {
+            regresarBtn.setAttribute('href', `/expedientes/documentos?expediente_id=${expedienteId}`);
+        }
+
         if (!expedienteId) {
             alert('No se proporcionó ID del expediente');
             window.location.href = '/expedientes';
@@ -98,16 +104,24 @@
         let searchTimeout;
 
         searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.trim();
+            const searchTerm = e.target.value.trim().toLowerCase();
             clearTimeout(searchTimeout);
 
             searchTimeout = setTimeout(() => {
                 currentPage = 1;
-                cargarCedulas().then(() => {
-                    console.log('Búsqueda completada para:', searchTerm);
-                }).catch(error => {
-                    console.error('Error en la búsqueda:', error);
+                // Filtrar en frontend por usuario y destinatarios
+                const tbody = document.getElementById('cedulasTableBody');
+                const cedulasFiltradas = allCedulas.filter(cedula => {
+                    const usuarioNombre = (cedula.usuario?.nombres || cedula.usuario_nombre || '').toLowerCase();
+                    const destinatarios = (cedula.enviado_a_nombres || cedula.enviado_a || '').toLowerCase();
+                    return usuarioNombre.includes(searchTerm) || destinatarios.includes(searchTerm);
                 });
+                if (!cedulasFiltradas.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No se encontraron cédulas</td></tr>';
+                } else {
+                    renderizarCedulas(cedulasFiltradas);
+                }
+                console.log('Búsqueda completada para:', searchTerm);
             }, 300);
         });
     }

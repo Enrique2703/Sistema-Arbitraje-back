@@ -125,8 +125,8 @@
                                 <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                 </svg>
-                                <span class="text-sm text-gray-600">Adjuntar archivos</span>
-                                <input type="file" class="hidden" name="documento" required>
+                                <span class="text-sm text-gray-600" id="fileNameLabel">Adjuntar archivos</span>
+                                <input type="file" class="hidden" name="documento" id="documentoInput" required accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png">
                             </label>
                         </div>
                     </div>
@@ -152,26 +152,53 @@
         let rolSeleccionado = 'Todos';
 
         document.addEventListener('DOMContentLoaded', function() {
-                // Obtener el ID del expediente de múltiples fuentes (parámetros URL, variable global, inputs ocultos o ruta)
-                const urlParams = new URLSearchParams(window.location.search);
-                expedienteId = urlParams.get('id') || urlParams.get('expediente_id') || urlParams.get('expedienteId');
+                        // Siempre limpiar y recargar la tabla al cargar la página
+                        const tbody = document.getElementById('documentosTableBody');
+                        if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Cargando...</td></tr>';
+                        cargarDocumentos();
 
-                // fallback a variable global si existe
-                if (!expedienteId && typeof window.expedienteId !== 'undefined') {
-                    expedienteId = window.expedienteId;
-                }
+                        // Recargar la tabla cada vez que la página se muestre (incluso al regresar con el historial)
+                        window.addEventListener('pageshow', function(event) {
+                            if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Cargando...</td></tr>';
+                            cargarDocumentos();
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        });
+            // Si venimos de cedulas generadas y hay expediente_id, recargar la tabla y hacer scroll al inicio
+            if (window.location.search.includes('expediente_id=')) {
+                setTimeout(() => {
+                    cargarDocumentos();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 100);
+            }
 
-                // fallback a input hidden en la página
-                if (!expedienteId) {
-                    const hiddenInput = document.getElementById('expediente_id') || document.querySelector('input[name="expediente_id"]');
-                    if (hiddenInput) expedienteId = hiddenInput.value || expedienteId;
-                }
+            // Obtener el ID del expediente de múltiples fuentes (parámetros URL, variable global, inputs ocultos o ruta)
+            const urlParams = new URLSearchParams(window.location.search);
+            expedienteId = urlParams.get('id') || urlParams.get('expediente_id') || urlParams.get('expedienteId');
 
-                // fallback a extracción desde la ruta (/expedientes/{id}/...)
-                if (!expedienteId) {
-                    const pathMatch = window.location.pathname.match(/\/expedientes\/(\d+)/);
-                    if (pathMatch) expedienteId = pathMatch[1];
-                }
+            // fallback a variable global si existe
+            if (!expedienteId && typeof window.expedienteId !== 'undefined') {
+                expedienteId = window.expedienteId;
+            }
+
+            // fallback a input hidden en la página
+            if (!expedienteId) {
+                const hiddenInput = document.getElementById('expediente_id') || document.querySelector('input[name="expediente_id"]');
+                if (hiddenInput) expedienteId = hiddenInput.value || expedienteId;
+            }
+
+            // fallback a extracción desde la ruta (/expedientes/{id}/...)
+            if (!expedienteId) {
+                const pathMatch = window.location.pathname.match(/\/expedientes\/(\d+)/);
+                if (pathMatch) expedienteId = pathMatch[1];
+            }
+
+            // Si no se encuentra expedienteId, redirigir a expedientes
+            if (!expedienteId) {
+                console.warn('No se encontró expedienteId, redirigiendo a /expedientes');
+                window.location.href = '/expedientes';
+                return;
+            }
+            console.log('ExpedienteId detectado:', expedienteId);
 
 
             // Configurar eventos del filtro
@@ -308,37 +335,53 @@
         }
 
         async function cargarDocumentos() {
-            const tbody = document.getElementById('documentosTableBody');
-            const searchTerm = document.getElementById('searchInput').value.trim();
+    const tbody = document.getElementById('documentosTableBody');
+    const searchTerm = document.getElementById('searchInput').value.trim();
 
-            try {
-                tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Cargando...</td></tr>';
+    // SIEMPRE obtener expedienteId de la URL en cada llamada
+    let urlParams = new URLSearchParams(window.location.search);
+    let expId = urlParams.get('id') || urlParams.get('expediente_id') || urlParams.get('expedienteId');
+    if (!expId) {
+        const hiddenInput = document.getElementById('expediente_id') || document.querySelector('input[name="expediente_id"]');
+        if (hiddenInput) expId = hiddenInput.value;
+    }
+    if (!expId) {
+        const pathMatch = window.location.pathname.match(/\/expedientes\/(\d+)/);
+        if (pathMatch) expId = pathMatch[1];
+    }
+    if (!expId) {
+        tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">No se encontró el expediente</td></tr>';
+        return;
+    }
 
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                const params = new URLSearchParams({
-                    search: searchTerm,
-                    page: currentPage,
-                    rol: rolSeleccionado,
-                    searchFields: 'titulo,usuario_nombre' // Especificamos los campos en los que buscar
-                });
+    try {
+        tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Cargando...</td></tr>';
 
-                const response = await fetch(`/api/expedientes/${expedienteId}/documentos?${params.toString()}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json'
-                    }
-                });
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const params = new URLSearchParams({
+            search: searchTerm,
+            page: currentPage,
+            rol: rolSeleccionado,
+            searchFields: 'titulo,usuario_nombre'
+        });
 
-                if (!response.ok) throw new Error('Error al cargar documentos');
-
-                const data = await response.json();
-                renderizarDocumentos(data.documentos);
-                actualizarPaginacion(data.meta);
-
-            } catch (error) {
-                console.error('Error:', error);
-                tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">Error al cargar los documentos</td></tr>';
+        const response = await fetch(`/api/expedientes/${expId}/documentos?${params.toString()}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
             }
+        });
+
+        if (!response.ok) throw new Error('Error al cargar documentos');
+
+        const data = await response.json();
+        renderizarDocumentos(data.documentos);
+        actualizarPaginacion(data.meta);
+
+    } catch (error) {
+        console.error('Error:', error);
+        tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">Error al cargar los documentos</td></tr>';
+    }
         }
 
         function renderizarDocumentos(documentos) {
@@ -453,6 +496,13 @@
         function closeModal() {
             document.getElementById('documentModal').classList.add('hidden');
             document.getElementById('documentForm').reset();
+            // Resetear el label del archivo
+            const fileLabel = document.getElementById('fileNameLabel');
+            if (fileLabel) {
+                fileLabel.textContent = 'Adjuntar archivos';
+                fileLabel.classList.remove('text-blue-600', 'font-medium');
+                fileLabel.classList.add('text-gray-600');
+            }
         }
 
         async function revisarDocumento(id) {
@@ -657,51 +707,91 @@
             }
         });
 
-        // Mostrar nombre del archivo seleccionado
-        document.querySelector('input[name="documento"]').addEventListener('change', function(e) {
-            const fileName = e.target.files[0]?.name;
-            if (fileName) {
-                const fileLabel = this.parentElement.querySelector('span');
-                fileLabel.textContent = fileName;
+        // Mostrar nombre del archivo seleccionado con validación mejorada
+        document.getElementById('documentoInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const fileLabel = document.getElementById('fileNameLabel');
+            
+            if (file) {
+                // Validar tamaño del archivo (máximo 10MB)
+                const maxSize = 10 * 1024 * 1024; // 10MB en bytes
+                if (file.size > maxSize) {
+                    alert('El archivo es demasiado grande. El tamaño máximo permitido es 10MB.');
+                    this.value = ''; // Limpiar el input
+                    fileLabel.textContent = 'Adjuntar archivos';
+                    fileLabel.classList.remove('text-blue-600', 'font-medium');
+                    fileLabel.classList.add('text-gray-600');
+                    return;
+                }
+                
+                // Mostrar nombre del archivo con estilo diferente
+                fileLabel.textContent = file.name;
+                fileLabel.classList.remove('text-gray-600');
+                fileLabel.classList.add('text-blue-600', 'font-medium');
+                console.log('Archivo seleccionado:', file.name, 'Tamaño:', (file.size / 1024).toFixed(2) + 'KB');
+            } else {
+                // Restaurar texto original si no hay archivo
+                fileLabel.textContent = 'Adjuntar archivos';
+                fileLabel.classList.remove('text-blue-600', 'font-medium');
+                fileLabel.classList.add('text-gray-600');
             }
         });
 
         document.getElementById('documentForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+    e.preventDefault();
 
-            try {
-                const formData = new FormData();
-                const expedienteId = new URLSearchParams(window.location.search).get('id');
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    try {
+        // Validar que se haya seleccionado un archivo
+        const documentoInput = document.getElementById('documentoInput');
+        if (!documentoInput.files || !documentoInput.files[0]) {
+            alert('Por favor, seleccione un archivo para subir.');
+            return;
+        }
 
-                // Agregar campos al FormData
-                formData.append('titulo', this.titulo.value);
-                formData.append('comentarios', this.comentarios.value);
-                formData.append('documento', this.documento.files[0]);
-                formData.append('expediente_id', expedienteId);
+        const formData = new FormData();
+        // Refuerzo: obtener expedienteId igual que en cargarDocumentos
+        let urlParams = new URLSearchParams(window.location.search);
+        let expId = urlParams.get('id') || urlParams.get('expediente_id') || urlParams.get('expedienteId');
+        if (!expId) {
+            const hiddenInput = document.getElementById('expediente_id') || document.querySelector('input[name="expediente_id"]');
+            if (hiddenInput) expId = hiddenInput.value;
+        }
+        if (!expId) {
+            const pathMatch = window.location.pathname.match(/\/expedientes\/(\d+)/);
+            if (pathMatch) expId = pathMatch[1];
+        }
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
-                const response = await fetch('/api/documentos', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        // No incluir Content-Type aquí, fetch lo establecerá automáticamente con el boundary correcto
-                    },
-                    body: formData
-                });
+        // Agregar campos al FormData
+        formData.append('titulo', this.titulo.value);
+        formData.append('comentarios', this.comentarios.value);
+        formData.append('documento', documentoInput.files[0]);
+        formData.append('expediente_id', expId);
+        
+        console.log('📤 Enviando documento:', documentoInput.files[0].name);
 
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || 'Error al crear el documento');
-                }
+        const response = await fetch('/api/documentos', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                // No incluir Content-Type aquí, fetch lo establecerá automáticamente con el boundary correcto
+            },
+            body: formData
+        });
 
-                // Mostrar mensaje de éxito
-                alert('Documento creado exitosamente');
-                closeModal();
-                await cargarDocumentos(); // Recargar la lista de documentos
-            } catch (error) {
-                console.error('Error:', error);
-                alert(error.message || 'Error al crear el documento');
-            }
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Error al crear el documento');
+        }
+
+        // Mostrar mensaje de éxito
+        alert('Documento creado exitosamente');
+        closeModal();
+        await cargarDocumentos(); // Recargar la lista de documentos
+    } catch (error) {
+        console.error('Error:', error);
+        alert(error.message || 'Error al crear el documento');
+    }
         });
 
         // Funciones para cargar usuarios y configurar Tom Select
