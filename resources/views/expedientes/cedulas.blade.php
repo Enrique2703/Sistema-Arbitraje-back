@@ -140,14 +140,14 @@
             if (!response.ok) throw new Error('Error al obtener cédulas');
             const data = await response.json();
 
-            console.log('📋 Datos recibidos:', data);
+            console.log('Datos recibidos:', data);
 
             allCedulas = data.registros || [];
             currentPage = data.meta.current_page;
             lastPage = data.meta.last_page;
             perPage = data.meta.per_page;
 
-            console.log('📊 Cédulas cargadas:', allCedulas.length);
+            console.log('Cédulas cargadas:', allCedulas.length);
 
             renderizarCedulas(allCedulas);
             renderizarPaginacion(data.meta);
@@ -162,7 +162,7 @@
         const tbody = document.getElementById('cedulasTableBody');
         const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
 
-        console.log('🎨 Renderizando cédulas:', cedulas.length);
+        console.log(' Renderizando cédulas:', cedulas.length);
 
         // Filtrar cédulas según el término de búsqueda
         const cedulasFiltradas = cedulas.filter(cedula => {
@@ -175,7 +175,7 @@
             return true;
         });
 
-        console.log('📊 Cédulas filtradas:', cedulasFiltradas.length);
+        console.log(' Cédulas filtradas:', cedulasFiltradas.length);
 
         if (!cedulasFiltradas.length) {
             tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No se encontraron cédulas</td></tr>';
@@ -191,13 +191,14 @@
             });
 
             const usuarioNombre = cedula.usuario?.nombres || cedula.usuario_nombre || 'Sistema';
+            const enviadoANombres = cedula.enviado_a_nombres || cedula.enviado_a || '—';
 
             tbody.innerHTML += `
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${fecha}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${hora}</td>
                     <td class="px-6 py-4 text-sm text-gray-900">${usuarioNombre}</td>
-                    <td class="px-6 py-4 text-sm text-gray-900">${cedula.enviado_a || '—'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-900">${enviadoANombres}</td>
                     <td class="px-6 py-4 text-right">
                         <button onclick="verCedula(${cedula.id})" class="bg-black text-white px-3 py-1 rounded text-sm">Ver</button>
                     </td>
