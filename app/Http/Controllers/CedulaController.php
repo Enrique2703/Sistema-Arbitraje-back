@@ -80,7 +80,15 @@ class CedulaController extends Controller
 
         DB::beginTransaction();
 
-        $usuarioId = $request->user() ? $request->user()->id : null;
+        // Obtener el usuario autenticado desde la tabla usuarios usando el email del token
+        $usuarioId = null;
+        if ($request->user()) {
+            $credencial = \App\Models\Credencial::where('email', $request->user()->email)->first();
+            if ($credencial) {
+                $usuario = \App\Models\Usuario::where('credencial_id', $credencial->id)->first();
+                $usuarioId = $usuario ? $usuario->id : null;
+            }
+        }
 
         $cedula = Cedula::create([
             'documentos_id' => $request->get('documento_id'),

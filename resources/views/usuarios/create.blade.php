@@ -15,45 +15,43 @@
                 <form id="createUserForm">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Nombres</label>
-                        <input type="text" name="nombres" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <input type="text" name="nombres" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <div id="error-nombres" class="text-red-500 text-xs mt-1"></div>
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                        <input type="email" name="email" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <input type="email" name="email" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <div id="error-email" class="text-red-500 text-xs mt-1"></div>
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Contraseña</label>
-                        <input type="password" name="password" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <input type="password" name="password" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <div id="error-password" class="text-red-500 text-xs mt-1"></div>
                     </div>
                     <div class="grid grid-cols-2 gap-4 mb-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Nivel de usuario</label>
-                            <select name="nivel_usuario" required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <select name="nivel_usuario" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                 <option value="" disabled selected>Seleccionar</option>
                                 <option value="administrador">Administrador</option>
                                 <option value="staff">Staff</option>
                                 <option value="participe">Participe</option>
                             </select>
+                            <div id="error-nivel_usuario" class="text-red-500 text-xs mt-1"></div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
-                            <select name="estado" required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <select name="estado" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                 <option value="" disabled selected>Seleccionar</option>
                                 <option value="Activo">Activo</option>
                                 <option value="Inactivo">Inactivo</option>
                             </select>
+                            <div id="error-estado" class="text-red-500 text-xs mt-1"></div>
                         </div>
                     </div>
                     <div class="flex justify-end space-x-3">
-                        <button type="button" onclick="closeCreateModal()"
-                            class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300">Cancelar</button>
-                        <button type="submit"
-                            class="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800">Crear</button>
+                        <button type="button" onclick="closeCreateModal()" class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800">Crear</button>
                     </div>
                 </form>
             </div>
@@ -81,12 +79,47 @@
         }
     });
 
-    // 🟣 Maneja el envío del formulario
-    document.getElementById('createUserForm').addEventListener('submit', function(e) {
+    // 🟣 Maneja el envío del formulario con manejo de errores
+    document.getElementById('createUserForm').addEventListener('submit', async function(e) {
         e.preventDefault();
 
-        // Aquí puedes hacer la petición a Laravel (AJAX)
-        alert('Usuario creado correctamente');
-        closeCreateModal();
+        // Limpiar errores previos
+        ['nombres','email','password','nivel_usuario','estado'].forEach(function(campo){
+            document.getElementById('error-' + campo).textContent = '';
+        });
+
+        const form = e.target;
+        const formData = new FormData(form);
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+        try {
+            const response = await fetch('/api/usuarios', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                if (errorData && errorData.errors) {
+                    // Mostrar errores debajo de cada campo
+                    Object.entries(errorData.errors).forEach(([campo, mensajes]) => {
+                        const errorDiv = document.getElementById('error-' + campo);
+                        if (errorDiv) errorDiv.textContent = mensajes.join(' ');
+                    });
+                    return; // No cerrar el modal
+                } else {
+                    alert(errorData.message || 'Error al crear el usuario');
+                    return;
+                }
+            }
+
+            alert('Usuario creado correctamente');
+            closeCreateModal();
+        } catch (error) {
+            alert('Error de red o inesperado al crear el usuario');
+        }
     });
 </script>
