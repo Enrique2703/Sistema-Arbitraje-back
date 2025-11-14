@@ -54,19 +54,30 @@ class AuthController extends Controller
         // 🔍 Generar token
         $token = JWTAuth::attempt($credentials);
 
-        // 🔍 Obtener el nombre según el tipo de usuario
+        // 🔍 Obtener el nombre y tipo según el tipo de usuario
         $nombres = 'Usuario';
+        $tipoUsuario = $credencial->tipo_usuario;
+        
         if ($credencial->tipo_usuario === 'participe' && $credencial->participe) {
             $nombres = $credencial->participe->nombres ?? 'Usuario';
         } elseif ($credencial->usuario) {
-            $s = $credencial->usuario->nombres ?? 'Usuario';
+            $nombres = $credencial->usuario->nombres ?? 'Usuario';
+            // Si el tipo está vacío en credencial, obtenerlo del usuario
+            if (empty($tipoUsuario) && $credencial->usuario->nivel_usuario) {
+                $tipoUsuario = $credencial->usuario->nivel_usuario;
+            }
+        }
+
+        // Si aún está vacío, asignar un valor por defecto
+        if (empty($tipoUsuario)) {
+            $tipoUsuario = 'usuario';
         }
 
         // Preparar datos del usuario para la respuesta
         $usuarioData = [
             'id' => $credencial->id,
             'nombre' => $nombres,
-            'tipo_usuario' => $credencial->tipo_usuario,
+            'tipo_usuario' => $tipoUsuario,
             'correo' => $credencial->email,
         ];
 
