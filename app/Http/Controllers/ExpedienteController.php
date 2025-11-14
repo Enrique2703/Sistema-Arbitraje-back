@@ -334,10 +334,16 @@ class ExpedienteController extends Controller
             ], 404);
         }
 
-        // Simplificar solo las fechas
+        // Preparar data manualmente para asegurar compatibilidad
         $data = $expediente->toArray();
         $data['fecha_laudo'] = $expediente->fechaLaudo->fecha ?? null;
         $data['fecha_resolucion'] = $expediente->fechaResolucion->fecha ?? null;
+        
+        // Asegurar que las relaciones estén disponibles con nombres correctos
+        $data['arbitros'] = $expediente->arbitros->toArray();
+        $data['adjutadores'] = $expediente->adjutadores->toArray();
+        $data['secretarios_tecnicos'] = $expediente->secretariosTecnicos->toArray();
+        $data['participes'] = $expediente->participes->toArray();
 
         return response()->json([
             'status' => true,

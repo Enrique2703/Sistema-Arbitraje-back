@@ -21,7 +21,7 @@ class HistorialController extends Controller
                 $query->where(function($q) use ($search) {
                     $q->where('accion', 'like', "%{$search}%")
                         ->orWhereHas('usuario', function($userQuery) use ($search) {
-                           $userQuery->where('nombre', 'like', "%{$search}%");
+                            $userQuery->where('nombres', 'like', "%{$search}%");
                         });
                 });
             }
@@ -87,7 +87,7 @@ class HistorialController extends Controller
             ]);
         } catch (\Exception $e) {
             // Log error but don't break the main flow
-            \Log::error('Error al registrar historial: ' . $e->getMessage());
+
         }
     }
 

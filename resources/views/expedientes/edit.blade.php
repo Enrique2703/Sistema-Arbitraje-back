@@ -438,7 +438,14 @@
 
             // Si hay un selectedId, seleccionarlo
             if (selectedId && select.tomselect) {
-                select.tomselect.setValue(selectedId);
+                console.log('Seleccionando valor:', selectedId, 'para select:', select.name);
+                // Usar setTimeout para asegurar que TomSelect esté listo
+                setTimeout(() => {
+                    if (select.tomselect) {
+                        select.tomselect.setValue(selectedId.toString());
+                        console.log('Valor seleccionado:', select.tomselect.getValue());
+                    }
+                }, 100);
             }
         });
     }
@@ -509,9 +516,45 @@
         </select>
     `;
         const select = row.querySelector('select');
+        
+        // Agregar opciones directamente al select tradicional primero
         if (usuarios && usuarios.length) {
-            inicializarTomSelect([select], usuarios, selectedId);
+            usuarios.forEach(usuario => {
+                const option = document.createElement('option');
+                option.value = usuario.id;
+                option.textContent = usuario.nombres || usuario.nombre || `Usuario ${usuario.id}`;
+                if (selectedId && usuario.id == selectedId) {
+                    option.selected = true;
+                    console.log('Seleccionado usuario tradicional:', usuario.nombres, 'ID:', usuario.id);
+                }
+                select.appendChild(option);
+            });
         }
+        
+        // Luego inicializar TomSelect sobre el select ya poblado
+        try {
+            if (select.tomselect) {
+                select.tomselect.destroy();
+            }
+            
+            new TomSelect(select, {
+                valueField: 'id',
+                labelField: 'nombres',
+                searchField: ['nombres'],
+                create: false,
+                placeholder: 'Buscar usuario...'
+            });
+            
+            // Establecer valor seleccionado en TomSelect
+            if (selectedId && select.tomselect) {
+                setTimeout(() => {
+                    select.tomselect.setValue(selectedId.toString());
+                }, 50);
+            }
+        } catch (error) {
+            console.error('Error inicializando TomSelect:', error);
+        }
+        
         return row;
     }
 
@@ -538,8 +581,42 @@
     `;
         
         const select = row.querySelector('select[name="participes_id[]"]');
+        
+        // Agregar opciones directamente primero
         if (clientes && clientes.length) {
-            inicializarTomSelect([select], clientes, selectedId);
+            clientes.forEach(cliente => {
+                const option = document.createElement('option');
+                option.value = cliente.id;
+                option.textContent = cliente.nombres || cliente.nombre || `Cliente ${cliente.id}`;
+                if (selectedId && cliente.id == selectedId) {
+                    option.selected = true;
+                    console.log('Seleccionado partícipe tradicional:', cliente.nombres, 'ID:', cliente.id);
+                }
+                select.appendChild(option);
+            });
+        }
+        
+        // Luego inicializar TomSelect
+        try {
+            if (select.tomselect) {
+                select.tomselect.destroy();
+            }
+            
+            new TomSelect(select, {
+                valueField: 'id',
+                labelField: 'nombres',
+                searchField: ['nombres'],
+                create: false,
+                placeholder: 'Buscar partícipe...'
+            });
+            
+            if (selectedId && select.tomselect) {
+                setTimeout(() => {
+                    select.tomselect.setValue(selectedId.toString());
+                }, 50);
+            }
+        } catch (error) {
+            console.error('Error inicializando TomSelect para partícipes:', error);
         }
         
         return row;
@@ -549,6 +626,10 @@
     async function loadExpedienteToForm(id) {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         try {
+            // Asegurar que los datos de usuarios y partícipes estén cargados
+            await cargarUsuariosEdit();
+            await cargarParticipesEdit();
+            
             const res = await fetch(`/api/expedientes/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -559,6 +640,15 @@
 
             const exp = json.data;
             const form = document.getElementById('editExpedienteForm');
+
+            // Debug: Mostrar qué datos están llegando
+            console.log('Datos del expediente recibidos:', exp);
+            console.log('Árbitros:', exp.arbitros);
+            console.log('Adjutadores:', exp.adjutadores);
+            console.log('Secretarios técnicos:', exp.secretarios_tecnicos);
+            console.log('Partícipes:', exp.participes);
+            console.log('Usuarios disponibles:', window.listaUsuariosEdit);
+            console.log('Partícipes disponibles:', window.listaParticipesEdit);
 
             // Campos principales
             form.querySelector('input[name="expediente_id"]').value = exp.id || '';
@@ -609,46 +699,67 @@
             // --- ÁRBITROS ---
             const arbContainer = document.getElementById('editArbitrosContainer');
             arbContainer.innerHTML = '';
-            if (exp.arbitros && exp.arbitros.length)
-                exp.arbitros.forEach(a =>
+            if (exp.arbitros && exp.arbitros.length > 0) {
+                console.log('Procesando árbitros:', exp.arbitros);
+                exp.arbitros.forEach(arbitro => {
+                    console.log('Árbitro:', arbitro);
+                    const usuarioId = arbitro.usuario_id || (arbitro.usuario && arbitro.usuario.id);
+                    console.log('Usuario ID del árbitro:', usuarioId);
                     arbContainer.appendChild(
-                        crearFilaUsuarioSelect('arbitros[]', usuarios, a.usuario_id || a.usuario?.id)
-                    )
-                );
-            else arbContainer.appendChild(crearFilaUsuarioSelect('arbitros[]', usuarios));
+                        crearFilaUsuarioSelect('arbitros[]', usuarios, usuarioId)
+                    );
+                });
+            } else {
+                console.log('No hay árbitros, creando fila vacía');
+                arbContainer.appendChild(crearFilaUsuarioSelect('arbitros[]', usuarios));
+            }
 
             // --- ADJUTADORES ---
             const adjContainer = document.getElementById('editAdjudicadoresContainer');
             adjContainer.innerHTML = '';
-            if (exp.adjutadores && exp.adjutadores.length)
-                exp.adjutadores.forEach(a =>
+            if (exp.adjutadores && exp.adjutadores.length > 0) {
+                console.log('Procesando adjutadores:', exp.adjutadores);
+                exp.adjutadores.forEach(adjutador => {
+                    const usuarioId = adjutador.usuario_id || (adjutador.usuario && adjutador.usuario.id);
                     adjContainer.appendChild(
-                        crearFilaUsuarioSelect('adjutadores[]', usuarios, a.usuario_id || a.usuario?.id)
-                    )
-                );
-            else adjContainer.appendChild(crearFilaUsuarioSelect('adjutadores[]', usuarios));
+                        crearFilaUsuarioSelect('adjutadores[]', usuarios, usuarioId)
+                    );
+                });
+            } else {
+                adjContainer.appendChild(crearFilaUsuarioSelect('adjutadores[]', usuarios));
+            }
 
             // --- SECRETARIOS TÉCNICOS ---
             const secContainer = document.getElementById('editSecretariosTecnicosContainer');
             secContainer.innerHTML = '';
-            if (exp.secretarios_tecnicos && exp.secretarios_tecnicos.length)
-                exp.secretarios_tecnicos.forEach(s =>
+            if (exp.secretarios_tecnicos && exp.secretarios_tecnicos.length > 0) {
+                console.log('Procesando secretarios técnicos:', exp.secretarios_tecnicos);
+                exp.secretarios_tecnicos.forEach(secretario => {
+                    const usuarioId = secretario.usuario_id || (secretario.usuario && secretario.usuario.id);
                     secContainer.appendChild(
-                        crearFilaUsuarioSelect('secretarios_tecnicos[]', usuarios, s.usuario_id || s.usuario?.id)
-                    )
-                );
-            else secContainer.appendChild(crearFilaUsuarioSelect('secretarios_tecnicos[]', usuarios));
+                        crearFilaUsuarioSelect('secretarios_tecnicos[]', usuarios, usuarioId)
+                    );
+                });
+            } else {
+                secContainer.appendChild(crearFilaUsuarioSelect('secretarios_tecnicos[]', usuarios));
+            }
 
             // --- PARTÍCIPES ---
             const partsContainer = document.getElementById('editParticipesContainer');
             partsContainer.innerHTML = '';
-            if (exp.participes && exp.participes.length)
-                exp.participes.forEach(p =>
+            if (exp.participes && exp.participes.length > 0) {
+                console.log('Procesando partícipes:', exp.participes);
+                exp.participes.forEach(participe => {
+                    const participeId = participe.participe_id || (participe.participe && participe.participe.id);
+                    const condicion = participe.condicion;
+                    console.log('Partícipe ID:', participeId, 'Condición:', condicion);
                     partsContainer.appendChild(
-                        crearFilaParticipesSelect(clientes, p.participe_id || p.participe?.id, p.condicion)
-                    )
-                );
-            else partsContainer.appendChild(crearFilaParticipesSelect(clientes));
+                        crearFilaParticipesSelect(clientes, participeId, condicion)
+                    );
+                });
+            } else {
+                partsContainer.appendChild(crearFilaParticipesSelect(clientes));
+            }
 
         } catch (error) {
             console.error('Error cargando expediente:', error);
