@@ -12,6 +12,7 @@ use App\Models\ExpedienteFechaResolucion;
 use App\Models\Participe;
 use App\Models\SecretarioTecnico;
 use App\Models\ParticipeDocumento;
+use App\Traits\RegistraHistorial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -19,6 +20,7 @@ use Exception;
 
 class ExpedienteController extends Controller
 {
+    use RegistraHistorial;
     public function export()
     {
         try {
@@ -237,27 +239,40 @@ class ExpedienteController extends Controller
 
         $expediente = Expediente::create($validated);
 
-        // Registrar en historial
+        // Registrar en historial automático (middleware)
         HistorialController::registrar($expediente->id, 'Creó el expediente');
+        
+        // Registrar con detalles administrativos usando el trait
+        $this->registrarAccionAdmin($expediente->id, 'Creó expediente completo', [
+            "Número: {$expediente->numero}",
+            "Año: {$expediente->anio}",
+            "Código: {$expediente->codigo}"
+        ]);
 
         // Árbitros
         if ($request->filled('arbitros')) {
+            $arbitros = [];
             foreach ($request->arbitros as $arbitroId) {
                 ExpedienteArbitro::create([
                     'expediente_id' => $expediente->id,
                     'usuario_id' => $arbitroId,
                 ]);
+                $arbitros[] = "Usuario ID: {$arbitroId}";
             }
+            $this->registrarAsignacionUsuarios($expediente->id, 'árbitros', $arbitros);
         }
 
         // Adjutadores
         if ($request->filled('adjutadores')) {
+            $adjutadores = [];
             foreach ($request->adjutadores as $adjutadorId) {
                 ExpedienteAdjutador::create([
                     'expediente_id' => $expediente->id,
                     'usuario_id' => $adjutadorId,
                 ]);
+                $adjutadores[] = "Usuario ID: {$adjutadorId}";
             }
+            $this->registrarAsignacionUsuarios($expediente->id, 'adjutadores', $adjutadores);
         }
 
         // ✅ Secretarios Técnicos
