@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CedulaController;
 use App\Http\Controllers\ExpedienteController;
+use App\Http\Controllers\HistorialController;
 use App\Http\Controllers\ParticipeController;
 use App\Http\Controllers\ParticipeDocumentoController;
 use App\Http\Controllers\ParticipeDocumentoArchivoController;
@@ -40,4 +41,9 @@ Route::middleware(['session.timeout'])->group(function () {
     Route::apiResource('expedientes', ExpedienteController::class);
     Route::apiResource('participe-documentos', ParticipeDocumentoController::class);
     Route::apiResource('cedulas', CedulaController::class);
+    
+    // Rutas para historial
+    Route::get('expedientes/{expedienteId}/historial', [HistorialController::class, 'index']);
+    Route::get('expedientes/{expedienteId}/historial/{historialId}', [HistorialController::class, 'show']);
+    Route::get('expedientes/{expedienteId}/historial/export', [HistorialController::class, 'export']);
 });

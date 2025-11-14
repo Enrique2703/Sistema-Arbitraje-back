@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('cedulas', function (Blueprint $table) {
             $table->id();
-            // referencia al documento (participe_documentos)
-            $table->foreignId('documentos_id')->nullable()->constrained('participe_documentos')->onDelete('cascade');
+            // referencia al expediente
+            $table->foreignId('expedientes_id')->nullable()->constrained('expedientes')->onDelete('cascade');
             $table->text('comentarios')->nullable();
             // campos útiles adicionales
             $table->string('enviado_a')->nullable();

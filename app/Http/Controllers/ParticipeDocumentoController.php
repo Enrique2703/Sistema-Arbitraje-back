@@ -46,9 +46,22 @@ class ParticipeDocumentoController extends Controller
      */
     public function store(Request $request)
     {
-        $participe = Auth::user()->participe;
+        // Obtener el usuario autenticado
+        $user = Auth::user();
+        
+        // Verificar si el usuario tiene un partícipe asociado
+        if (!$user || !$user->participe) {
+            return response()->json([
+                'mensaje' => 'Usuario no tiene un partícipe asociado',
+                'error' => 'No se puede crear el documento sin un partícipe'
+            ], 403);
+        }
+
+        $participe = $user->participe;
+        
         $validator = Validator::make($request->all(), [
             'expediente_id' => 'required|exists:expedientes,id',
+            'parte' => 'required|string|max:255',
             'sumilla' => 'nullable|string',
             'enlace_descarga' => 'nullable|string|max:255',
             'archivos.*' => 'nullable|file|max:10240', // máximo 10MB por archivo
@@ -63,16 +76,13 @@ class ParticipeDocumentoController extends Controller
 
         // Iniciar transacción
         DB::beginTransaction();
-
-        $expediente = Expediente::find($request->expediente_id);
-        $participeExpediente = $expediente->participes()->first();
         
         try {
             // Crear el documento
             $documento = ParticipeDocumento::create([
                 'participe_id' => $participe->id,
                 'expediente_id' => $request->expediente_id,
-                'parte' => $participeExpediente->condicion,
+                'parte' => $request->parte,
                 'sumilla' => $request->sumilla,
                 'enlace_descarga' => $request->enlace_descarga,
             ]);
@@ -90,6 +100,9 @@ class ParticipeDocumentoController extends Controller
             }
 
             DB::commit();
+
+            // Registrar en historial
+            HistorialController::registrar($request->expediente_id, 'Presentó un nuevo documento: ' . $request->sumilla);
 
             // Cargar la relación de archivos
             $documento->load('archivos');
@@ -143,6 +156,9 @@ class ParticipeDocumentoController extends Controller
         }
 
         $documento->update($validator->validated());
+        
+        // Registrar en historial
+        HistorialController::registrar($documento->expediente_id, 'Actualizó el documento: ' . $documento->sumilla);
 
         return response()->json([
             'mensaje' => 'Documento actualizado exitosamente',
@@ -156,6 +172,10 @@ class ParticipeDocumentoController extends Controller
     public function destroy($id)
     {
         $documento = ParticipeDocumento::findOrFail($id);
+        
+        // Registrar en historial antes de eliminar
+        HistorialController::registrar($documento->expediente_id, 'Eliminó el documento: ' . $documento->sumilla);
+        
         $documento->delete();
 
         return response()->json([

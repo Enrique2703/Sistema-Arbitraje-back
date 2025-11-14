@@ -13,22 +13,15 @@ class CedulaController extends Controller
 
     public function index(Request $request)
     {
-        $query = Cedula::query()->with(['usuario', 'documento']);
-
-        if ($request->has('documento_id')) {
-            $query->where('documentos_id', $request->get('documento_id'));
-        }
+        $query = Cedula::query()->with(['usuario', 'expediente']);
 
         if ($request->has('expediente_id')) {
-            $expedienteId = (int) $request->get('expediente_id');
-            $query->join('participe_documentos', 'cedulas.documentos_id', '=', 'participe_documentos.id')
-                ->where('participe_documentos.expediente_id', $expedienteId)
-                ->select('cedulas.*');
+            $query->where('expedientes_id', $request->get('expediente_id'));
         }
 
-        if ($request->has('documentos_id')) {
-            $documentoId = (int) $request->get('documentos_id');
-            $query->where('cedulas.documentos_id', $documentoId)
+        if ($request->has('expedientes_id')) {
+            $expedienteId = (int) $request->get('expedientes_id');
+            $query->where('cedulas.expedientes_id', $expedienteId)
                 ->select('cedulas.*');
         }
 
@@ -57,7 +50,7 @@ class CedulaController extends Controller
      */
     public function show(int $id)
     {
-        $cedula = Cedula::with(['usuario', 'documento'])->find($id);
+        $cedula = Cedula::with(['usuario', 'expediente'])->find($id);
         if (! $cedula) {
             return response()->json(['status' => false, 'message' => 'Cédula no encontrada'], 404);
         }
@@ -72,7 +65,8 @@ class CedulaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'documento_id' => 'required|integer|exists:participe_documentos,id',
+            'expediente_id' => 'required|integer|exists:expedientes,id',
+            'titulo' => 'nullable|string|max:255',
             'comentarios' => 'nullable|string',
             'usuarios' => 'nullable|array',
             'usuarios.*' => 'integer|exists:usuarios,id'
@@ -91,11 +85,15 @@ class CedulaController extends Controller
         }
 
         $cedula = Cedula::create([
-            'documentos_id' => $request->get('documento_id'),
+            'expedientes_id' => $request->get('expediente_id'),
+            'titulo' => $request->get('titulo'),
             'comentarios' => $request->get('comentarios'),
             'enviado_a' => $request->has('usuarios') ? implode(',', $request->get('usuarios')) : null,
             'usuario_id' => $usuarioId
         ]);
+
+        // Registrar en historial
+        HistorialController::registrar($request->get('expediente_id'), 'Generó una cédula: ' . $request->get('titulo'));
 
         if ($request->has('usuarios') && is_array($request->get('usuarios'))) {
             foreach ($request->get('usuarios') as $uid) {
@@ -109,7 +107,7 @@ class CedulaController extends Controller
             DB::commit();
 
             // Cargar relaciones para devolver en la respuesta
-            $cedula->load(['usuario', 'documento']);
+            $cedula->load(['usuario', 'expediente']);
             $correos = CedulaCorreo::with('usuario')->where('cedulas_id', $cedula->id)->get();
             $cedula->correos = $correos;
 

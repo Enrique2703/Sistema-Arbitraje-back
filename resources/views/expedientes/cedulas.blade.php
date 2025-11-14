@@ -150,7 +150,16 @@
                 per_page: pageSize
             });
 
-            const response = await fetch(`/api/cedulas/?documentos_id=${documentoId}&${params.toString()}`, {
+            let url = '';
+            if (expedienteId) {
+                url = `/api/cedulas?expediente_id=${expedienteId}&${params.toString()}`;
+            } else if (documentoId) {
+                url = `/api/cedulas?documento_id=${documentoId}&${params.toString()}`;
+            } else {
+                url = `/api/cedulas?${params.toString()}`;
+            }
+
+            const response = await fetch(url, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'

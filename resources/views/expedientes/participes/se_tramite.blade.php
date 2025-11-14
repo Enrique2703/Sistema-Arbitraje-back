@@ -763,7 +763,12 @@
             window.presentarDocumento = async function() {
                 const modal = document.getElementById('modalNuevoDocumento');
                 const expedienteId = new URLSearchParams(window.location.search).get('id');
-                
+
+                // Limpiar input de archivos y la lista visual SIEMPRE que se abre el modal
+                const archivosInput = document.getElementById('archivos');
+                archivosInput.value = '';
+                document.getElementById('selectedFiles').innerHTML = '';
+
                 try {
                     const token = getToken();
                     if (!token) {
@@ -784,7 +789,7 @@
                     }
 
                     const result = await response.json();
-                    
+
                     // Obtener la condición del primer participe
                     if (result.status && result.data && result.data.participes && result.data.participes.length > 0) {
                         const primerParticipe = result.data.participes[0];
@@ -900,11 +905,22 @@
                         body: formData
                     });
 
+                    console.log('Response status:', response.status);
+                    console.log('Response ok:', response.ok);
+
                     const result = await response.json();
                     console.log('Respuesta del servidor:', result);
 
                     if (!response.ok) {
-                        throw new Error(result.message || 'Error al enviar el documento');
+                        console.error('Error completo:', result);
+                        if (result.errores) {
+                            console.error('Errores de validación:', result.errores);
+                            const erroresTexto = Object.entries(result.errores)
+                                .map(([campo, mensajes]) => `${campo}: ${mensajes.join(', ')}`)
+                                .join('\n');
+                            throw new Error(`Error de validación:\n${erroresTexto}`);
+                        }
+                        throw new Error(result.mensaje || result.message || 'Error al enviar el documento');
                     }
 
                     alert('Documento presentado exitosamente');
@@ -925,6 +941,10 @@
         function cerrarModalNuevoDocumento() {
             document.getElementById('modalNuevoDocumento').classList.remove('active');
             document.getElementById('formNuevoDocumento').reset();
+            // Limpiar input de archivos y la lista visual
+            const archivosInput = document.getElementById('archivos');
+            archivosInput.value = '';
+            document.getElementById('selectedFiles').innerHTML = '';
         }
 
         // Cerrar modal al hacer clic fuera

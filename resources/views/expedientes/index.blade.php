@@ -5,6 +5,9 @@
 @section('content')
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
 <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+<!-- Tom Select CSS y JS -->
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 
 <div class="min-h-screen bg-gray-100 flex">
     <div class="flex-1 flex flex-col">
@@ -52,6 +55,7 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead style="background-color: #737373;">
                         <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"></th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Nombre de Expediente</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Estado</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Partícipes</th>
@@ -63,7 +67,7 @@
                     </thead>
                     <tbody id="expedientesTableBody" class="bg-white divide-y divide-gray-200">
                         <tr>
-                            <td colspan="7" class="px-6 py-4 text-center text-gray-500">Cargando expedientes...</td>
+                            <td colspan="8" class="px-6 py-4 text-center text-gray-500">Cargando expedientes...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -157,7 +161,7 @@
 
     async function loadExpedientes(page = 1, pageSize = perPage, search = '', estado = estadoSeleccionado) {
         const tbody = document.getElementById('expedientesTableBody');
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-gray-500">Cargando...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-gray-500">Cargando...</td></tr>`;
 
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -181,14 +185,14 @@
             renderPagination();
         } catch (error) {
             console.error(error);
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-red-500 py-6">Error al cargar expedientes</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-red-500 py-6">Error al cargar expedientes</td></tr>`;
         }
     }
 
     function renderExpedientes(list) {
         const tbody = document.getElementById('expedientesTableBody');
         if (!list.length) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-gray-500">No hay expedientes registrados</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-gray-500">No hay expedientes registrados</td></tr>`;
             return;
         }
 
@@ -196,6 +200,9 @@
         list.forEach(exp => {
             tbody.innerHTML += `
                 <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <button onclick="openGenerarCedulaModal(${exp.id})" class="bg-black text-white px-2 py-1 rounded text-sm">Cédula</button>
+                    </td>
                     <td class="px-6 py-4">${String(exp.numero).padStart(4, '0')} - ${exp.anio}/${exp.codigo || ''}</td>
                     <td class="px-6 py-4">
                         <span class="px-3 py-1 rounded-full text-sm font-medium ${getEstadoClass(exp.estado)}">
@@ -376,5 +383,264 @@
         // Por implementar - Redirigir a la página de historial del expediente
         window.location.href = `/expedientes/historial?id=${id}`;
     }
+
+    // Variables globales para la modal de cédula
+    let expedienteIdForCedula = null;
+
+    // Abrir modal de generar cédula y asignar expediente
+    function openGenerarCedulaModal(expedienteId) {
+        expedienteIdForCedula = expedienteId;
+        document.getElementById('generarCedulaModal').classList.remove('hidden');
+        cargarUsuarios();
+    }
+
+    // Cerrar modal de generar cédula
+    function closeGenerarCedulaModal() {
+        document.getElementById('generarCedulaModal').classList.add('hidden');
+        document.getElementById('formGenerarCedula').reset();
+        // Limpiar la lista de usuarios dejando solo el primero
+        const listaUsuarios = document.getElementById('listaUsuarios');
+        listaUsuarios.innerHTML = `
+            <div class="usuario-item flex items-center space-x-2">
+                <button type="button" onclick="eliminarUsuario(this)" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+                <select name="usuarios[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="" disabled selected>Seleccione un usuario</option>
+                </select>
+            </div>
+        `;
+    }
+
+    // Agregar usuario a la lista (clona plantilla y convierte el select en Tom Select)
+    function agregarUsuario() {
+        const listaUsuarios = document.getElementById('listaUsuarios');
+        
+        // Crear un nuevo elemento en lugar de clonar
+        const nuevoItem = document.createElement('div');
+        nuevoItem.className = 'usuario-item flex items-center space-x-2';
+        nuevoItem.innerHTML = `
+            <button type="button" onclick="eliminarUsuario(this)" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+            <select name="usuarios[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="" disabled selected>Seleccione un usuario</option>
+            </select>
+        `;
+        
+        listaUsuarios.appendChild(nuevoItem);
+
+        // Inicializar Tom Select en el nuevo select
+        const nuevoSelect = nuevoItem.querySelector('select[name="usuarios[]"]');
+        if (nuevoSelect) {
+            inicializarTomSelect([nuevoSelect], window.listaUsuarios || []);
+        }
+    }
+
+    // Eliminar usuario de la lista
+    function eliminarUsuario(btn) {
+        const item = btn.closest('.usuario-item');
+        if (item) {
+            item.remove();
+        }
+    }
+
+    // Cargar usuarios con Tom Select
+    async function cargarUsuarios() {
+        try {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const res = await fetch('/api/usuarios', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!res.ok) throw new Error('Error al obtener usuarios');
+
+            const data = await res.json();
+            const usuarios = data.registros || [];
+
+            // Inicializar Tom Select en los selects existentes
+            inicializarTomSelect(document.querySelectorAll('select[name="usuarios[]"]'), usuarios);
+
+            // Guardar los usuarios globalmente por si se agregan nuevos selects
+            window.listaUsuarios = usuarios;
+            return usuarios;
+        } catch (error) {
+            console.error('Error cargando usuarios:', error);
+            return [];
+        }
+    }
+
+    function inicializarTomSelect(selects, usuarios) {
+        selects.forEach(select => {
+            try {
+                // Destruir instancia anterior si existe
+                if (select.tomselect) {
+                    select.tomselect.destroy();
+                }
+
+                new TomSelect(select, {
+                    valueField: 'id',
+                    labelField: 'email', // Mostrar el correo en el select
+                    searchField: ['nombres', 'email'],
+                    options: usuarios.map(u => ({
+                        id: u.id,
+                        nombres: u.nombres,
+                        email: u.credencial?.email || ''
+                    })),
+                    create: false,
+                    placeholder: 'Buscar usuario...',
+                    render: {
+                        option: function(item, escape) {
+                            return `<div class="py-2 px-3">
+                                <div class="font-medium">${escape(item.nombres)}</div>
+                                <div class="text-sm text-gray-600">${escape(item.email || '')}</div>
+                            </div>`;
+                        },
+                        item: function(item, escape) {
+                            return `<div>${escape(item.email || '')}</div>`;
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error inicializando TomSelect:', error);
+            }
+        });
+    }
+
+    // Manejar envío del formulario de cédula
+    document.addEventListener('DOMContentLoaded', function() {
+        const formCedula = document.getElementById('formGenerarCedula');
+        if (formCedula) {
+            formCedula.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                console.log('🚀 Iniciando envío de cédula desde expedientes...');
+
+                try {
+                    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                    
+                    // Recopilar datos del formulario
+                    const comentarios = this.querySelector('textarea[name="comentarios"]')?.value || '';
+
+                    console.log('💬 Comentarios:', comentarios);
+                    console.log('📂 Expediente ID:', expedienteIdForCedula);
+
+                    // Recolectar usuarios desde los selects name="usuarios[]"
+                    const usuarios = [];
+                    document.querySelectorAll('select[name="usuarios[]"]').forEach(s => {
+                        const val = s.value;
+                        if (val) {
+                            const num = Number(val);
+                            if (!Number.isNaN(num)) usuarios.push(num);
+                        }
+                    });
+
+                    console.log('👥 Usuarios seleccionados:', usuarios);
+
+                    if (usuarios.length === 0) {
+                        alert('Debe seleccionar al menos un usuario');
+                        return;
+                    }
+
+                    const payload = {
+                        expediente_id: Number(expedienteIdForCedula),
+                        comentarios: comentarios || null,
+                        usuarios: usuarios
+                    };
+
+                    console.log('📦 Payload a enviar:', JSON.stringify(payload, null, 2));
+
+                    const response = await fetch('/api/cedulas', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    console.log('📡 Response status:', response.status);
+
+                    if (!response.ok) {
+                        const err = await response.json().catch(() => null);
+                        console.error('❌ Error response:', err);
+                        throw new Error((err && err.message) || 'Error al generar la cédula');
+                    }
+
+                    const created = await response.json();
+                    console.log('✅ Cédula creada:', created);
+
+                    alert('Cédula generada exitosamente');
+                    closeGenerarCedulaModal();
+
+                } catch (error) {
+                    console.error('❌ Error completo:', error);
+                    alert(error.message || 'Error al generar la cédula');
+                }
+            });
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('generarCedulaModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeGenerarCedulaModal();
+            }
+        });
+    });
 </script>
+
+<!-- Modal para Generar Cédula -->
+<div id="generarCedulaModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold text-gray-900">Generar cédula</h2>
+            <button onclick="closeGenerarCedulaModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <form id="formGenerarCedula" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Comentarios</label>
+                <textarea name="comentarios" rows="4"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Ingrese sus comentarios"></textarea>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <label class="block text-sm font-medium text-gray-700">Enviar por correo</label>
+                    <button type="button" onclick="agregarUsuario()" class="flex items-center text-sm text-black-600 hover:text-black-700">
+                        <span class="w-5 h-5 border-2 border-gray-700 rounded-full flex items-center justify-center mr-1.5 text-lg leading-none">+</span>
+                        Agregar usuario
+                    </button>
+                </div>
+
+                <div id="listaUsuarios" class="space-y-2">
+                    <div class="usuario-item flex items-center space-x-2">
+                        <button type="button" onclick="eliminarUsuario(this)" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+                        <select name="usuarios[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="" disabled selected>Seleccione un usuario</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-4">
+                <button type="button" onclick="closeGenerarCedulaModal()"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                    Cancelar
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800">
+                    Enviar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @endsection

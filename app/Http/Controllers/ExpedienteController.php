@@ -66,11 +66,15 @@ class ExpedienteController extends Controller
                     throw $e;
                 }
             });
-
-            Log::info('Datos procesados exitosamente', ['count' => count($data)]);
-            return response()->json($data->toArray());
             
-        } catch (Exception $e) {
+            Log::info('Datos procesados exitosamente', ['count' => count($data)]);
+            
+            // Registrar exportación en historial (asumiendo expediente genérico o primer expediente)
+            if ($expedientes->isNotEmpty()) {
+                HistorialController::registrar($expedientes->first()->id, 'Exportó listado de expedientes');
+            }
+            
+            return response()->json($data->toArray());        } catch (Exception $e) {
             Log::error('Error al exportar expedientes', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
@@ -233,6 +237,9 @@ class ExpedienteController extends Controller
 
         $expediente = Expediente::create($validated);
 
+        // Registrar en historial
+        HistorialController::registrar($expediente->id, 'Creó el expediente');
+
         // Árbitros
         if ($request->filled('arbitros')) {
             foreach ($request->arbitros as $arbitroId) {
@@ -372,6 +379,9 @@ class ExpedienteController extends Controller
         ]);
 
         $expediente->update($validated);
+        
+        // Registrar en historial
+        HistorialController::registrar($expediente->id, 'Actualizó el expediente');
 
         // ---------------- FECHAS ----------------
         if ($request->filled('fecha_laudo')) {
@@ -463,6 +473,9 @@ class ExpedienteController extends Controller
             ], 404);
         }
 
+        // Registrar en historial antes de eliminar
+        HistorialController::registrar($expediente->id, 'Eliminó el expediente');
+        
         // Eliminar relaciones dependientes
         $expediente->arbitros()->delete();
         $expediente->adjutadores()->delete();

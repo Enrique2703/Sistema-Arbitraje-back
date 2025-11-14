@@ -60,14 +60,14 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead style="background-color: #737373;">
                         <tr>
-                            <th class="w-24 px-6 py-3 text-center text-xs font-medium text-white uppercase"></th>
-                            <th class="w-24 px-6 py-3 text-center text-xs font-medium text-white uppercase">Habilitado</th>
-                            <th class="w-32 px-6 py-3 text-center text-xs font-medium text-white uppercase">Fecha</th>
-                            <th class="w-32 px-6 py-3 text-center text-xs font-medium text-white uppercase">Hora</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase">Título</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase">Usuario</th>
-                            <th class="w-32 px-6 py-3 text-left text-xs font-medium text-white uppercase">Rol</th>
-                            <th class="w-48 px-6 py-3 text-center text-xs font-medium text-white uppercase"></th>
+                            
+                            <th class="w-20 px-3 py-3 text-center text-xs font-medium text-white uppercase">Habilitado</th>
+                            <th class="w-24 px-3 py-3 text-center text-xs font-medium text-white uppercase">Fecha</th>
+                            <th class="w-20 px-3 py-3 text-center text-xs font-medium text-white uppercase">Hora</th>
+                            <th class="w-48 px-3 py-3 text-left text-xs font-medium text-white uppercase">Título</th>
+                            <th class="w-32 px-3 py-3 text-left text-xs font-medium text-white uppercase">Usuario</th>
+                            <th class="w-24 px-3 py-3 text-left text-xs font-medium text-white uppercase">Rol</th>
+                            <th class="w-40 px-3 py-3 text-center text-xs font-medium text-white uppercase"></th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200" id="documentosTableBody">
@@ -238,7 +238,7 @@
                     e.preventDefault();
                     e.stopPropagation();
 
-                    console.log('🚀 Iniciando envío de cédula...');
+                    console.log('Iniciando envío de cédula...');
 
                     try {
                         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -270,7 +270,7 @@
                             usuarios: usuarios
                         };
 
-                        console.log('📦 Payload a enviar:', JSON.stringify(payload, null, 2));
+                        console.log('Payload a enviar:', JSON.stringify(payload, null, 2));
 
                         const response = await fetch('/api/cedulas', {
                             method: 'POST',
@@ -282,18 +282,18 @@
                             body: JSON.stringify(payload)
                         });
 
-                        console.log('📡 Response status:', response.status);
-                        console.log('📡 Response ok:', response.ok);
+                        console.log('Response status:', response.status);
+                        console.log('Response ok:', response.ok);
 
                         if (!response.ok) {
                             const err = await response.json().catch(() => null);
-                            console.error('❌ Error response:', err);
+                            console.error('Error response:', err);
                             throw new Error((err && err.message) || 'Error al generar la cédula');
                         }
 
                         // Leer la respuesta (backend devuelve { status, id, cedula })
                         const created = await response.json();
-                        console.log('✅ Cédula creada:', created);
+                        console.log(' Cédula creada:', created);
 
                         alert('Cédula generada exitosamente');
                         closeGenerarCedulaModal();
@@ -302,7 +302,7 @@
                         const documentoIdForRedirect = documentoId || (created && created.id) || '';
                         const expedienteIdParam = expedienteId || new URLSearchParams(window.location.search).get('id');
                         
-                        console.log('🔄 Redirigiendo con expedienteId:', expedienteIdParam, 'documentoId:', documentoIdForRedirect);
+                        console.log('Redirigiendo con expedienteId:', expedienteIdParam, 'documentoId:', documentoIdForRedirect);
                         
                         if (expedienteIdParam) {
                             window.location.href = `/expedientes/cedulas?expediente_id=${expedienteIdParam}&documento_id=${documentoIdForRedirect}`;
@@ -426,18 +426,13 @@
                 const isHabilitado = doc.habilitado || false;
 
                 tbody.innerHTML += `
-            <tr class="${!isHabilitado ? 'bg-opacity-40' : ''} hover:bg-gray-50">
-                <td class="px-6 py-4 text-center">
-                    <button onclick="openGenerarCedulaModal(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">
-                        ${doc.cedula || 'Cédula'}
-                    </button>
-                </td>
-                <td class="px-6 py-4 text-center">
-                    <input type="checkbox" 
-                            ${isHabilitado ? 'checked' : ''} 
-                            onchange="toggleHabilitado(${doc.id}, this.checked)"
-                            class="form-checkbox h-5 w-5 text-gray-600 cursor-pointer">
-                </td>
+                <tr class="${!isHabilitado ? 'bg-opacity-40' : ''} hover:bg-gray-50">
+                    <td class="px-6 py-4 text-center">
+                        <input type="checkbox" 
+                                ${isHabilitado ? 'checked' : ''} 
+                                onchange="toggleHabilitado(${doc.id}, this.checked)"
+                                class="form-checkbox h-5 w-5 text-gray-600 cursor-pointer">
+                    </td>
                 <td class="px-6 py-4 text-center text-gray-900">${fecha}</td>
                 <td class="px-6 py-4 text-center text-gray-900">${hora}</td>
                 <td class="px-6 py-4 text-gray-900">${doc.titulo}</td>

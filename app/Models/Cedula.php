@@ -21,7 +21,8 @@ class Cedula extends Model
      * @var array
      */
     protected $fillable = [
-        'documentos_id',
+        'expedientes_id',
+        'titulo',
         'comentarios',
         'enviado_a',
         'usuario_id'
@@ -37,19 +38,19 @@ class Cedula extends Model
     protected $appends = ['enviado_a_nombres'];
 
     /**
-     * Documento asociado (participe_documentos)
-     */
-    public function documento(): BelongsTo
-    {
-        return $this->belongsTo(ParticipeDocumento::class, 'documentos_id');
-    }
-
-    /**
      * Usuario que generó la cédula
      */
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'usuario_id');
+    }
+
+    /**
+     * Expediente asociado
+     */
+    public function expediente(): BelongsTo
+    {
+        return $this->belongsTo(Expediente::class, 'expedientes_id');
     }
 
     /**
