@@ -430,7 +430,7 @@
                     <td class="px-6 py-4 text-center">
                         <input type="checkbox" 
                                 ${isHabilitado ? 'checked' : ''} 
-                                onchange="toggleHabilitado(${doc.id}, this.checked)"
+                                onclick="event.preventDefault(); toggleHabilitado(${doc.id}, !this.checked, this);"
                                 class="form-checkbox h-5 w-5 text-gray-600 cursor-pointer">
                     </td>
                 <td class="px-6 py-4 text-center text-gray-900">${fecha}</td>
@@ -702,33 +702,45 @@
             cargarDocumentos();
         }
 
-        async function toggleHabilitado(id, estado) {
+        async function toggleHabilitado(id, estado, checkboxElement) {
             try {
                 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                const response = await fetch(`/api/documentos/${id}/habilitar`, {
+                const response = await fetch(`/api/participe-documentos/${id}/toggle-habilitado`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        habilitado: estado
-                    })
+                    }
                 });
 
                 if (!response.ok) {
-                    throw new Error('Error al actualizar el estado del documento');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al actualizar el estado del documento');
                 }
 
-                // Recargar los documentos para reflejar los cambios
-                await cargarDocumentos();
+                const result = await response.json();
+                
+                // Actualizar visualmente el estado sin recargar toda la tabla
+                if (checkboxElement) {
+                    checkboxElement.checked = result.habilitado;
+                    // Actualizar el estilo de la fila si lo deseas
+                    const row = checkboxElement.closest('tr');
+                    if (row) {
+                        if (result.habilitado) {
+                            row.classList.remove('bg-opacity-40');
+                        } else {
+                            row.classList.add('bg-opacity-40');
+                        }
+                    }
+                }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error al actualizar el estado del documento');
+                alert(error.message);
                 // Revertir el estado del checkbox si hubo error
-                const checkbox = event.target;
-                checkbox.checked = !checkbox.checked;
+                if (checkboxElement) {
+                    checkboxElement.checked = !checkboxElement.checked;
+                }
             }
         }
 

@@ -7,6 +7,7 @@ use App\Models\ParticipeDocumento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class ParticipeDocumentoController extends Controller
@@ -26,6 +27,22 @@ class ParticipeDocumentoController extends Controller
         // Filtrar por partícipe si se proporciona
         if ($request->has('participe_id')) {
             $query->where('participe_id', $request->participe_id);
+        }
+
+        // Si el usuario no es admin o staff, solo mostrar documentos habilitados
+        $user = Auth::user();
+        if ($user) {
+            // Obtener el nivel del usuario desde la relación
+            $nivelUsuario = $user->tipo_usuario === 'participe' 
+                ? 'participe' 
+                : ($user->usuario->nivel_usuario ?? null);
+            
+            // Si no es administrador o staff, solo mostrar documentos habilitados
+            // Comparar en minúsculas para evitar problemas de case-sensitive
+            $nivelUsuarioLower = strtolower($nivelUsuario ?? '');
+            if (!in_array($nivelUsuarioLower, ['administrador', 'admin', 'staff'])) {
+                $query->where('habilitado', true);
+            }
         }
 
         $documentos = $query->paginate(10);
@@ -181,5 +198,73 @@ class ParticipeDocumentoController extends Controller
         return response()->json([
             'mensaje' => 'Documento eliminado exitosamente'
         ]);
+    }
+
+    /**
+     * Alternar el estado de habilitado de un documento.
+     * Solo admin y staff pueden usar esta función.
+     */
+    public function toggleHabilitado($id)
+    {
+        try {
+            $credencial = Auth::user();
+
+            // Recargar la credencial con la relación usuario
+            $credencial = \App\Models\Credencial::with('usuario')->find($credencial->id);
+
+            // Obtener el nivel del usuario
+            $nivelUsuario = null;
+            
+            if ($credencial->tipo_usuario === 'participe') {
+                $nivelUsuario = 'participe';
+            } elseif ($credencial->usuario) {
+                $nivelUsuario = $credencial->usuario->nivel_usuario;
+            }
+
+            // Log para depuración
+            Log::info('Toggle Habilitado Debug', [
+                'credencial_id' => $credencial->id,
+                'tipo_usuario' => $credencial->tipo_usuario,
+                'tiene_usuario' => $credencial->usuario ? 'Si' : 'No',
+                'nivel_usuario' => $nivelUsuario
+            ]);
+
+            // Verificar que el usuario sea administrador o staff
+            // Comparar en minúsculas para evitar problemas de case-sensitive
+            $nivelUsuarioLower = strtolower($nivelUsuario ?? '');
+            if (!in_array($nivelUsuarioLower, ['administrador', 'admin', 'staff'])) {
+                return response()->json([
+                    'error' => 'No tiene permisos para realizar esta acción',
+                    'debug' => [
+                        'tipo_usuario' => $credencial->tipo_usuario,
+                        'nivel_usuario' => $nivelUsuario,
+                        'nivel_usuario_lower' => $nivelUsuarioLower
+                    ]
+                ], 403);
+            }
+
+            $documento = ParticipeDocumento::findOrFail($id);
+            
+            // Alternar el valor de habilitado
+            $documento->habilitado = !$documento->habilitado;
+            $documento->save();
+
+            // Registrar en historial
+            $accion = $documento->habilitado ? 'habilitó' : 'deshabilitó';
+            HistorialController::registrar(
+                $documento->expediente_id, 
+                ucfirst($accion) . ' el documento: ' . $documento->sumilla
+            );
+
+            return response()->json([
+                'mensaje' => 'Estado actualizado exitosamente',
+                'habilitado' => $documento->habilitado
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error en toggleHabilitado: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Error al actualizar el estado: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

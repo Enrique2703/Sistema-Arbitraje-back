@@ -33,6 +33,9 @@ Route::middleware(['session.timeout'])->group(function () {
     Route::get('participes/export', [ParticipeController::class, 'exportToExcel']);
     Route::apiResource('participes', ParticipeController::class);
     Route::apiResource('participe-documentos', ParticipeDocumentoController::class);
+    
+    // Ruta para alternar estado habilitado de documentos
+    Route::put('participe-documentos/{id}/toggle-habilitado', [ParticipeDocumentoController::class, 'toggleHabilitado']);
 
     // Rutas para archivos de documentos
     Route::apiResource('participe-documento-archivos', ParticipeDocumentoArchivoController::class);

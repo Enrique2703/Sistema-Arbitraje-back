@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('parte')->nullable();
             $table->text('sumilla')->nullable();
             $table->string('enlace_descarga');
+            $table->boolean('habilitado')->default(false);
             $table->timestamps();
         });
     }

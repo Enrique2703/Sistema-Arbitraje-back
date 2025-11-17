@@ -26,6 +26,16 @@ class ParticipeDocumento extends Model
         'parte',
         'sumilla',
         'enlace_descarga',
+        'habilitado',
+    ];
+
+    /**
+     * Los atributos que deben ser convertidos a tipos nativos.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'habilitado' => 'boolean',
     ];
 
     /**
