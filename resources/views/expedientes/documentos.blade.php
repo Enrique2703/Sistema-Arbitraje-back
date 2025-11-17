@@ -423,14 +423,15 @@
                     second: '2-digit'
                 });
 
-                const isHabilitado = doc.habilitado || false;
+                // Convertir habilitado a boolean explícitamente
+                const isHabilitado = doc.habilitado === true || doc.habilitado === 1 || doc.habilitado === '1';
 
                 tbody.innerHTML += `
-                <tr class="${!isHabilitado ? 'bg-opacity-40' : ''} hover:bg-gray-50">
+                <tr class="${!isHabilitado ? 'bg-opacity-40' : ''} hover:bg-gray-50" data-doc-id="${doc.id}">
                     <td class="px-6 py-4 text-center">
                         <input type="checkbox" 
                                 ${isHabilitado ? 'checked' : ''} 
-                                onclick="event.preventDefault(); toggleHabilitado(${doc.id}, !this.checked, this);"
+                                onchange="toggleHabilitado(${doc.id}, this.checked, this)"
                                 class="form-checkbox h-5 w-5 text-gray-600 cursor-pointer">
                     </td>
                 <td class="px-6 py-4 text-center text-gray-900">${fecha}</td>
@@ -702,7 +703,10 @@
             cargarDocumentos();
         }
 
-        async function toggleHabilitado(id, estado, checkboxElement) {
+        async function toggleHabilitado(id, nuevoEstado, checkboxElement) {
+            // Guardar el estado anterior por si necesitamos revertir
+            const estadoAnterior = !nuevoEstado;
+            
             try {
                 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
                 const response = await fetch(`/api/participe-documentos/${id}/toggle-habilitado`, {
@@ -721,26 +725,23 @@
 
                 const result = await response.json();
                 
-                // Actualizar visualmente el estado sin recargar toda la tabla
-                if (checkboxElement) {
-                    checkboxElement.checked = result.habilitado;
-                    // Actualizar el estilo de la fila si lo deseas
-                    const row = checkboxElement.closest('tr');
-                    if (row) {
-                        if (result.habilitado) {
-                            row.classList.remove('bg-opacity-40');
-                        } else {
-                            row.classList.add('bg-opacity-40');
-                        }
+                // Actualizar visualmente con el estado real del servidor
+                checkboxElement.checked = result.habilitado === true || result.habilitado === 1;
+                
+                // Actualizar el estilo de la fila
+                const row = checkboxElement.closest('tr');
+                if (row) {
+                    if (result.habilitado) {
+                        row.classList.remove('bg-opacity-40');
+                    } else {
+                        row.classList.add('bg-opacity-40');
                     }
                 }
             } catch (error) {
                 console.error('Error:', error);
                 alert(error.message);
                 // Revertir el estado del checkbox si hubo error
-                if (checkboxElement) {
-                    checkboxElement.checked = !checkboxElement.checked;
-                }
+                checkboxElement.checked = estadoAnterior;
             }
         }
 

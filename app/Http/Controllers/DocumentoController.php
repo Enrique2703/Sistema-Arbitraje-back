@@ -20,7 +20,8 @@ class DocumentoController extends Controller
                         'estado' => $doc->parte,
                         'created_at' => $doc->created_at,
                         'usuario_nombre' => $doc->participe ? $doc->participe->nombres : 'N/A',
-                        'rol' => $doc->participe ? $doc->participe->tipo : 'Sistema'
+                        'rol' => $doc->participe ? $doc->participe->tipo : 'Sistema',
+                        'habilitado' => $doc->habilitado ?? false
                     ];
                 });
 
