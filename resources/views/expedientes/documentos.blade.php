@@ -60,7 +60,7 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead style="background-color: #737373;">
                         <tr>
-                            
+
                             <th class="w-20 px-3 py-3 text-center text-xs font-medium text-white uppercase">Habilitado</th>
                             <th class="w-24 px-3 py-3 text-center text-xs font-medium text-white uppercase">Fecha</th>
                             <th class="w-20 px-3 py-3 text-center text-xs font-medium text-white uppercase">Hora</th>
@@ -155,22 +155,28 @@
         let allDocumentos = []; // Variable global para almacenar todos los documentos
 
         document.addEventListener('DOMContentLoaded', function() {
-                        // Siempre limpiar y recargar la tabla al cargar la página
-                        const tbody = document.getElementById('documentosTableBody');
-                        if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Cargando...</td></tr>';
-                        cargarDocumentos();
+            // Siempre limpiar y recargar la tabla al cargar la página
+            const tbody = document.getElementById('documentosTableBody');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Cargando...</td></tr>';
+            cargarDocumentos();
 
-                        // Recargar la tabla cada vez que la página se muestre (incluso al regresar con el historial)
-                        window.addEventListener('pageshow', function(event) {
-                            if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Cargando...</td></tr>';
-                            cargarDocumentos();
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                        });
+            // Recargar la tabla cada vez que la página se muestre (incluso al regresar con el historial)
+            window.addEventListener('pageshow', function(event) {
+                if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Cargando...</td></tr>';
+                cargarDocumentos();
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
             // Si venimos de cedulas generadas y hay expediente_id, recargar la tabla y hacer scroll al inicio
             if (window.location.search.includes('expediente_id=')) {
                 setTimeout(() => {
                     cargarDocumentos();
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
                 }, 100);
             }
 
@@ -301,9 +307,9 @@
                         // Redirigir al listado de cédulas del expediente
                         const documentoIdForRedirect = documentoId || (created && created.id) || '';
                         const expedienteIdParam = expedienteId || new URLSearchParams(window.location.search).get('id');
-                        
+
                         console.log('Redirigiendo con expedienteId:', expedienteIdParam, 'documentoId:', documentoIdForRedirect);
-                        
+
                         if (expedienteIdParam) {
                             window.location.href = `/expedientes/cedulas?expediente_id=${expedienteIdParam}&documento_id=${documentoIdForRedirect}`;
                         } else {
@@ -338,54 +344,54 @@
         }
 
         async function cargarDocumentos() {
-    const tbody = document.getElementById('documentosTableBody');
-    const searchTerm = document.getElementById('searchInput').value.trim();
+            const tbody = document.getElementById('documentosTableBody');
+            const searchTerm = document.getElementById('searchInput').value.trim();
 
-    // SIEMPRE obtener expedienteId de la URL en cada llamada
-    let urlParams = new URLSearchParams(window.location.search);
-    let expId = urlParams.get('id') || urlParams.get('expediente_id') || urlParams.get('expedienteId');
-    if (!expId) {
-        const hiddenInput = document.getElementById('expediente_id') || document.querySelector('input[name="expediente_id"]');
-        if (hiddenInput) expId = hiddenInput.value;
-    }
-    if (!expId) {
-        const pathMatch = window.location.pathname.match(/\/expedientes\/(\d+)/);
-        if (pathMatch) expId = pathMatch[1];
-    }
-    if (!expId) {
-        tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">No se encontró el expediente</td></tr>';
-        return;
-    }
-
-    try {
-        tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Cargando...</td></tr>';
-
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        const params = new URLSearchParams({
-            search: searchTerm,
-            page: currentPage,
-            rol: rolSeleccionado,
-            searchFields: 'titulo,usuario_nombre'
-        });
-
-        const response = await fetch(`/api/expedientes/${expId}/documentos?${params.toString()}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
+            // SIEMPRE obtener expedienteId de la URL en cada llamada
+            let urlParams = new URLSearchParams(window.location.search);
+            let expId = urlParams.get('id') || urlParams.get('expediente_id') || urlParams.get('expedienteId');
+            if (!expId) {
+                const hiddenInput = document.getElementById('expediente_id') || document.querySelector('input[name="expediente_id"]');
+                if (hiddenInput) expId = hiddenInput.value;
             }
-        });
+            if (!expId) {
+                const pathMatch = window.location.pathname.match(/\/expedientes\/(\d+)/);
+                if (pathMatch) expId = pathMatch[1];
+            }
+            if (!expId) {
+                tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">No se encontró el expediente</td></tr>';
+                return;
+            }
 
-        if (!response.ok) throw new Error('Error al cargar documentos');
+            try {
+                tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Cargando...</td></tr>';
 
-        const data = await response.json();
-        allDocumentos = data.documentos; // Guardar en variable global
-        renderizarDocumentos(data.documentos);
-        actualizarPaginacion(data.meta);
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                const params = new URLSearchParams({
+                    search: searchTerm,
+                    page: currentPage,
+                    rol: rolSeleccionado,
+                    searchFields: 'titulo,usuario_nombre'
+                });
 
-    } catch (error) {
-        console.error('Error:', error);
-        tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">Error al cargar los documentos</td></tr>';
-    }
+                const response = await fetch(`/api/expedientes/${expId}/documentos?${params.toString()}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Error al cargar documentos');
+
+                const data = await response.json();
+                allDocumentos = data.documentos; // Guardar en variable global
+                renderizarDocumentos(data.documentos);
+                actualizarPaginacion(data.meta);
+
+            } catch (error) {
+                console.error('Error:', error);
+                tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">Error al cargar los documentos</td></tr>';
+            }
         }
 
         function renderizarDocumentos(documentos) {
@@ -448,9 +454,9 @@
                     <button onclick="revisarDocumento(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">
                         Revisar
                     </button>
-                    <button onclick="verCedulasGeneradas(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">
-                        Generados
-                    </button>                    
+                    <button onclick="verDocumento(${doc.id})" class="bg-gray-600 text-white px-3 py-1 rounded text-sm">
+                        Ver
+                    </button>
                     </div>
                 </td>
             </tr>
@@ -479,16 +485,16 @@
                 // Preparar datos para Excel con el formato especificado
                 const excelData = allDocumentos.map(doc => {
                     const fecha = new Date(doc.created_at);
-                    const fechaStr = fecha.toLocaleDateString('es-PE', { 
-                        day: '2-digit', 
-                        month: '2-digit', 
-                        year: 'numeric' 
+                    const fechaStr = fecha.toLocaleDateString('es-PE', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
                     });
-                    const horaStr = fecha.toLocaleTimeString('es-PE', { 
-                        hour: '2-digit', 
-                        minute: '2-digit', 
+                    const horaStr = fecha.toLocaleTimeString('es-PE', {
+                        hour: '2-digit',
+                        minute: '2-digit',
                         second: '2-digit',
-                        hour12: false 
+                        hour12: false
                     });
 
                     return {
@@ -507,26 +513,35 @@
                 const ws = XLSX.utils.json_to_sheet(excelData);
 
                 // Ajustar ancho de columnas
-                ws['!cols'] = [
-                    { wch: 12 }, // FECHA
-                    { wch: 10 }, // HORA
-                    { wch: 30 }, // TITULO
-                    { wch: 20 }, // USUARIO
-                    { wch: 15 }  // ROL
+                ws['!cols'] = [{
+                        wch: 12
+                    }, // FECHA
+                    {
+                        wch: 10
+                    }, // HORA
+                    {
+                        wch: 30
+                    }, // TITULO
+                    {
+                        wch: 20
+                    }, // USUARIO
+                    {
+                        wch: 15
+                    } // ROL
                 ];
 
                 XLSX.utils.book_append_sheet(wb, ws, 'Documentos');
 
                 // Descargar archivo
-                    const fecha = new Date();
-                    const dia = String(fecha.getDate()).padStart(2, '0');
-                    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-                    const anio = fecha.getFullYear();
-                    const filename = `Documentos_${dia}_${mes}_${anio}.xlsx`;
-                
+                const fecha = new Date();
+                const dia = String(fecha.getDate()).padStart(2, '0');
+                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                const anio = fecha.getFullYear();
+                const filename = `Documentos_${dia}_${mes}_${anio}.xlsx`;
+
                 console.log('Descargando archivo:', filename);
                 XLSX.writeFile(wb, filename);
-                
+
                 console.log('Exportación completada exitosamente');
             } catch (error) {
                 console.error('Error al exportar:', error);
@@ -643,9 +658,9 @@
                 const pathMatch = window.location.pathname.match(/\/expedientes\/(\d+)/);
                 if (pathMatch) expId = pathMatch[1];
             }
-            
+
             console.log('Redirigiendo a cédulas con expedienteId:', expId, 'documentoId:', id);
-            
+
             // Redirigir a la página de cédulas con el ID del documento y del expediente
             window.location.href = `/expedientes/cedulas?expediente_id=${expId}&documento_id=${id}`;
         }
@@ -706,7 +721,7 @@
         async function toggleHabilitado(id, nuevoEstado, checkboxElement) {
             // Guardar el estado anterior por si necesitamos revertir
             const estadoAnterior = !nuevoEstado;
-            
+
             try {
                 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
                 const response = await fetch(`/api/participe-documentos/${id}/toggle-habilitado`, {
@@ -724,10 +739,10 @@
                 }
 
                 const result = await response.json();
-                
+
                 // Actualizar visualmente con el estado real del servidor
                 checkboxElement.checked = result.habilitado === true || result.habilitado === 1;
-                
+
                 // Actualizar el estilo de la fila
                 const row = checkboxElement.closest('tr');
                 if (row) {
@@ -781,7 +796,7 @@
         document.getElementById('documentoInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             const fileLabel = document.getElementById('fileNameLabel');
-            
+
             if (file) {
                 // Validar tamaño del archivo (máximo 10MB)
                 const maxSize = 10 * 1024 * 1024; // 10MB en bytes
@@ -793,7 +808,7 @@
                     fileLabel.classList.add('text-gray-600');
                     return;
                 }
-                
+
                 // Mostrar nombre del archivo con estilo diferente
                 fileLabel.textContent = file.name;
                 fileLabel.classList.remove('text-gray-600');
@@ -808,60 +823,60 @@
         });
 
         document.getElementById('documentForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
+            e.preventDefault();
 
-    try {
-        // Validar que se haya seleccionado un archivo
-        const documentoInput = document.getElementById('documentoInput');
-        if (!documentoInput.files || !documentoInput.files[0]) {
-            alert('Por favor, seleccione un archivo para subir.');
-            return;
-        }
+            try {
+                // Validar que se haya seleccionado un archivo
+                const documentoInput = document.getElementById('documentoInput');
+                if (!documentoInput.files || !documentoInput.files[0]) {
+                    alert('Por favor, seleccione un archivo para subir.');
+                    return;
+                }
 
-        const formData = new FormData();
-        // Refuerzo: obtener expedienteId igual que en cargarDocumentos
-        let urlParams = new URLSearchParams(window.location.search);
-        let expId = urlParams.get('id') || urlParams.get('expediente_id') || urlParams.get('expedienteId');
-        if (!expId) {
-            const hiddenInput = document.getElementById('expediente_id') || document.querySelector('input[name="expediente_id"]');
-            if (hiddenInput) expId = hiddenInput.value;
-        }
-        if (!expId) {
-            const pathMatch = window.location.pathname.match(/\/expedientes\/(\d+)/);
-            if (pathMatch) expId = pathMatch[1];
-        }
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                const formData = new FormData();
+                // Refuerzo: obtener expedienteId igual que en cargarDocumentos
+                let urlParams = new URLSearchParams(window.location.search);
+                let expId = urlParams.get('id') || urlParams.get('expediente_id') || urlParams.get('expedienteId');
+                if (!expId) {
+                    const hiddenInput = document.getElementById('expediente_id') || document.querySelector('input[name="expediente_id"]');
+                    if (hiddenInput) expId = hiddenInput.value;
+                }
+                if (!expId) {
+                    const pathMatch = window.location.pathname.match(/\/expedientes\/(\d+)/);
+                    if (pathMatch) expId = pathMatch[1];
+                }
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
-        // Agregar campos al FormData
-        formData.append('titulo', this.titulo.value);
-        formData.append('comentarios', this.comentarios.value);
-        formData.append('documento', documentoInput.files[0]);
-        formData.append('expediente_id', expId);
-        
-        console.log('📤 Enviando documento:', documentoInput.files[0].name);
+                // Agregar campos al FormData
+                formData.append('titulo', this.titulo.value);
+                formData.append('comentarios', this.comentarios.value);
+                formData.append('documento', documentoInput.files[0]);
+                formData.append('expediente_id', expId);
 
-        const response = await fetch('/api/documentos', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                // No incluir Content-Type aquí, fetch lo establecerá automáticamente con el boundary correcto
-            },
-            body: formData
-        });
+                console.log('📤 Enviando documento:', documentoInput.files[0].name);
 
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Error al crear el documento');
-        }
+                const response = await fetch('/api/documentos', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        // No incluir Content-Type aquí, fetch lo establecerá automáticamente con el boundary correcto
+                    },
+                    body: formData
+                });
 
-        // Mostrar mensaje de éxito
-        alert('Documento creado exitosamente');
-        closeModal();
-        await cargarDocumentos(); // Recargar la lista de documentos
-    } catch (error) {
-        console.error('Error:', error);
-        alert(error.message || 'Error al crear el documento');
-    }
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Error al crear el documento');
+                }
+
+                // Mostrar mensaje de éxito
+                alert('Documento creado exitosamente');
+                closeModal();
+                await cargarDocumentos(); // Recargar la lista de documentos
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message || 'Error al crear el documento');
+            }
         });
 
         // Funciones para cargar usuarios y configurar Tom Select
@@ -981,7 +996,7 @@
         // Agregar usuario a la lista (clona plantilla y convierte el select en Tom Select)
         function agregarUsuario() {
             const listaUsuarios = document.getElementById('listaUsuarios');
-            
+
             // Crear un nuevo elemento en lugar de clonar
             const nuevoItem = document.createElement('div');
             nuevoItem.className = 'usuario-item flex items-center space-x-2';
@@ -991,7 +1006,7 @@
                     <option value="" disabled selected>Seleccione un usuario</option>
                 </select>
             `;
-            
+
             listaUsuarios.appendChild(nuevoItem);
 
             // Inicializar Tom Select en el nuevo select
@@ -1130,9 +1145,9 @@
                             <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
 
                             <select name="usuarios[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="" disabled selected>Seleccione un usuario</option>
-                                    <!-- Opciones se llenarán dinámicamente -->
-                                </select>
+                                <option value="" disabled selected>Seleccione un usuario</option>
+                                <!-- Opciones se llenarán dinámicamente -->
+                            </select>
                         </div>
                     </div>
                 </div>
