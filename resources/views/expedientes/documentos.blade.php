@@ -642,8 +642,61 @@
         });
 
         async function verDocumento(id) {
-            // Implementar función para ver documento
-            console.log('Ver documento:', id);
+            try {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                if (!token) {
+                    throw new Error('No se encontró el token de autenticación');
+                }
+
+                const response = await fetch(`/api/participe-documentos/${id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al cargar el documento');
+                }
+
+                const result = await response.json();
+                if (result.registro && result.registro.archivos) {
+                    mostrarArchivosEnModal(result.registro.archivos);
+                } else {
+                    alert('No se encontraron archivos adjuntos');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message || 'Error al cargar los archivos');
+            }
+        }
+
+        function mostrarArchivosEnModal(archivos) {
+            const container = document.getElementById('archivosDocumentoList');
+            container.innerHTML = archivos.map(archivo => `
+                <div style="display: flex; align-items: center; padding: 15px; background: #f5f5f5; border-radius: 4px; margin-bottom: 12px; gap: 15px;">
+                    <svg style="width: 24px; height: 24px; min-width: 24px; opacity: 0.7;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                        <polyline points="13 2 13 9 20 9"></polyline>
+                    </svg>
+                    <span style="flex: 1; font-size: 14px; color: #333; word-break: break-word;">${archivo.archivo_adjunto.split('/').pop()}</span>
+                    <button onclick="abrirArchivo('${archivo.archivo_adjunto}')" style="padding: 8px 20px; background: #000; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; white-space: nowrap; font-weight: 500;">Abrir</button>
+                </div>
+            `).join('');
+            const modal = document.getElementById('modalVerArchivos');
+            modal.style.display = 'flex';
+            modal.classList.remove('hidden');
+        }
+
+        function abrirArchivo(ruta) {
+            window.open('/storage/' + ruta, '_blank');
+        }
+
+        function cerrarModalVerArchivos() {
+            const modal = document.getElementById('modalVerArchivos');
+            modal.style.display = 'none';
+            modal.classList.add('hidden');
         }
 
         function verCedulasGeneradas(id) {
@@ -1166,4 +1219,33 @@
             </form>
         </div>
     </div>
+
+    <!-- Modal Ver Archivos del Documento -->
+    <div id="modalVerArchivos" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50" style="display: none;">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-xl" style="margin: 0 auto; max-height: 90vh; overflow: hidden;">
+            <div style="padding: 24px 30px; border-bottom: 1px solid #e5e7eb;">
+                <h2 style="font-size: 20px; font-weight: 600; color: #333; margin: 0;">Archivos del documento</h2>
+            </div>
+            <div id="archivosDocumentoList" style="padding: 20px 30px; max-height: 400px; overflow-y: auto;">
+                <!-- Los archivos se llenarán dinámicamente -->
+            </div>
+            <div style="padding: 16px 30px; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end;">
+                <button type="button" onclick="cerrarModalVerArchivos()" style="padding: 8px 20px; background: #d1d5db; color: #333; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cerrar modal de ver archivos al hacer clic fuera
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalVerArchivos = document.getElementById('modalVerArchivos');
+            if (modalVerArchivos) {
+                modalVerArchivos.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        cerrarModalVerArchivos();
+                    }
+                });
+            }
+        });
+    </script>
     @endsection
