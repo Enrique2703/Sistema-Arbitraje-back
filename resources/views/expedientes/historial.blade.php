@@ -176,30 +176,26 @@ function actualizarPaginacion(meta) {
     currentPage = meta.current_page;
     lastPage = meta.last_page;
 
-    const prevDisabled = currentPage === 1;
-    const nextDisabled = currentPage === lastPage;
+    const prevDisabled = currentPage <= 1;
+    const nextDisabled = currentPage >= lastPage;
+
+    const prevBtn = `<button ${prevDisabled ? 'disabled' : ''} onclick="irAPagina(${currentPage-1})" class="px-3 py-2 text-sm ${prevDisabled ? 'text-gray-400' : 'text-gray-700'}">&larr; Anterior</button>`;
+    const nextBtn = `<button ${nextDisabled ? 'disabled' : ''} onclick="irAPagina(${currentPage+1})" class="px-3 py-2 text-sm ${nextDisabled ? 'text-gray-400' : 'text-gray-700'}">Siguiente &rarr;</button>`;
 
     let pagesHtml = '';
-    const maxPages = 2; // Solo mostrar 2 páginas como en el diseño
-    for (let i = currentPage; i < currentPage + maxPages && i <= lastPage; i++) {
-        pagesHtml += `<span class="px-3 py-1 text-sm ${i === currentPage ? 'rounded-md bg-gray-200' : 'text-gray-600'}">${i}</span>`;
+    const maxPages = 4;
+    let start = Math.max(1, currentPage - 2);
+    let end = Math.min(lastPage, start + maxPages - 1);
+
+    for (let i = start; i <= end; i++) {
+        pagesHtml += `<button onclick="irAPagina(${i})" class="mx-1 px-2 py-1 text-sm ${i === currentPage ? 'bg-gray-100 rounded' : 'text-gray-500'}">${i}</button>`;
     }
 
     container.innerHTML = `
         <div class="flex items-center justify-between w-full">
-            <button onclick="irAPagina(${currentPage - 1})" 
-                    ${prevDisabled ? 'disabled' : ''}
-                    class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-500">
-                &larr; Anterior
-            </button>
-            <div class="flex items-center space-x-2">
-                ${pagesHtml}
-            </div>
-            <button onclick="irAPagina(${currentPage + 1})"
-                    ${nextDisabled ? 'disabled' : ''}
-                    class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-500">
-                Siguiente &rarr;
-            </button>
+            <div>${prevBtn}</div>
+            <div class="flex items-center">${pagesHtml}</div>
+            <div>${nextBtn}</div>
         </div>
     `;
 }
