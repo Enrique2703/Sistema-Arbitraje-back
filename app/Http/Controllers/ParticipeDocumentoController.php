@@ -77,6 +77,10 @@ class ParticipeDocumentoController extends Controller
         $participeId = null;
         if ($user->participe) {
             $participeId = $user->participe->id;
+        } else {
+            // Si no tiene participe (es admin/staff), usar el partícipe genérico "Árbitro Sistema"
+            // El ID 1 corresponde al partícipe genérico creado por el seeder
+            $participeId = 1;
         }
         
         $validator = Validator::make($request->all(), [
