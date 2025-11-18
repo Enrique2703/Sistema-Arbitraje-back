@@ -67,6 +67,7 @@
                             <th class="w-48 px-3 py-3 text-left text-xs font-medium text-white uppercase">Título</th>
                             <th class="w-32 px-3 py-3 text-left text-xs font-medium text-white uppercase">Usuario</th>
                             <th class="w-24 px-3 py-3 text-left text-xs font-medium text-white uppercase">Rol</th>
+                            <th class="w-24 px-3 py-3 text-center text-xs font-medium text-white uppercase">Tamaño</th>
                             <th class="w-40 px-3 py-3 text-center text-xs font-medium text-white uppercase"></th>
                         </tr>
                     </thead>
@@ -432,6 +433,25 @@
                 // Convertir habilitado a boolean explícitamente
                 const isHabilitado = doc.habilitado === true || doc.habilitado === 1 || doc.habilitado === '1';
 
+                // Calcular tamaño total de archivos en bytes
+                const tamanoBytes = doc.archivos && doc.archivos.length > 0 
+                    ? doc.archivos.reduce((total, archivo) => total + (archivo.tamano || 0), 0)
+                    : 0;
+                
+                // Formatear según el tamaño: KB si es menor a 1MB, MB si es mayor
+                let tamanoFormateado = '0.00kb';
+                if (tamanoBytes > 0) {
+                    if (tamanoBytes < 1024 * 1024) {
+                        // Mostrar en KB con 2 decimales
+                        const tamanoKB = tamanoBytes / 1024;
+                        tamanoFormateado = `${tamanoKB.toFixed(2)}kb`;
+                    } else {
+                        // Mostrar en MB con 2 decimales
+                        const tamanoMB = tamanoBytes / (1024 * 1024);
+                        tamanoFormateado = `${tamanoMB.toFixed(2)}mb`;
+                    }
+                }
+
                 tbody.innerHTML += `
                 <tr class="${!isHabilitado ? 'bg-opacity-40' : ''} hover:bg-gray-50" data-doc-id="${doc.id}">
                     <td class="px-6 py-4 text-center">
@@ -449,6 +469,7 @@
                         ${doc.estado || 'Demandado'}
                     </span>
                 </td>
+                <td class="px-6 py-4 text-center text-gray-900">${tamanoFormateado}</td>
                 <td class="px-6 py-4">
                     <div class="flex justify-end space-x-2">
                     <button onclick="revisarDocumento(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">
@@ -566,8 +587,52 @@
         }
 
         async function revisarDocumento(id) {
-            document.getElementById('documentoIdRevision').value = id;
-            document.getElementById('revisionModal').classList.remove('hidden');
+            try {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                if (!token) {
+                    throw new Error('No se encontró el token de autenticación');
+                }
+
+                const response = await fetch(`/api/participe-documentos/${id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al cargar el documento');
+                }
+
+                const result = await response.json();
+                
+                // Establecer el ID del documento
+                document.getElementById('documentoIdRevision').value = id;
+                
+                // Mostrar los archivos adjuntos en el modal
+                const archivosContainer = document.getElementById('archivosRevisionList');
+                if (result.registro && result.registro.archivos && result.registro.archivos.length > 0) {
+                    archivosContainer.innerHTML = result.registro.archivos.map(archivo => `
+                        <div style="display: flex; align-items: center; padding: 12px; background: #f5f5f5; border-radius: 4px; margin-bottom: 10px; gap: 12px;">
+                            <svg style="width: 20px; height: 20px; min-width: 20px; opacity: 0.7;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                                <polyline points="13 2 13 9 20 9"></polyline>
+                            </svg>
+                            <span style="flex: 1; font-size: 13px; color: #333; word-break: break-word;">${archivo.archivo_adjunto.split('/').pop()}</span>
+                            <button type="button" onclick="abrirArchivo('${archivo.archivo_adjunto}')" style="padding: 6px 16px; background: #000; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; white-space: nowrap;">Ver</button>
+                        </div>
+                    `).join('');
+                } else {
+                    archivosContainer.innerHTML = '<p style="color: #666; font-size: 13px; text-align: center; padding: 10px;">No hay archivos adjuntos</p>';
+                }
+                
+                // Mostrar el modal
+                document.getElementById('revisionModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message || 'Error al cargar el documento');
+            }
         }
 
         function closeRevisionModal() {
@@ -1087,50 +1152,57 @@
 
     <!-- Modal de Revisión de Documento -->
     <div id="revisionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-semibold text-gray-900">¿Quieres aprobar el documento?</h2>
-                <button onclick="closeRevisionModal()" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl" style="max-height: 90vh; overflow: hidden; margin: 0 auto;">
+            <div style="padding: 24px 30px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="font-size: 20px; font-weight: 600; color: #333; margin: 0;">¿Quieres aprobar el documento?</h2>
+                <button onclick="closeRevisionModal()" style="color: #999; cursor: pointer; background: none; border: none;">
+                    <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
 
-            <form id="revisionForm" class="space-y-6">
+            <form id="revisionForm" style="display: flex; flex-direction: column;">
                 <input type="hidden" id="documentoIdRevision" name="documentoId">
 
-                <div class="border-t border-gray-200 pt-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Resolución</label>
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                        <div class="flex items-center justify-center">
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                                </svg>
-                                <span class="text-sm text-gray-600">Adjuntar archivos</span>
-                                <input type="file" multiple class="hidden" name="archivos">
-                            </label>
+                <div style="padding: 20px 30px; max-height: 50vh; overflow-y: auto;">
+                    <!-- Documentos adjuntos -->
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 14px; font-weight: 500; color: #333; margin-bottom: 10px;">Documentos adjuntos:</label>
+                        <div id="archivosRevisionList">
+                            <!-- Los archivos se cargarán dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Resolución -->
+                    <div>
+                        <label style="display: block; font-size: 14px; font-weight: 500; color: #333; margin-bottom: 8px;">Resolución (opcional)</label>
+                        <div style="border: 2px dashed #d1d5db; border-radius: 6px; padding: 16px;">
+                            <div style="display: flex; align-items: center; justify-content: center;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <svg style="width: 20px; height: 20px; color: #999;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    <span style="font-size: 13px; color: #666;">Adjuntar archivos</span>
+                                    <input type="file" multiple class="hidden" name="archivos">
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex justify-between space-x-3 pt-4">
-                    <button type="button" onclick="rechazarDocumento()"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 flex-1">
-                        Rechazar
-                    </button>
-                    <button type="submit"
-                        class="px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 flex-1">
-                        Aprobar
-                    </button>
-                </div>
-
-                <div class="flex justify-end pt-2">
-                    <button type="button" onclick="closeRevisionModal()"
-                        class="text-sm text-gray-600 hover:text-gray-800">
+                <div style="padding: 16px 30px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                    <button type="button" onclick="closeRevisionModal()" style="padding: 8px 16px; background: transparent; color: #666; border: none; cursor: pointer; font-size: 13px;">
                         Cerrar
                     </button>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" onclick="rechazarDocumento()" style="padding: 8px 20px; background: #e5e7eb; color: #333; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                            Rechazar
+                        </button>
+                        <button type="submit" style="padding: 8px 20px; background: #000; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                            Aprobar
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>

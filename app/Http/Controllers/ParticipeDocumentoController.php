@@ -108,10 +108,12 @@ class ParticipeDocumentoController extends Controller
             if ($request->hasFile('archivos')) {
                 foreach ($request->file('archivos') as $archivo) {
                     $path = $archivo->store('documentos/participes', 'public');
+                    $tamano = $archivo->getSize(); // Obtener tamaño en bytes
 
                     // Crear registro de archivo
                     $documento->archivos()->create([
-                        'archivo_adjunto' => $path
+                        'archivo_adjunto' => $path,
+                        'tamano' => $tamano
                     ]);
                 }
             }

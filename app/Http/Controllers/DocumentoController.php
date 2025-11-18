@@ -10,7 +10,7 @@ class DocumentoController extends Controller
     public function index($id)
     {
         try {
-            $documentos = \App\Models\ParticipeDocumento::with(['participe'])
+            $documentos = \App\Models\ParticipeDocumento::with(['participe', 'archivos'])
                 ->where('expediente_id', $id)
                 ->get()
                 ->map(function($doc) {
@@ -21,7 +21,24 @@ class DocumentoController extends Controller
                         'created_at' => $doc->created_at,
                         'usuario_nombre' => $doc->participe ? $doc->participe->nombres : 'N/A',
                         'rol' => $doc->participe ? $doc->participe->tipo : 'Sistema',
-                        'habilitado' => $doc->habilitado ?? false
+                        'habilitado' => $doc->habilitado ?? false,
+                        'archivos' => $doc->archivos ? $doc->archivos->map(function($archivo) {
+                            // Si no tiene tamaño guardado, calcularlo del archivo físico
+                            $tamano = $archivo->tamano;
+                            if (!$tamano || $tamano == 0) {
+                                $rutaCompleta = storage_path('app/public/' . $archivo->archivo_adjunto);
+                                if (file_exists($rutaCompleta)) {
+                                    $tamano = filesize($rutaCompleta);
+                                    // Actualizar en base de datos para futuros requests
+                                    $archivo->update(['tamano' => $tamano]);
+                                }
+                            }
+                            return [
+                                'id' => $archivo->id,
+                                'archivo_adjunto' => $archivo->archivo_adjunto,
+                                'tamano' => $tamano ?? 0
+                            ];
+                        }) : []
                     ];
                 });
 
@@ -49,7 +66,9 @@ class DocumentoController extends Controller
             ]);
 
             // Guardar el archivo
-            $path = $request->file('documento')->store('documentos', 'public');
+            $file = $request->file('documento');
+            $path = $file->store('documentos', 'public');
+            $tamano = $file->getSize(); // Obtener tamaño en bytes
             
             // Crear el registro del documento
             $documento = new \App\Models\ParticipeDocumento();
@@ -58,6 +77,12 @@ class DocumentoController extends Controller
             $documento->parte = 'Pendiente';
             $documento->enlace_descarga = $path;
             $documento->save();
+            
+            // Crear registro del archivo con tamaño
+            $documento->archivos()->create([
+                'archivo_adjunto' => $path,
+                'tamano' => $tamano
+            ]);
 
             return response()->json([
                 'message' => 'Documento creado exitosamente',

@@ -22,6 +22,7 @@ class ParticipeDocumentoArchivo extends Model
     protected $fillable = [
         'participe_documentos_id',
         'archivo_adjunto',
+        'tamano',
     ];
 
     /**
