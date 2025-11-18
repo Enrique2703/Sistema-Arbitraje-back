@@ -10,17 +10,40 @@ class DocumentoController extends Controller
     public function index($id)
     {
         try {
-            $documentos = \App\Models\ParticipeDocumento::with(['participe', 'archivos'])
+            $documentos = \App\Models\ParticipeDocumento::with(['participe', 'createdByUser.participe', 'createdByUser.usuario', 'archivos'])
                 ->where('expediente_id', $id)
                 ->get()
                 ->map(function($doc) {
+                    // Determinar el nombre del usuario y su rol
+                    $nombreUsuario = 'N/A';
+                    $rol = 'Sistema';
+                    
+                    // Si hay un usuario creador
+                    if ($doc->createdByUser) {
+                        // Si es un partícipe (usuario normal)
+                        if ($doc->createdByUser->participe) {
+                            $nombreUsuario = $doc->createdByUser->participe->nombres;
+                            $rol = $doc->parte; // Usar el rol del documento
+                        }
+                        // Si es admin/staff
+                        elseif ($doc->createdByUser->usuario) {
+                            $nombreUsuario = $doc->createdByUser->usuario->nombres;
+                            $rol = 'Árbitro'; // Admin/staff siempre es Árbitro
+                        }
+                    }
+                    // Fallback al participe si no hay usuario creador
+                    elseif ($doc->participe) {
+                        $nombreUsuario = $doc->participe->nombres;
+                        $rol = $doc->parte;
+                    }
+                    
                     return [
                         'id' => $doc->id,
                         'titulo' => $doc->sumilla,
-                        'estado' => $doc->parte,
+                        'estado' => $rol,
                         'created_at' => $doc->created_at,
-                        'usuario_nombre' => $doc->participe ? $doc->participe->nombres : 'N/A',
-                        'rol' => $doc->participe ? $doc->participe->tipo : 'Sistema',
+                        'usuario_nombre' => $nombreUsuario,
+                        'rol' => $rol,
                         'habilitado' => $doc->habilitado ?? false,
                         'archivos' => $doc->archivos ? $doc->archivos->map(function($archivo) {
                             // Si no tiene tamaño guardado, calcularlo del archivo físico

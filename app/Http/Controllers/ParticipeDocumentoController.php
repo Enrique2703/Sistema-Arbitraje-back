@@ -105,6 +105,7 @@ class ParticipeDocumentoController extends Controller
             // Crear el documento (participe_id puede ser null para admin/staff)
             $documento = ParticipeDocumento::create([
                 'participe_id' => $participeId,
+                'created_by_user_id' => $user->id, // Guardar quién creó el documento
                 'expediente_id' => $request->expediente_id,
                 'parte' => $request->parte,
                 'sumilla' => $request->sumilla,

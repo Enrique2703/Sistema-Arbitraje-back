@@ -22,6 +22,7 @@ class ParticipeDocumento extends Model
      */
     protected $fillable = [
         'participe_id',
+        'created_by_user_id',
         'expediente_id',
         'parte',
         'sumilla',
@@ -52,6 +53,14 @@ class ParticipeDocumento extends Model
     public function expediente(): BelongsTo
     {
         return $this->belongsTo(Expediente::class);
+    }
+
+    /**
+     * Obtiene el usuario (credencial) que creó el documento.
+     */
+    public function createdByUser(): BelongsTo
+    {
+        return $this->belongsTo(Credencial::class, 'created_by_user_id');
     }
 
     /**
