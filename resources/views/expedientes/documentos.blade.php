@@ -8,6 +8,181 @@
 <!-- XLSX Library para exportar a Excel -->
 <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 
+<style>
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .modal-nuevo-documento {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-nuevo-documento h2 {
+        font-size: 24px;
+        margin: 0 0 25px 0;
+        color: #333;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 500;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .file-upload-area {
+        border: 1px solid #d0d0d0;
+        padding: 30px 20px;
+        border-radius: 4px;
+        background: #f5f5f5;
+        min-height: 120px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .file-upload-button {
+        position: relative;
+        display: inline-block;
+    }
+
+    .file-upload-button span {
+        display: inline-block;
+        padding: 10px 28px;
+        background: #000;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 400;
+    }
+
+    .file-upload-button span:hover {
+        background: #2c2c2c;
+    }
+
+    .file-input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .file-size-note {
+        font-size: 11px;
+        color: #666;
+        margin-top: 8px;
+        line-height: 1.4;
+    }
+
+    .selected-files {
+        margin-top: 10px;
+        text-align: left;
+    }
+
+    .selected-file {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: white;
+        border: 1px solid #e5e5e5;
+        border-radius: 3px;
+        margin-bottom: 8px;
+    }
+
+    .selected-file-name {
+        font-size: 13px;
+        color: #0066cc;
+        margin-right: 10px;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .remove-file {
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        padding: 0;
+    }
+
+    .remove-file:hover {
+        background: #c82333;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 30px;
+    }
+
+    .btn-cancelar {
+        padding: 8px 20px;
+        border: none;
+        background: #ccc;
+        color: #333;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .btn-presentar {
+        padding: 8px 20px;
+        border: none;
+        background: black;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+</style>
+
 <div class="min-h-screen bg-gray-100 flex">
     <div class="flex-1 flex flex-col">
         <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
@@ -94,56 +269,37 @@
     </div>
 
     <!-- Modal de Nuevo Documento -->
-    <div id="documentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-semibold text-gray-900">Nuevo documento</h2>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
+    <div class="modal-overlay" id="modalNuevoDocumento">
+        <div class="modal-nuevo-documento">
+            <h2>Nuevo documento</h2>
+            <form id="formNuevoDocumento" class="form-nuevo-documento">
+                <input type="hidden" name="expediente_id" id="expediente_id">
 
-            <form id="documentForm" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Título</label>
-                    <input type="text" name="titulo" required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Placeholder">
+                <div class="form-group">
+                    <label>Título</label>
+                    <input type="text" name="titulo" id="titulo" placeholder="Ingrese el título del documento" class="form-control" required>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Comentarios</label>
-                    <textarea name="comentarios" rows="4"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Placeholder"></textarea>
+                <div class="form-group">
+                    <label>Comentarios</label>
+                    <textarea name="comentarios" id="comentarios" rows="4" placeholder="Ingrese comentarios adicionales" class="form-control"></textarea>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Documento</label>
-                    <div class="border border-gray-300 rounded-lg p-4">
-                        <div class="flex items-center justify-center">
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                                </svg>
-                                <span class="text-sm text-gray-600" id="fileNameLabel">Adjuntar archivos</span>
-                                <input type="file" class="hidden" name="documento" id="documentoInput" required accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png">
-                            </label>
+                <div class="form-group">
+                    <label>Cargar del escritorio</label>
+                    <div class="file-upload-area">
+                        <div class="file-upload-button">
+                            <span>Adjuntar archivos (PDF, PNG, JPG)</span>
+                            <input type="file" accept=".pdf,.png,.jpg,.jpeg" name="archivos[]" class="file-input" id="archivosDocumento" multiple>
                         </div>
                     </div>
+                    <div id="selectedFilesDocumento" class="selected-files"></div>
+                    <p class="file-size-note">Si el archivo no supera los 10mb adjuntar en el siguiente recuadro en formato pdf, en caso superar el límite configurar el link de descarga</p>
                 </div>
 
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" onclick="closeModal()"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
-                        Cancelar
-                    </button>
-                    <button type="submit"
-                        class="px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800">
-                        Crear
-                    </button>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancelar" onclick="cerrarModalNuevoDocumento()">Cancelar</button>
+                    <button type="submit" class="btn-presentar">Presentar</button>
                 </div>
             </form>
         </div>
@@ -237,6 +393,123 @@
             configurarBuscador();
             // Cargar usuarios para los selects con Tom Select (buscador)
             cargarUsuarios();
+
+            // Configurar manejador de archivos para el modal
+            const archivosInput = document.getElementById('archivosDocumento');
+            const selectedFilesDiv = document.getElementById('selectedFilesDocumento');
+
+            if (archivosInput && selectedFilesDiv) {
+                archivosInput.addEventListener('change', function(e) {
+                    selectedFilesDiv.innerHTML = '';
+                    Array.from(this.files).forEach((file, index) => {
+                        const fileDiv = document.createElement('div');
+                        fileDiv.className = 'selected-file';
+                        fileDiv.innerHTML = `
+                            <span class="selected-file-name">${file.name}</span>
+                            <button type="button" class="remove-file" data-index="${index}">×</button>
+                        `;
+                        selectedFilesDiv.appendChild(fileDiv);
+                    });
+
+                    // Agregar event listeners para los botones de eliminar
+                    selectedFilesDiv.querySelectorAll('.remove-file').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const dt = new DataTransfer();
+                            const { files } = archivosInput;
+                            const index = parseInt(this.dataset.index);
+
+                            for (let i = 0; i < files.length; i++) {
+                                if (i !== index) dt.items.add(files[i]);
+                            }
+
+                            archivosInput.files = dt.files;
+                            this.closest('.selected-file').remove();
+
+                            // Actualizar los índices de los botones restantes
+                            selectedFilesDiv.querySelectorAll('.remove-file').forEach((btn, idx) => {
+                                btn.dataset.index = idx;
+                            });
+                        });
+                    });
+                });
+            }
+
+            // Manejar el envío del formulario de nuevo documento
+            const formNuevoDocumento = document.getElementById('formNuevoDocumento');
+            if (formNuevoDocumento) {
+                formNuevoDocumento.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    try {
+                        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                        if (!token) {
+                            throw new Error('No se encontró el token de autenticación');
+                        }
+
+                        const formData = new FormData();
+                        
+                        // Obtener los valores de los campos
+                        const expedienteId = document.getElementById('expediente_id').value;
+                        const titulo = document.getElementById('titulo').value;
+                        const comentarios = document.getElementById('comentarios').value;
+                        
+                        console.log('Valores a enviar:', {
+                            expediente_id: expedienteId,
+                            titulo: titulo,
+                            comentarios: comentarios
+                        });
+
+                        // Agregar los campos al FormData
+                        formData.append('expediente_id', expedienteId);
+                        formData.append('parte', 'Árbitro'); // Siempre será Árbitro para admin/staff
+                        formData.append('sumilla', titulo); // El título se guarda como sumilla
+                        formData.append('comentarios', comentarios);
+                        
+                        // Agregar los archivos
+                        const archivosInputForm = document.getElementById('archivosDocumento');
+                        for (let i = 0; i < archivosInputForm.files.length; i++) {
+                            formData.append('archivos[]', archivosInputForm.files[i]);
+                        }
+
+                        console.log('Enviando petición...');
+                        
+                        const response = await fetch('/api/participe-documentos', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Accept': 'application/json'
+                            },
+                            body: formData
+                        });
+
+                        console.log('Response status:', response.status);
+                        console.log('Response ok:', response.ok);
+
+                        const result = await response.json();
+                        console.log('Respuesta del servidor:', result);
+
+                        if (!response.ok) {
+                            console.error('Error completo:', result);
+                            if (result.errores) {
+                                console.error('Errores de validación:', result.errores);
+                                const erroresTexto = Object.entries(result.errores)
+                                    .map(([campo, mensajes]) => `${campo}: ${mensajes.join(', ')}`)
+                                    .join('\n');
+                                throw new Error(`Error de validación:\n${erroresTexto}`);
+                            }
+                            throw new Error(result.mensaje || result.message || 'Error al enviar el documento');
+                        }
+
+                        alert('Documento presentado exitosamente');
+                        cerrarModalNuevoDocumento();
+                        cargarDocumentos(); // Recargar la lista de documentos
+                    } catch (error) {
+                        console.error('Error:', error);
+                        console.log('Detalles del error:', error);
+                        alert(error.message || 'Error al presentar el documento');
+                    }
+                });
+            }
 
             // Manejar el envío del formulario de cédula (enviar JSON a /api/cedulas)
             const formCedula = document.getElementById('formGenerarCedula');
@@ -571,19 +844,27 @@
         }
 
         function openCreateModal() {
-            document.getElementById('documentModal').classList.remove('hidden');
+            const modal = document.getElementById('modalNuevoDocumento');
+            const expedienteId = new URLSearchParams(window.location.search).get('id') || 
+                                 new URLSearchParams(window.location.search).get('expediente_id');
+            
+            // Establecer el expediente_id
+            document.getElementById('expediente_id').value = expedienteId;
+            
+            // Limpiar formulario
+            document.getElementById('titulo').value = '';
+            document.getElementById('comentarios').value = '';
+            document.getElementById('archivosDocumento').value = '';
+            document.getElementById('selectedFilesDocumento').innerHTML = '';
+            
+            modal.classList.add('active');
         }
 
-        function closeModal() {
-            document.getElementById('documentModal').classList.add('hidden');
-            document.getElementById('documentForm').reset();
-            // Resetear el label del archivo
-            const fileLabel = document.getElementById('fileNameLabel');
-            if (fileLabel) {
-                fileLabel.textContent = 'Adjuntar archivos';
-                fileLabel.classList.remove('text-blue-600', 'font-medium');
-                fileLabel.classList.add('text-gray-600');
-            }
+        function cerrarModalNuevoDocumento() {
+            const modal = document.getElementById('modalNuevoDocumento');
+            modal.classList.remove('active');
+            document.getElementById('formNuevoDocumento').reset();
+            document.getElementById('selectedFilesDocumento').innerHTML = '';
         }
 
         async function revisarDocumento(id) {
@@ -902,100 +1183,6 @@
                 alert('Error al eliminar el documento');
             }
         }
-
-        // Cerrar modal al hacer clic fuera
-        document.getElementById('documentModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
-
-        // Mostrar nombre del archivo seleccionado con validación mejorada
-        document.getElementById('documentoInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            const fileLabel = document.getElementById('fileNameLabel');
-
-            if (file) {
-                // Validar tamaño del archivo (máximo 10MB)
-                const maxSize = 10 * 1024 * 1024; // 10MB en bytes
-                if (file.size > maxSize) {
-                    alert('El archivo es demasiado grande. El tamaño máximo permitido es 10MB.');
-                    this.value = ''; // Limpiar el input
-                    fileLabel.textContent = 'Adjuntar archivos';
-                    fileLabel.classList.remove('text-blue-600', 'font-medium');
-                    fileLabel.classList.add('text-gray-600');
-                    return;
-                }
-
-                // Mostrar nombre del archivo con estilo diferente
-                fileLabel.textContent = file.name;
-                fileLabel.classList.remove('text-gray-600');
-                fileLabel.classList.add('text-blue-600', 'font-medium');
-                console.log('Archivo seleccionado:', file.name, 'Tamaño:', (file.size / 1024).toFixed(2) + 'KB');
-            } else {
-                // Restaurar texto original si no hay archivo
-                fileLabel.textContent = 'Adjuntar archivos';
-                fileLabel.classList.remove('text-blue-600', 'font-medium');
-                fileLabel.classList.add('text-gray-600');
-            }
-        });
-
-        document.getElementById('documentForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            try {
-                // Validar que se haya seleccionado un archivo
-                const documentoInput = document.getElementById('documentoInput');
-                if (!documentoInput.files || !documentoInput.files[0]) {
-                    alert('Por favor, seleccione un archivo para subir.');
-                    return;
-                }
-
-                const formData = new FormData();
-                // Refuerzo: obtener expedienteId igual que en cargarDocumentos
-                let urlParams = new URLSearchParams(window.location.search);
-                let expId = urlParams.get('id') || urlParams.get('expediente_id') || urlParams.get('expedienteId');
-                if (!expId) {
-                    const hiddenInput = document.getElementById('expediente_id') || document.querySelector('input[name="expediente_id"]');
-                    if (hiddenInput) expId = hiddenInput.value;
-                }
-                if (!expId) {
-                    const pathMatch = window.location.pathname.match(/\/expedientes\/(\d+)/);
-                    if (pathMatch) expId = pathMatch[1];
-                }
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-
-                // Agregar campos al FormData
-                formData.append('titulo', this.titulo.value);
-                formData.append('comentarios', this.comentarios.value);
-                formData.append('documento', documentoInput.files[0]);
-                formData.append('expediente_id', expId);
-
-                console.log('📤 Enviando documento:', documentoInput.files[0].name);
-
-                const response = await fetch('/api/documentos', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        // No incluir Content-Type aquí, fetch lo establecerá automáticamente con el boundary correcto
-                    },
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || 'Error al crear el documento');
-                }
-
-                // Mostrar mensaje de éxito
-                alert('Documento creado exitosamente');
-                closeModal();
-                await cargarDocumentos(); // Recargar la lista de documentos
-            } catch (error) {
-                console.error('Error:', error);
-                alert(error.message || 'Error al crear el documento');
-            }
-        });
 
         // Funciones para cargar usuarios y configurar Tom Select
         async function cargarUsuarios() {

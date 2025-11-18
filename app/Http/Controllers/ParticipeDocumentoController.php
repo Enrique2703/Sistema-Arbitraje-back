@@ -66,15 +66,18 @@ class ParticipeDocumentoController extends Controller
         // Obtener el usuario autenticado
         $user = Auth::user();
         
-        // Verificar si el usuario tiene un partícipe asociado
-        if (!$user || !$user->participe) {
+        if (!$user) {
             return response()->json([
-                'mensaje' => 'Usuario no tiene un partícipe asociado',
-                'error' => 'No se puede crear el documento sin un partícipe'
-            ], 403);
+                'mensaje' => 'Usuario no autenticado',
+                'error' => 'Debe iniciar sesión para crear documentos'
+            ], 401);
         }
 
-        $participe = $user->participe;
+        // Determinar si es admin/staff o participe
+        $participeId = null;
+        if ($user->participe) {
+            $participeId = $user->participe->id;
+        }
         
         $validator = Validator::make($request->all(), [
             'expediente_id' => 'required|exists:expedientes,id',
@@ -95,13 +98,14 @@ class ParticipeDocumentoController extends Controller
         DB::beginTransaction();
         
         try {
-            // Crear el documento
+            // Crear el documento (participe_id puede ser null para admin/staff)
             $documento = ParticipeDocumento::create([
-                'participe_id' => $participe->id,
+                'participe_id' => $participeId,
                 'expediente_id' => $request->expediente_id,
                 'parte' => $request->parte,
                 'sumilla' => $request->sumilla,
                 'enlace_descarga' => $request->enlace_descarga,
+                'habilitado' => true, // Por defecto habilitado
             ]);
 
             // Procesar archivos adjuntos si existen
