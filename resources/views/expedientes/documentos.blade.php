@@ -675,8 +675,14 @@
             // Filtrar documentos según el rol seleccionado y el término de búsqueda
             const documentosFiltrados = documentos.filter(doc => {
                 // Primero verificar el rol
-                if (rolSeleccionado !== 'Todos' && doc.estado !== rolSeleccionado) {
-                    return false;
+                if (rolSeleccionado !== 'Todos') {
+                    // Comparar tanto doc.estado como doc.rol con rolSeleccionado
+                    const docRol = doc.rol || doc.estado || '';
+                    // Normalizar ambos valores eliminando tildes y convirtiendo a minúsculas
+                    const normalizar = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                    if (normalizar(docRol) !== normalizar(rolSeleccionado)) {
+                        return false;
+                    }
                 }
 
                 // Si hay término de búsqueda, verificar título y usuario
@@ -1406,6 +1412,7 @@
                 <option value="Todos">Todos</option>
                 <option value="Demandado">Demandado</option>
                 <option value="Demandante">Demandante</option>
+                <option value="Arbitro">Árbitro</option>
             </select>
 
             <div class="flex justify-end space-x-3">

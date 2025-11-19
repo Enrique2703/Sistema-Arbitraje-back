@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AuditoriaController;
 use App\Http\Controllers\CedulaController;
 use App\Http\Controllers\ExpedienteController;
 use App\Http\Controllers\HistorialController;
@@ -49,4 +50,8 @@ Route::middleware(['session.timeout'])->group(function () {
     Route::get('expedientes/{expedienteId}/historial', [HistorialController::class, 'index']);
     Route::get('expedientes/{expedienteId}/historial/{historialId}', [HistorialController::class, 'show']);
     Route::get('expedientes/{expedienteId}/historial/export', [HistorialController::class, 'export']);
+    
+    // Rutas para auditoría
+    Route::get('auditoria', [AuditoriaController::class, 'index']);
+    Route::get('auditoria/{id}', [AuditoriaController::class, 'show']);
 });
