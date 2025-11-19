@@ -213,30 +213,71 @@ async function verDetalle(id) {
     }
 }
 
-async function exportToExcel() {
-    try {
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        const response = await fetch('/api/auditoria/export', {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
+// SheetJS CDN para exportar a .xlsx real
+if (!window.XLSX) {
+    var script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+    document.head.appendChild(script);
+}
+
+function exportToExcel() {
+    // Obtener los datos de la tabla
+    const table = document.querySelector('table');
+    const rows = Array.from(table.querySelectorAll('tbody tr'));
+    const headers = ['EXPEDIENTE', 'FECHA', 'HORA', 'USUARIO', 'ACCION'];
+    let data = [headers];
+
+    rows.forEach(row => {
+        if (row.querySelectorAll('td').length < 6) return;
+        const cells = row.querySelectorAll('td');
+        data.push([
+            cells[0].innerText.trim(), // Expediente
+            cells[1].innerText.trim(), // Fecha
+            cells[2].innerText.trim(), // Hora
+            cells[3].innerText.trim(), // Usuario
+            cells[4].innerText.trim()  // Acción
+        ]);
+    });
+
+    function descargarXLSX() {
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        // Encabezados en negrita y fondo gris
+        const headerStyle = {
+            font: { bold: true },
+            fill: { patternType: 'solid', fgColor: { rgb: 'D9D9D9' } },
+            alignment: { horizontal: 'center' },
+            border: {
+                top: { style: 'thin', color: { rgb: '000000' } },
+                left: { style: 'thin', color: { rgb: '000000' } },
+                bottom: { style: 'thin', color: { rgb: '000000' } },
+                right: { style: 'thin', color: { rgb: '000000' } }
             }
+        };
+        ['A1','B1','C1','D1','E1'].forEach(cell => {
+            if (!ws[cell]) return;
+            ws[cell].s = headerStyle;
         });
-
-        if (!response.ok) throw new Error('Error al exportar auditoría');
-
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Auditoria_${new Date().toISOString().split('T')[0]}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al exportar la auditoría');
+        ws['!cols'] = [
+            { wch: 14 }, // Expediente
+            { wch: 12 }, // Fecha
+            { wch: 10 }, // Hora
+            { wch: 22 }, // Usuario
+            { wch: 50 }  // Acción
+        ];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Auditoria');
+        // Formato de fecha: dd-mm-yyyy
+        const now = new Date();
+        const dd = String(now.getDate()).padStart(2, '0');
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const yyyy = now.getFullYear();
+        const fecha = `${dd}-${mm}-${yyyy}`;
+        XLSX.writeFile(wb, `Auditoria_${fecha}.xlsx`);
+    }
+    if (window.XLSX) {
+        descargarXLSX();
+    } else {
+        script.onload = descargarXLSX;
     }
 }
 </script>
