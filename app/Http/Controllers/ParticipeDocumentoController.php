@@ -48,7 +48,8 @@ class ParticipeDocumentoController extends Controller
             }
         }
 
-        $documentos = $query->paginate(10);
+        $perPage = $request->get('per_page', 10);
+        $documentos = $query->paginate($perPage);
 
         return response()->json([
             'registros' => $documentos->items(),

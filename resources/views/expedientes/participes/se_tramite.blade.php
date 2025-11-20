@@ -704,6 +704,7 @@
             <div id="documentos-list">
                 <!-- Los documentos se cargarán aquí dinámicamente -->
             </div>
+            <div id="paginationContainer" style="margin-top: 24px; display: flex; justify-content: center;"></div>
         </div>
     </div>
 
@@ -1010,7 +1011,14 @@
             }
         }
 
-        async function cargarDocumentos() {
+        // Variables de paginación
+        let currentPage = 1;
+        let lastPage = 1;
+        let perPage = 3;
+        let totalDocs = 0;
+        let documentosPaginados = [];
+
+        async function cargarDocumentos(page = 1) {
             const expedienteId = new URLSearchParams(window.location.search).get('id');
             if (!expedienteId) {
                 console.error('ID de expediente no proporcionado');
@@ -1025,6 +1033,8 @@
 
                 const url = new URL('/api/participe-documentos', window.location.origin);
                 url.searchParams.append('expediente_id', expedienteId);
+                url.searchParams.append('page', page);
+                url.searchParams.append('per_page', perPage);
 
                 const response = await fetch(url, {
                     method: 'GET',
@@ -1040,30 +1050,47 @@
                 }
 
                 const data = await response.json();
-                renderDocumentos(data.registros || []);
+                documentosPaginados = data.registros || [];
+                currentPage = data.meta?.current_page || 1;
+                lastPage = data.meta?.last_page || 1;
+                perPage = data.meta?.per_page || 7;
+                totalDocs = data.meta?.total || 0;
+                renderDocumentos(documentosPaginados);
+                renderPagination();
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('documentos-list').innerHTML = `
-                    <div class="documento-card">
-                        <div class="documento-contenido">
-                            <div class="documento-info">
-                                <p><span class="label">Presentado por</span>Nombre Apellido</p>
-                                <p><span class="label">Condición</span>Demandante</p>
-                                <p><span class="label">Asunto</span>Demanda A B C D</p>
-                                <p><span class="label">Fecha y hora</span>DD/MM/AAAA, 00:00:00</p>
-                                <p><span class="label">Proveído</span>Resolución 22</p>
-                                <p><span class="label">Fecha de proveído</span>DD/MM/AAAA, 00:00:00</p>
-                                <div class="documento-acciones">
-                                    <button class="btn-accion-gris">Ver resolución</button>
-                                    <button class="btn-accion-gris">Ver cédula</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
                 document.getElementById('documentos-list').innerHTML =
                     `<div class="error-state">${error.message || 'Error al cargar los documentos'}</div>`;
             }
+        }
+
+        function renderPagination() {
+            const container = document.getElementById('paginationContainer');
+            if (lastPage <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            const prevDisabled = currentPage <= 1;
+            const nextDisabled = currentPage >= lastPage;
+            let pagesHtml = '';
+            const maxPages = 4;
+            let start = Math.max(1, currentPage - 2);
+            let end = Math.min(lastPage, start + maxPages - 1);
+            for (let i = start; i <= end; i++) {
+                pagesHtml += `<button onclick="goToPage(${i})" style="margin: 0 4px; padding: 4px 8px; border: none; background: ${i === currentPage ? '#e5e7eb' : 'transparent'}; cursor: pointer; border-radius: 4px; font-size: 14px; color: ${i === currentPage ? '#111' : '#6b7280'};">${i}</button>`;
+            }
+            container.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <button ${prevDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage-1})" style="padding: 6px 12px; font-size: 14px; color: ${prevDisabled ? '#9ca3af' : '#374151'}; background: none; border: none; cursor: ${prevDisabled ? 'not-allowed' : 'pointer'};">&larr; Anterior</button>
+                    <div style="display: flex; align-items: center;">${pagesHtml}</div>
+                    <button ${nextDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage+1})" style="padding: 6px 12px; font-size: 14px; color: ${nextDisabled ? '#9ca3af' : '#374151'}; background: none; border: none; cursor: ${nextDisabled ? 'not-allowed' : 'pointer'};">Siguiente &rarr;</button>
+                </div>
+            `;
+        }
+
+        function goToPage(page) {
+            if (page < 1 || page > lastPage) return;
+            cargarDocumentos(page);
         }
 
         function renderDocumentos(documentos) {
