@@ -28,6 +28,7 @@ class ParticipeDocumento extends Model
         'sumilla',
         'enlace_descarga',
         'habilitado',
+        'revisado',
     ];
 
     /**
@@ -37,6 +38,7 @@ class ParticipeDocumento extends Model
      */
     protected $casts = [
         'habilitado' => 'boolean',
+        'revisado' => 'boolean',
     ];
 
     /**

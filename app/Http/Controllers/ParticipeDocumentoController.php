@@ -174,6 +174,7 @@ class ParticipeDocumentoController extends Controller
             'parte' => 'nullable|string|max:255',
             'sumilla' => 'nullable|string',
             'enlace_descarga' => 'sometimes|required|string|max:255',
+            'revisado' => 'sometimes|boolean',
         ]);
 
         if ($validator->fails()) {

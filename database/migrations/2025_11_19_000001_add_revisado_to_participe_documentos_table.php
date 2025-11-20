@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('participe_documentos', function (Blueprint $table) {
-            // $table->unsignedBigInteger('created_by_user_id')->nullable()->after('participe_id')->comment('ID de la credencial que creó el documento');
-            // No agregamos foreign key para evitar problemas de compatibilidad
+            $table->boolean('revisado')->default(false)->after('habilitado');
         });
     }
 
@@ -23,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('participe_documentos', function (Blueprint $table) {
-            $table->dropColumn('created_by_user_id');
+            $table->dropColumn('revisado');
         });
     }
 };

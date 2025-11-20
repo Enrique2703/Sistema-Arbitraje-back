@@ -843,42 +843,44 @@
                     }
                 }
 
+                // Determinar si el documento está aprobado
+                const aprobado = doc.revisado || (doc.estado && doc.estado.toLowerCase() === 'aprobado');
                 tbody.innerHTML += `
-                <tr class="${!isHabilitado ? 'bg-opacity-40' : ''} hover:bg-gray-50" data-doc-id="${doc.id}">
-                    <td class="px-6 py-4 text-center">
-                        <input type="checkbox" 
-                                ${isHabilitado ? 'checked' : ''} 
-                                onchange="toggleHabilitado(${doc.id}, this.checked, this)"
-                                class="form-checkbox h-5 w-5 text-gray-600 cursor-pointer">
+                    <tr class="${!isHabilitado ? 'bg-opacity-40' : ''} hover:bg-gray-50" data-doc-id="${doc.id}">
+                        <td class="px-6 py-4 text-center">
+                            <input type="checkbox" 
+                                    ${isHabilitado ? 'checked' : ''} 
+                                    onchange="toggleHabilitado(${doc.id}, this.checked, this)"
+                                    class="form-checkbox h-5 w-5 text-gray-600 cursor-pointer">
+                        </td>
+                    <td class="px-6 py-4 text-center text-gray-900">${fecha}</td>
+                    <td class="px-6 py-4 text-center text-gray-900">${hora}</td>
+                    <td class="px-6 py-4 text-gray-900">${doc.titulo}</td>
+                    <td class="px-6 py-4 text-gray-900">${doc.usuario_nombre || 'Sistema'}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-800">
+                            ${doc.estado || 'Demandado'}
+                        </span>
                     </td>
-                <td class="px-6 py-4 text-center text-gray-900">${fecha}</td>
-                <td class="px-6 py-4 text-center text-gray-900">${hora}</td>
-                <td class="px-6 py-4 text-gray-900">${doc.titulo}</td>
-                <td class="px-6 py-4 text-gray-900">${doc.usuario_nombre || 'Sistema'}</td>
-                <td class="px-6 py-4">
-                    <span class="px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-800">
-                        ${doc.estado || 'Demandado'}
-                    </span>
-                </td>
-                <td class="px-6 py-4 text-center text-gray-900">${tamanoFormateado}</td>
-                <td class="px-6 py-4">
-                    <div class="flex justify-end space-x-2">
-                    ${doc.revisado ? `
-                        <button onclick="descargarDocumento(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">
-                            Descargar
-                        </button>
-                    ` : `
-                        <button onclick="revisarDocumento(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">
-                            Revisar
-                        </button>
-                    `}
-                    <button onclick="verDocumento(${doc.id})" class="bg-gray-600 text-white px-3 py-1 rounded text-sm">
-                        Ver
-                    </button>
-                    </div>
-                </td>
-            </tr>
-        `;
+                    <td class="px-6 py-4 text-center text-gray-900">${tamanoFormateado}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex justify-end space-x-2">
+                            ${aprobado ? `
+                                <button onclick="descargarDocumento(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">
+                                    Descargar
+                                </button>
+                            ` : `
+                                <button onclick="revisarDocumento(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">
+                                    Revisar
+                                </button>
+                            `}
+                            <button onclick="verDocumento(${doc.id})" class="bg-gray-600 text-white px-3 py-1 rounded text-sm">
+                                Ver
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
             });
         }
 

@@ -45,6 +45,7 @@ class DocumentoController extends Controller
                         'usuario_nombre' => $nombreUsuario,
                         'rol' => $rol,
                         'habilitado' => $doc->habilitado ?? false,
+                        'revisado' => $doc->revisado ?? false,
                         'archivos' => $doc->archivos ? $doc->archivos->map(function($archivo) {
                             // Si no tiene tamaño guardado, calcularlo del archivo físico
                             $tamano = $archivo->tamano;
