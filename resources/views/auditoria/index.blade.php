@@ -388,23 +388,21 @@ if (!window.XLSX) {
 }
 
 function exportToExcel() {
-    // Obtener los datos de la tabla
+    // Obtener los datos de la tabla (solo columnas visibles: Expediente, Fecha, Hora, Usuario, Acción)
     const table = document.querySelector('table');
     const rows = Array.from(table.querySelectorAll('tbody tr'));
-    const headers = ['MODULO', 'EXPEDIENTE', 'FECHA', 'HORA', 'USUARIO', 'ACCION', 'TIPO'];
+    const headers = ['NOMBRE DEL EXPEDIENTE', 'FECHA', 'HORA', 'USUARIO', 'ACCIÓN'];
     let data = [headers];
 
     rows.forEach(row => {
-        if (row.querySelectorAll('td').length < 8) return;
         const cells = row.querySelectorAll('td');
+        if (cells.length < 6) return;
         data.push([
-            cells[0].innerText.trim(), // Módulo
-            cells[1].innerText.trim(), // Expediente
-            cells[2].innerText.trim(), // Fecha
-            cells[3].innerText.trim(), // Hora
-            cells[4].innerText.trim(), // Usuario
-            cells[5].innerText.trim(), // Acción
-            cells[6].innerText.trim()  // Tipo
+            cells[0].innerText.trim(), // Expediente
+            cells[1].innerText.trim(), // Fecha
+            cells[2].innerText.trim(), // Hora
+            cells[3].innerText.trim(), // Usuario
+            cells[4].innerText.trim()  // Acción
         ]);
     });
 
@@ -422,18 +420,16 @@ function exportToExcel() {
                 right: { style: 'thin', color: { rgb: '000000' } }
             }
         };
-        ['A1','B1','C1','D1','E1','F1','G1'].forEach(cell => {
+        ['A1','B1','C1','D1','E1'].forEach(cell => {
             if (!ws[cell]) return;
             ws[cell].s = headerStyle;
         });
         ws['!cols'] = [
-            { wch: 16 }, // Módulo
-            { wch: 14 }, // Expediente
-            { wch: 12 }, // Fecha
+            { wch: 24 }, // Expediente
+            { wch: 14 }, // Fecha
             { wch: 10 }, // Hora
             { wch: 22 }, // Usuario
-            { wch: 50 }, // Acción
-            { wch: 12 }  // Tipo
+            { wch: 50 }  // Acción
         ];
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Auditoria');
