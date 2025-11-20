@@ -42,19 +42,17 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead style="background-color: #737373;">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Módulo</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Expediente</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Fecha</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Hora</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Usuario</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Acción</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Tipo</th>
                             <th class="px-6 py-3 text-right text-xs font-medium text-white uppercase tracking-wider">Ver</th>
                         </tr>
                     </thead>
                     <tbody id="auditoriaTableBody" class="bg-white divide-y divide-gray-200">
                         <tr>
-                            <td colspan="8" class="px-6 py-4 text-center text-gray-500">Cargando registros...</td>
+                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">Cargando registros...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -211,7 +209,7 @@ async function loadAuditoria(page = 1, search = '') {
 
     } catch (error) {
         console.error('Error:', error);
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-red-500">Error al cargar los registros</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-red-500">Error al cargar los registros</td></tr>';
     }
 }
 
@@ -219,7 +217,7 @@ function renderAuditoria(registros) {
     const tbody = document.getElementById('auditoriaTableBody');
     
     if (!registros || !registros.length) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-gray-500">No hay registros</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">No hay registros</td></tr>';
         return;
     }
 
@@ -232,36 +230,16 @@ function renderAuditoria(registros) {
         });
         const hora = new Date(registro.created_at).toLocaleTimeString('es-ES', {
             hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
+            minute: '2-digit'
         });
-
-        // Badge de tipo de acción
-        let tipoBadge = '';
-        if (registro.tipo_accion) {
-            const colores = {
-                'crear': 'bg-green-100 text-green-800',
-                'editar': 'bg-blue-100 text-blue-800',
-                'eliminar': 'bg-red-100 text-red-800',
-                'subir': 'bg-purple-100 text-purple-800',
-                'descargar': 'bg-yellow-100 text-yellow-800',
-                'aprobar': 'bg-teal-100 text-teal-800'
-            };
-            const color = colores[registro.tipo_accion.toLowerCase()] || 'bg-gray-100 text-gray-800';
-            tipoBadge = `<span class="px-2 py-1 text-xs rounded-full ${color}">${registro.tipo_accion}</span>`;
-        } else {
-            tipoBadge = '<span class="text-gray-400">—</span>';
-        }
 
         tbody.innerHTML += `
             <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4 text-sm text-gray-900">${registro.modulo || '—'}</td>
-                <td class="px-6 py-4 text-sm text-gray-900">${registro.expediente}</td>
+                <td class="px-6 py-4 text-sm text-gray-900">${registro.expediente || '—'}</td>
                 <td class="px-6 py-4 text-sm text-gray-900">${fecha}</td>
                 <td class="px-6 py-4 text-sm text-gray-900">${hora}</td>
                 <td class="px-6 py-4 text-sm text-gray-900">${registro.usuario || 'Sistema'}</td>
                 <td class="px-6 py-4 text-sm text-gray-900">${registro.accion}</td>
-                <td class="px-6 py-4 text-sm">${tipoBadge}</td>
                 <td class="px-6 py-4 text-right">
                     <button onclick="verDetalle(${registro.id})" 
                             class="bg-black text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-800">
