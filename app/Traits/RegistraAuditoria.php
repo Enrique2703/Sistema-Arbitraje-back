@@ -31,21 +31,11 @@ trait RegistraAuditoria
                         $participe = \App\Models\Participe::where('credencial_id', $credencial->id)->first();
                         if ($participe) {
                             $usuarioNombre = $participe->nombres;
-                            // Para partícipes, usar un ID temporal o dejar null
-                            // Como la columna no acepta NULL, usar 0 o crear un usuario especial
-                            $usuarioId = 0; // Temporal - se debe crear un usuario "Partícipe" con ID=0 o hacer la columna nullable
+                            // Para partícipes, usuario_id será null (después de ejecutar la migración)
+                            $usuarioId = null;
                         }
                     }
                 }
-            }
-
-            // Si no hay usuario_id, no registrar en auditoría para evitar errores
-            if ($usuarioId === null) {
-                \Log::warning('No se pudo registrar auditoría: usuario_id es null', [
-                    'accion' => $accion,
-                    'usuario_nombre' => $usuarioNombre
-                ]);
-                return null;
             }
 
             return Auditoria::registrar([
