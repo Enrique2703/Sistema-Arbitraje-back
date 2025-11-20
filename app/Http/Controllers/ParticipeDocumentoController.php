@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Expediente;
 use App\Models\ParticipeDocumento;
+use App\Traits\RegistraAuditoria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,8 @@ use Illuminate\Support\Facades\Validator;
 
 class ParticipeDocumentoController extends Controller
 {
+    use RegistraAuditoria;
+
     /**
      * Mostrar una lista de documentos.
      */
@@ -132,6 +135,24 @@ class ParticipeDocumentoController extends Controller
             // Registrar en historial
             HistorialController::registrar($request->expediente_id, 'Presentó un nuevo documento: ' . $request->sumilla);
 
+            // Registrar en auditoría
+            $expediente = Expediente::find($request->expediente_id);
+            $expedienteNombre = $expediente ? "{$expediente->numero} - {$expediente->anio}/{$expediente->codigo}" : null;
+            
+            self::registrarAuditoria(
+                'Documento creado: ' . $request->sumilla,
+                'Se creó un nuevo documento con ' . ($request->hasFile('archivos') ? count($request->file('archivos')) : 0) . ' archivo(s)',
+                'crear',
+                'documentos',
+                null,
+                [
+                    'documento_id' => $documento->id,
+                    'sumilla' => $request->sumilla,
+                    'parte' => $request->parte,
+                ],
+                $expedienteNombre
+            );
+
             // Cargar la relación de archivos
             $documento->load('archivos');
 
@@ -184,10 +205,27 @@ class ParticipeDocumentoController extends Controller
             ], 422);
         }
 
+        // Guardar datos anteriores para auditoría
+        $datosAnteriores = $documento->toArray();
+        
         $documento->update($validator->validated());
         
         // Registrar en historial
         HistorialController::registrar($documento->expediente_id, 'Actualizó el documento: ' . $documento->sumilla);
+
+        // Registrar en auditoría
+        $expediente = Expediente::find($documento->expediente_id);
+        $expedienteNombre = $expediente ? "{$expediente->numero} - {$expediente->anio}/{$expediente->codigo}" : null;
+        
+        self::registrarAuditoria(
+            'Documento actualizado: ' . $documento->sumilla,
+            isset($request->revisado) ? 'Estado de revisión actualizado a ' . ($request->revisado ? 'aprobado' : 'pendiente') : 'Documento actualizado',
+            'editar',
+            'documentos',
+            $datosAnteriores,
+            $documento->toArray(),
+            $expedienteNombre
+        );
 
         return response()->json([
             'mensaje' => 'Documento actualizado exitosamente',
@@ -202,8 +240,24 @@ class ParticipeDocumentoController extends Controller
     {
         $documento = ParticipeDocumento::findOrFail($id);
         
+        // Guardar datos para auditoría antes de eliminar
+        $expediente = Expediente::find($documento->expediente_id);
+        $expedienteNombre = $expediente ? "{$expediente->numero} - {$expediente->anio}/{$expediente->codigo}" : null;
+        $datosAnteriores = $documento->toArray();
+        
         // Registrar en historial antes de eliminar
         HistorialController::registrar($documento->expediente_id, 'Eliminó el documento: ' . $documento->sumilla);
+        
+        // Registrar en auditoría antes de eliminar
+        self::registrarAuditoria(
+            'Documento eliminado: ' . $documento->sumilla,
+            'Se eliminó el documento y sus archivos adjuntos',
+            'eliminar',
+            'documentos',
+            $datosAnteriores,
+            null,
+            $expedienteNombre
+        );
         
         $documento->delete();
 

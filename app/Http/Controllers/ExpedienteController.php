@@ -13,6 +13,7 @@ use App\Models\Participe;
 use App\Models\SecretarioTecnico;
 use App\Models\ParticipeDocumento;
 use App\Traits\RegistraHistorial;
+use App\Traits\RegistraAuditoria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -20,7 +21,7 @@ use Exception;
 
 class ExpedienteController extends Controller
 {
-    use RegistraHistorial;
+    use RegistraHistorial, RegistraAuditoria;
     public function export()
     {
         try {
@@ -399,10 +400,27 @@ class ExpedienteController extends Controller
             'participes' => 'array',
         ]);
 
+        // Capturar datos anteriores para auditoría
+        $datosAnteriores = $expediente->toArray();
+        
         $expediente->update($validated);
+        
+        // Capturar datos nuevos para auditoría
+        $datosNuevos = $expediente->fresh()->toArray();
         
         // Registrar en historial
         HistorialController::registrar($expediente->id, 'Actualizó el expediente');
+        
+        // Registrar en auditoría
+        self::registrarAuditoria(
+            'Actualizó expediente',
+            "Expediente #{$expediente->numero}/{$expediente->anio} editado",
+            'actualización',
+            'expedientes',
+            $datosAnteriores,
+            $datosNuevos,
+            "{$expediente->numero}/{$expediente->anio}"
+        );
 
         // ---------------- FECHAS ----------------
         if ($request->filled('fecha_laudo')) {

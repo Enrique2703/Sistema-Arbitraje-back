@@ -3,23 +3,42 @@
 namespace App\Http\Controllers;
 
 use App\Models\ParticipeDocumentoArchivo;
+use App\Models\Expediente;
+use App\Traits\RegistraAuditoria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class ParticipeDocumentoArchivoController extends Controller
 {
+    use RegistraAuditoria;
+
     /**
      * Descargar un archivo específico.
      */
     public function download($id)
     {
-        $archivo = ParticipeDocumentoArchivo::findOrFail($id);
+        $archivo = ParticipeDocumentoArchivo::with('participeDocumento.expediente')->findOrFail($id);
         $ruta = $archivo->archivo_adjunto;
         $nombre = basename($ruta);
         if (!Storage::disk('public')->exists($ruta)) {
             abort(404, 'Archivo no encontrado');
         }
+
+        // Registrar descarga en auditoría
+        $expediente = $archivo->participeDocumento->expediente ?? null;
+        $expedienteNombre = $expediente ? "{$expediente->numero} - {$expediente->anio}/{$expediente->codigo}" : null;
+        
+        self::registrarAuditoria(
+            'Archivo descargado: ' . $nombre,
+            'Se descargó el archivo del documento: ' . ($archivo->participeDocumento->sumilla ?? 'N/A'),
+            'descargar',
+            'documentos',
+            null,
+            ['archivo' => $nombre, 'ruta' => $ruta],
+            $expedienteNombre
+        );
+
         return response()->download(Storage::disk('public')->path($ruta), $nombre);
     }
     /**
