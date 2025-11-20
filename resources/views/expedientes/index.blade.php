@@ -228,10 +228,41 @@
             verificarDocumentoAprobado(exp.id);
         });
 
-        // Función auxiliar para habilitar el botón de cédula si hay algún documento aprobado
+        // Función auxiliar para verificar documentos aprobados y si ya existe cédula
         async function verificarDocumentoAprobado(expedienteId) {
             try {
                 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                
+                // Verificar si existe cédula para este expediente
+                const cedulaResponse = await fetch(`/api/cedulas?expedientes_id=${expedienteId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (cedulaResponse.ok) {
+                    const cedulaData = await cedulaResponse.json();
+                    const tieneCedula = cedulaData.registros && cedulaData.registros.length > 0;
+                    
+                    // Si ya tiene cédula, mostrar botón "Cerrar"
+                    if (tieneCedula) {
+                        const btn = document.getElementById(`btn-cedula-${expedienteId}`);
+                        if (btn) {
+                            btn.textContent = 'Cerrar';
+                            btn.disabled = false;
+                            btn.classList.remove('bg-gray-400', 'cursor-not-allowed', 'opacity-60');
+                            btn.classList.add('bg-black', 'hover:bg-gray-800');
+                            btn.onclick = function() { 
+                                // Redirigir a la vista de expedientes o cerrar la vista actual
+                                window.location.href = '/expedientes';
+                            };
+                        }
+                        return; // Salir, ya no necesitamos verificar documentos
+                    }
+                }
+                
+                // Si no hay cédula, verificar documentos aprobados
                 const response = await fetch(`/api/expedientes/${expedienteId}/documentos`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -605,6 +636,19 @@
 
                     alert('Cédula generada exitosamente');
                     closeGenerarCedulaModal();
+                    
+                    // Actualizar el botón de cédula a "Cerrar" después de crear la cédula
+                    const btn = document.getElementById(`btn-cedula-${expedienteIdForCedula}`);
+                    if (btn) {
+                        btn.textContent = 'Cerrar';
+                        btn.disabled = false;
+                        btn.classList.remove('bg-gray-400', 'cursor-not-allowed', 'opacity-60');
+                        btn.classList.add('bg-black', 'hover:bg-gray-800');
+                        btn.onclick = function() { 
+                            // Redirigir a la vista de expedientes o cerrar la vista actual
+                            window.location.href = '/expedientes';
+                        };
+                    }
 
                 } catch (error) {
                     console.error('❌ Error completo:', error);
