@@ -414,12 +414,12 @@ class ExpedienteController extends Controller
         // Registrar en auditoría
         self::registrarAuditoria(
             'Actualizó expediente',
-            "Expediente #{$expediente->numero}/{$expediente->anio} editado",
+            "Expediente #{$expediente->numero} - {$expediente->anio}/{$expediente->codigo} editado",
             'actualización',
             'expedientes',
             $datosAnteriores,
             $datosNuevos,
-            "{$expediente->numero}/{$expediente->anio}"
+            "{$expediente->numero} - {$expediente->anio}/{$expediente->codigo}"
         );
 
         // ---------------- FECHAS ----------------
