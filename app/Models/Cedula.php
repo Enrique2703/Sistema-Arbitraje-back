@@ -22,7 +22,6 @@ class Cedula extends Model
      */
     protected $fillable = [
         'expedientes_id',
-        'titulo',
         'comentarios',
         'enviado_a',
         'usuario_id'

@@ -20,7 +20,7 @@ class ParticipeDocumentoArchivoController extends Controller
         if (!Storage::disk('public')->exists($ruta)) {
             abort(404, 'Archivo no encontrado');
         }
-        return Storage::disk('public')->download($ruta, $nombre);
+        return response()->download(Storage::disk('public')->path($ruta), $nombre);
     }
     /**
      * Mostrar una lista de archivos.

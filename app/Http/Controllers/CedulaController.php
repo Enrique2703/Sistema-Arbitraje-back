@@ -66,7 +66,6 @@ class CedulaController extends Controller
     {
         $request->validate([
             'expediente_id' => 'required|integer|exists:expedientes,id',
-            'titulo' => 'nullable|string|max:255',
             'comentarios' => 'nullable|string',
             'usuarios' => 'nullable|array',
             'usuarios.*' => 'integer|exists:usuarios,id'
