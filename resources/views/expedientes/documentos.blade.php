@@ -367,6 +367,7 @@
         </div>
     </div>
 
+
     <!-- Modal moderno de mensajes global reutilizable -->
     <div id="messageModal" class="modal" style="display:none;">
         <div class="modal-content" id="modalContent">
@@ -862,9 +863,15 @@
                 <td class="px-6 py-4 text-center text-gray-900">${tamanoFormateado}</td>
                 <td class="px-6 py-4">
                     <div class="flex justify-end space-x-2">
-                    <button onclick="revisarDocumento(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">
-                        Revisar
-                    </button>
+                    ${doc.revisado ? `
+                        <button onclick="descargarDocumento(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">
+                            Descargar
+                        </button>
+                    ` : `
+                        <button onclick="revisarDocumento(${doc.id})" class="bg-black text-white px-3 py-1 rounded text-sm">
+                            Revisar
+                        </button>
+                    `}
                     <button onclick="verDocumento(${doc.id})" class="bg-gray-600 text-white px-3 py-1 rounded text-sm">
                         Ver
                     </button>
@@ -984,6 +991,51 @@
             document.getElementById('selectedFilesDocumento').innerHTML = '';
         }
 
+        async function descargarDocumento(id) {
+            try {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                if (!token) {
+                    throw new Error('No se encontró el token de autenticación');
+                }
+
+                const response = await fetch(`/api/participe-documentos/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Error al obtener el documento');
+
+                const resultado = await response.json();
+                const documento = resultado.registro || resultado;
+
+                // Si tiene archivos, descargar el primero
+                if (documento.archivos && documento.archivos.length > 0) {
+                    const archivo = documento.archivos[0];
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = `/storage/${archivo.ruta}`;
+                    downloadLink.download = archivo.nombre || 'documento.pdf';
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                } else {
+                    if (typeof showModal === 'function') {
+                        showModal('Sin archivos', 'Este documento no tiene archivos para descargar', 'warning');
+                    } else {
+                        alert('Este documento no tiene archivos para descargar');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                if (typeof showModal === 'function') {
+                    showModal('Error', 'Error al descargar el documento', 'error');
+                } else {
+                    alert('Error al descargar el documento');
+                }
+            }
+        }
+
         async function revisarDocumento(id) {
             try {
                 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -1026,7 +1078,8 @@
                 }
                 
                 // Mostrar el modal
-                document.getElementById('revisionModal').classList.remove('hidden');
+                const modal = document.getElementById('revisionModal');
+                modal.style.display = 'flex';
             } catch (error) {
                 console.error('Error:', error);
                 alert(error.message || 'Error al cargar el documento');
@@ -1034,66 +1087,123 @@
         }
 
         function closeRevisionModal() {
-            document.getElementById('revisionModal').classList.add('hidden');
+            const modal = document.getElementById('revisionModal');
+            modal.style.display = 'none';
             document.getElementById('revisionForm').reset();
         }
 
         async function rechazarDocumento() {
             const documentoId = document.getElementById('documentoIdRevision').value;
-            const formData = new FormData(document.getElementById('revisionForm'));
-            formData.append('estado', 'rechazado');
+            
+            if (!documentoId) {
+                if (typeof showModal === 'function') {
+                    showModal('Error', 'No se pudo identificar el documento', 'error');
+                } else {
+                    alert('No se pudo identificar el documento');
+                }
+                return;
+            }
 
             try {
                 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                const response = await fetch(`/api/documentos/${documentoId}/revisar`, {
-                    method: 'POST',
+                
+                // Actualizar el documento marcándolo como NO revisado
+                const response = await fetch(`/api/participe-documentos/${documentoId}`, {
+                    method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
-                    body: formData
+                    body: JSON.stringify({
+                        revisado: false
+                    })
                 });
 
                 if (!response.ok) {
-                    throw new Error('Error al rechazar el documento');
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('Error response:', errorData);
+                    throw new Error(errorData.message || 'Error al rechazar el documento');
                 }
 
-                alert('Documento rechazado correctamente');
+                if (typeof showModal === 'function') {
+                    showModal('Rechazado', 'Documento rechazado correctamente', 'warning');
+                } else {
+                    alert('Documento rechazado correctamente');
+                }
                 closeRevisionModal();
                 await cargarDocumentos();
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error al rechazar el documento');
+                if (typeof showModal === 'function') {
+                    showModal('Error', error.message || 'Error al rechazar el documento', 'error');
+                } else {
+                    alert(error.message || 'Error al rechazar el documento');
+                }
+            }
+        }
+
+        // Función para aprobar documento
+        async function aprobarDocumento() {
+            const documentoId = document.getElementById('documentoIdRevision').value;
+            
+            if (!documentoId) {
+                if (typeof showModal === 'function') {
+                    showModal('Error', 'No se pudo identificar el documento', 'error');
+                } else {
+                    alert('No se pudo identificar el documento');
+                }
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                
+                // Actualizar el documento marcándolo como revisado
+                const response = await fetch(`/api/participe-documentos/${documentoId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        revisado: true
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('Error response:', errorData);
+                    throw new Error(errorData.message || 'Error al aprobar el documento');
+                }
+
+                const result = await response.json();
+                if (typeof showModal === 'function') {
+                    showModal('¡Éxito!', 'Documento aprobado correctamente', 'success');
+                } else {
+                    alert('Documento aprobado correctamente');
+                }
+                closeRevisionModal();
+                await cargarDocumentos();
+            } catch (error) {
+                console.error('Error completo:', error);
+                if (typeof showModal === 'function') {
+                    showModal('Error', error.message || 'Error al aprobar el documento', 'error');
+                } else {
+                    alert(error.message || 'Error al aprobar el documento');
+                }
             }
         }
 
         // Manejar el envío del formulario de revisión (Aprobar)
-        document.getElementById('revisionForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const documentoId = document.getElementById('documentoIdRevision').value;
-            const formData = new FormData(this);
-            formData.append('estado', 'aprobado');
-
-            try {
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                const response = await fetch(`/api/documentos/${documentoId}/revisar`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                    body: formData
+        document.addEventListener('DOMContentLoaded', function() {
+            const revisionForm = document.getElementById('revisionForm');
+            if (revisionForm) {
+                revisionForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    await aprobarDocumento();
                 });
-
-                if (!response.ok) {
-                    throw new Error('Error al aprobar el documento');
-                }
-
-                alert('Documento aprobado correctamente');
-                closeRevisionModal();
-                await cargarDocumentos();
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al aprobar el documento');
             }
         });
 
@@ -1455,7 +1565,7 @@
     </script>
 
     <!-- Modal de Revisión de Documento -->
-    <div id="revisionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div id="revisionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl" style="max-height: 90vh; overflow: hidden; margin: 0 auto;">
             <div style="padding: 24px 30px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="font-size: 20px; font-weight: 600; color: #333; margin: 0;">¿Quieres aprobar el documento?</h2>
@@ -1503,7 +1613,7 @@
                         <button type="button" onclick="rechazarDocumento()" style="padding: 8px 20px; background: #e5e7eb; color: #333; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;">
                             Rechazar
                         </button>
-                        <button type="submit" style="padding: 8px 20px; background: #000; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                        <button type="button" onclick="aprobarDocumento()" style="padding: 8px 20px; background: #000; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;">
                             Aprobar
                         </button>
                     </div>
