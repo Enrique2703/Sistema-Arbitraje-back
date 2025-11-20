@@ -198,10 +198,11 @@
 
         tbody.innerHTML = '';
         list.forEach(exp => {
+            const rowId = `exp-row-${exp.id}`;
             tbody.innerHTML += `
-                <tr class="hover:bg-gray-50">
+                <tr class="hover:bg-gray-50" id="${rowId}">
                     <td class="px-6 py-4">
-                        <button onclick="openGenerarCedulaModal(${exp.id})" class="bg-black text-white px-2 py-1 rounded text-sm">Cédula</button>
+                        <button id="btn-cedula-${exp.id}" class="bg-gray-400 text-white px-2 py-1 rounded text-sm cursor-not-allowed opacity-60" disabled>Cédula</button>
                     </td>
                     <td class="px-6 py-4">${String(exp.numero).padStart(4, '0')} - ${exp.anio}/${exp.codigo || ''}</td>
                     <td class="px-6 py-4">
@@ -222,7 +223,38 @@
                         </div>
                     </td>
                 </tr>`;
+
+            // Verificar si hay algún documento aprobado (revisado) para este expediente
+            verificarDocumentoAprobado(exp.id);
         });
+
+        // Función auxiliar para habilitar el botón de cédula si hay algún documento aprobado
+        async function verificarDocumentoAprobado(expedienteId) {
+            try {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                const response = await fetch(`/api/expedientes/${expedienteId}/documentos`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                if (!response.ok) return;
+                const data = await response.json();
+                const docs = data.documentos || [];
+                const tieneAprobado = docs.some(doc => doc.revisado === true || doc.revisado === 1);
+                if (tieneAprobado) {
+                    const btn = document.getElementById(`btn-cedula-${expedienteId}`);
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.classList.remove('bg-gray-400', 'cursor-not-allowed', 'opacity-60');
+                        btn.classList.add('bg-black', 'hover:bg-gray-800');
+                        btn.onclick = function() { openGenerarCedulaModal(expedienteId); };
+                    }
+                }
+            } catch (e) {
+                // Silenciar error
+            }
+        }
     }
 
     function renderPagination() {
