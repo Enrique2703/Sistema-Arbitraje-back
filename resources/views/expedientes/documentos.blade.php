@@ -1000,6 +1000,7 @@
                     throw new Error('No se encontró el token de autenticación');
                 }
 
+                // Obtener el documento y sus archivos
                 const response = await fetch(`/api/participe-documentos/${id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -1012,15 +1013,44 @@
                 const resultado = await response.json();
                 const documento = resultado.registro || resultado;
 
-                // Si tiene archivos, descargar el primero
+                // Si tiene archivos, descargar el primero usando el endpoint de descarga seguro
                 if (documento.archivos && documento.archivos.length > 0) {
                     const archivo = documento.archivos[0];
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = `/storage/${archivo.ruta}`;
-                    downloadLink.download = archivo.nombre || 'documento.pdf';
-                    document.body.appendChild(downloadLink);
-                    downloadLink.click();
-                    document.body.removeChild(downloadLink);
+                    if (archivo.id) {
+                        const downloadUrl = `/api/participe-documento-archivos/${archivo.id}/download`;
+                        // Descargar usando fetch para enviar el token
+                        const fileResponse = await fetch(downloadUrl, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        if (!fileResponse.ok) {
+                            throw new Error('No se pudo descargar el archivo.');
+                        }
+                        const blob = await fileResponse.blob();
+                        // Intentar obtener el nombre del archivo del header Content-Disposition
+                        let fileName = 'documento.pdf';
+                        const disposition = fileResponse.headers.get('Content-Disposition');
+                        if (disposition && disposition.indexOf('filename=') !== -1) {
+                            const match = disposition.match(/filename="?([^";]+)"?/);
+                            if (match && match[1]) {
+                                fileName = decodeURIComponent(match[1]);
+                            }
+                        }
+                        // Crear enlace temporal para descargar el blob
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(() => {
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(url);
+                        }, 100);
+                    } else {
+                        alert('No se encontró el archivo para descargar');
+                    }
                 } else {
                     if (typeof showModal === 'function') {
                         showModal('Sin archivos', 'Este documento no tiene archivos para descargar', 'warning');

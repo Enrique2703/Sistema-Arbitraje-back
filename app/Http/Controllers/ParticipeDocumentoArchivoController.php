@@ -10,6 +10,19 @@ use Illuminate\Support\Facades\Validator;
 class ParticipeDocumentoArchivoController extends Controller
 {
     /**
+     * Descargar un archivo específico.
+     */
+    public function download($id)
+    {
+        $archivo = ParticipeDocumentoArchivo::findOrFail($id);
+        $ruta = $archivo->archivo_adjunto;
+        $nombre = basename($ruta);
+        if (!Storage::disk('public')->exists($ruta)) {
+            abort(404, 'Archivo no encontrado');
+        }
+        return Storage::disk('public')->download($ruta, $nombre);
+    }
+    /**
      * Mostrar una lista de archivos.
      */
     public function index(Request $request)
