@@ -35,7 +35,6 @@
                             class="block w-80 pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Buscar por usuario o acción..."">
                     </div>
-
                 </div>
             </div>
 
@@ -70,6 +69,31 @@
                             <button class="px-3 py-2 text-sm text-gray-700">Siguiente &rarr;</button>
                         </div>
                     </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Detalles -->
+        <div id="detalleModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-3xl max-h-[80vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900">Detalles de Historial</h2>
+                    <button onclick="cerrarDetalleModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div id="detalleContenido" class="space-y-4">
+                    <!-- El contenido se llenará dinámicamente -->
+                </div>
+
+                <div class="flex justify-end mt-6">
+                    <button onclick="cerrarDetalleModal()"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                        Cerrar
+                    </button>
                 </div>
             </div>
         </div>
@@ -215,12 +239,88 @@ async function verDetalles(id) {
         if (!response.ok) throw new Error('Error al cargar detalles');
         
         const data = await response.json();
-        // Aquí puedes mostrar los detalles en un modal o en otra vista
-        console.log('Detalles:', data);
+        // Pasar el array de acciones si existe
+        if (data && data.registro) {
+            data.registro.acciones = data.acciones || [];
+            mostrarDetalleModal(data.registro);
+        }
     } catch (error) {
         console.error('Error:', error);
         alert('Error al cargar los detalles');
     }
+}
+
+function mostrarDetalleModal(historial) {
+    const fecha = new Date(historial.created_at).toLocaleString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+
+    let html = `
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+                <p class="text-sm text-gray-900">${historial.usuario_nombre || 'Sistema'}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Fecha y hora</label>
+                <p class="text-sm text-gray-900">${fecha}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Acción</label>
+                <p class="text-sm text-gray-900">${historial.accion || '—'}</p>
+            </div>
+        </div>
+    `;
+
+    // Sección de detalles de acciones si existe un array historial.acciones o historial.detalles_acciones
+    if (Array.isArray(historial.acciones) && historial.acciones.length > 0) {
+        html += `
+        <div class=\"mt-4\">
+            <label class=\"block text-sm font-medium text-gray-700 mb-1\">Detalles de acciones realizadas</label>
+            <ul class=\"list-disc pl-6 text-sm text-gray-800\">
+                ${historial.acciones.map(a => `<li>${a}</li>`).join('')}
+            </ul>
+        </div>
+        `;
+    } else if (Array.isArray(historial.detalles_acciones) && historial.detalles_acciones.length > 0) {
+        html += `
+        <div class=\"mt-4\">
+            <label class=\"block text-sm font-medium text-gray-700 mb-1\">Detalles de acciones realizadas</label>
+            <ul class=\"list-disc pl-6 text-sm text-gray-800\">
+                ${historial.detalles_acciones.map(a => `<li>${a}</li>`).join('')}
+            </ul>
+        </div>
+        `;
+    }
+
+    if (historial.datos_anteriores) {
+        html += `
+        <div class=\"mt-4\">
+            <label class=\"block text-sm font-medium text-gray-700 mb-1\">Datos anteriores</label>
+            <pre class=\"text-xs text-gray-700 bg-gray-50 p-3 rounded border border-gray-200 overflow-x-auto\">${JSON.stringify(historial.datos_anteriores, null, 2)}</pre>
+        </div>
+        `;
+    }
+    if (historial.datos_nuevos) {
+        html += `
+        <div class=\"mt-4\">
+            <label class=\"block text-sm font-medium text-gray-700 mb-1\">Datos nuevos</label>
+            <pre class=\"text-xs text-gray-700 bg-gray-50 p-3 rounded border border-gray-200 overflow-x-auto\">${JSON.stringify(historial.datos_nuevos, null, 2)}</pre>
+        </div>
+        `;
+    }
+
+    document.getElementById('detalleContenido').innerHTML = html;
+    document.getElementById('detalleModal').classList.remove('hidden');
+}
+
+function cerrarDetalleModal() {
+    document.getElementById('detalleModal').classList.add('hidden');
 }
 
 // SheetJS CDN para exportar a .xlsx real

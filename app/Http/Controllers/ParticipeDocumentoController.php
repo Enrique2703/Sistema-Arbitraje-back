@@ -132,8 +132,16 @@ class ParticipeDocumentoController extends Controller
 
             DB::commit();
 
-            // Registrar en historial
-            HistorialController::registrar($request->expediente_id, 'Presentó un nuevo documento: ' . $request->sumilla);
+
+            // Registrar en historial solo si es admin o staff
+            $user = Auth::user();
+            $nivelUsuario = $user->tipo_usuario === 'participe'
+                ? 'participe'
+                : ($user->usuario->nivel_usuario ?? null);
+            $nivelUsuarioLower = strtolower($nivelUsuario ?? '');
+            if (in_array($nivelUsuarioLower, ['administrador', 'admin', 'staff'])) {
+                HistorialController::registrar($request->expediente_id, 'Presentó un nuevo documento: ' . $request->sumilla);
+            }
 
             // Registrar en auditoría
             $expediente = Expediente::find($request->expediente_id);
@@ -210,8 +218,16 @@ class ParticipeDocumentoController extends Controller
         
         $documento->update($validator->validated());
         
-        // Registrar en historial
-        HistorialController::registrar($documento->expediente_id, 'Actualizó el documento: ' . $documento->sumilla);
+
+        // Registrar en historial solo si es admin o staff
+        $user = Auth::user();
+        $nivelUsuario = $user->tipo_usuario === 'participe'
+            ? 'participe'
+            : ($user->usuario->nivel_usuario ?? null);
+        $nivelUsuarioLower = strtolower($nivelUsuario ?? '');
+        if (in_array($nivelUsuarioLower, ['administrador', 'admin', 'staff'])) {
+            HistorialController::registrar($documento->expediente_id, 'Actualizó el documento: ' . $documento->sumilla);
+        }
 
         // Registrar en auditoría
         $expediente = Expediente::find($documento->expediente_id);
@@ -245,8 +261,16 @@ class ParticipeDocumentoController extends Controller
         $expedienteNombre = $expediente ? "{$expediente->numero} - {$expediente->anio}/{$expediente->codigo}" : null;
         $datosAnteriores = $documento->toArray();
         
-        // Registrar en historial antes de eliminar
-        HistorialController::registrar($documento->expediente_id, 'Eliminó el documento: ' . $documento->sumilla);
+
+        // Registrar en historial antes de eliminar solo si es admin o staff
+        $user = Auth::user();
+        $nivelUsuario = $user->tipo_usuario === 'participe'
+            ? 'participe'
+            : ($user->usuario->nivel_usuario ?? null);
+        $nivelUsuarioLower = strtolower($nivelUsuario ?? '');
+        if (in_array($nivelUsuarioLower, ['administrador', 'admin', 'staff'])) {
+            HistorialController::registrar($documento->expediente_id, 'Eliminó el documento: ' . $documento->sumilla);
+        }
         
         // Registrar en auditoría antes de eliminar
         self::registrarAuditoria(

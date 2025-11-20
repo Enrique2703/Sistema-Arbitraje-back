@@ -27,7 +27,7 @@
                         </div>
                         <input type="text" id="searchInput"
                             class="block w-80 pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Buscar por usuario, acción, expediente...">
+                            placeholder="Buscar">
                     </div>
 
                     <button id="filterButton"

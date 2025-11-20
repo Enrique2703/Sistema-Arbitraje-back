@@ -61,9 +61,23 @@ class HistorialController extends Controller
                 ->where('expediente_id', $expedienteId)
                 ->findOrFail($historialId);
 
+            // Armar array de acciones (puedes expandir esto si hay más detalles en el futuro)
+            $acciones = [];
+            if ($registro->accion) {
+                $acciones[] = $registro->accion;
+            }
+
+
+            // Transformar para frontend (igual que en index)
+            $registro->usuario_nombre = $registro->usuario ? $registro->usuario->nombres : 'Sistema';
+            // Asegurar que el campo IP esté presente (si existe en la tabla)
+            $registro->ip = $registro->getAttribute('ip');
+
             return response()->json([
                 'status' => true,
-                'registro' => $registro
+                'registro' => $registro,
+                'acciones' => $acciones,
+                'ip' => $registro->ip
             ]);
 
         } catch (\Exception $e) {
