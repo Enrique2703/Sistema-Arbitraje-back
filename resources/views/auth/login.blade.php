@@ -134,7 +134,7 @@
             box-shadow: 0 4px 6px rgba(66, 153, 225, 0.2);
         }
 
-        /* Modal */
+        /* MODAL MODERNO DE MENSAJES */
         .modal {
             display: none;
             position: fixed;
@@ -143,45 +143,105 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.5);
             justify-content: center;
             align-items: center;
+            animation: fadeIn 0.2s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         .modal-content {
             background: white;
-            padding: 30px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 400px;
+            border-radius: 15px;
+            padding: 40px 30px 30px 30px;
             text-align: center;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .modal-icon {
-            font-size: 40px;
-            margin-bottom: 15px;
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px auto;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            animation: popIn 0.5s ease-out;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
         .modal-success .modal-icon {
-            color: #28a745;
+            background: #e8f5e9;
+            color: #4caf50;
         }
 
         .modal-error .modal-icon {
-            color: #dc3545;
+            background: #ffebee;
+            color: #f44336;
+        }
+
+        .modal-warning .modal-icon {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+
+        .modal-info .modal-icon {
+            background: #e3f2fd;
+            color: #2196f3;
         }
 
         .btn-accept {
-            background: #4299E1;
+            background: #2196f3;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
+            padding: 10px 30px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
+            font-weight: bold;
+            font-size: 15px;
+            transition: background 0.3s;
         }
 
         .btn-accept:hover {
-            background: #3182CE;
+            background: #1976d2;
         }
 
         .label-row {
@@ -257,14 +317,15 @@
         </div>
     </div>
 
-    <!-- Modal -->
+    <!-- Modal moderno de mensajes -->
     <div id="messageModal" class="modal">
         <div class="modal-content" id="modalContent">
             <div class="modal-icon" id="modalIcon"></div>
-            <h2 id="modalTitle"></h2>
-            <h2 id="modalMessage"></h2>
-            <br>
-            <button class="btn-accept" onclick="closeModal()">Aceptar</button>
+            <h2 id="modalTitle" style="font-size: 22px; color: #333; margin-bottom: 10px;"></h2>
+            <p id="modalMessage" style="color: #666; margin-bottom: 30px; font-size: 14px;"></p>
+            <div class="modal-buttons">
+                <button class="btn-accept" onclick="closeModal()">Aceptar</button>
+            </div>
         </div>
     </div>
 
@@ -277,20 +338,23 @@
         function showModal(title, message, type = 'success', redirectUrl = null) {
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalMessage').textContent = message;
-
             const modal = document.getElementById('messageModal');
             const modalContent = document.getElementById('modalContent');
             const modalIcon = document.getElementById('modalIcon');
-
-            modalContent.classList.remove('modal-success', 'modal-error');
+            modalContent.classList.remove('modal-success', 'modal-error', 'modal-warning', 'modal-info');
             if (type === 'success') {
                 modalContent.classList.add('modal-success');
-                modalIcon.innerHTML = '<i class="fa fa-check-circle"></i>';
-            } else {
+                modalIcon.innerHTML = '✓';
+            } else if (type === 'error') {
                 modalContent.classList.add('modal-error');
-                modalIcon.innerHTML = '<i class="fa fa-times-circle"></i>';
+                modalIcon.innerHTML = '✕';
+            } else if (type === 'warning') {
+                modalContent.classList.add('modal-warning');
+                modalIcon.innerHTML = '!';
+            } else if (type === 'info') {
+                modalContent.classList.add('modal-info');
+                modalIcon.innerHTML = 'ⓘ';
             }
-
             modal.style.display = 'flex';
             modal.dataset.redirect = redirectUrl || '';
         }

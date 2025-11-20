@@ -131,7 +131,7 @@
             overflow-y: auto;
         }
 
-        /* Estilos del modal de logout */
+        /* MODAL MODERNO DE LOGOUT */
         #logoutModal {
             display: none;
             position: fixed;
@@ -141,43 +141,98 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
             z-index: 1000;
-        }
-
-        .modal-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-        }
-
-        .modal-actions {
-            margin-top: 20px;
-            display: flex;
             justify-content: center;
-            gap: 10px;
+            align-items: center;
+            animation: fadeIn 0.2s;
         }
 
-        .btn-modal {
-            padding: 8px 16px;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        #logoutModal .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 40px 30px 30px 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        #logoutModal .modal-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px auto;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            background: #fff3e0;
+            color: #ff9800;
+            animation: popIn 0.5s ease-out;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        #logoutModal .btn-modal {
+            padding: 10px 30px;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
+            font-weight: bold;
+            font-size: 15px;
+            transition: background 0.3s;
         }
 
-        .btn-confirm {
-            background-color: #E53E3E;
+        #logoutModal .btn-cancel {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        #logoutModal .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        #logoutModal .btn-confirm {
+            background: #f44336;
             color: white;
         }
 
-        .btn-cancel {
-            background-color: #718096;
-            color: white;
+        #logoutModal .btn-confirm:hover {
+            background: #da190b;
         }
     </style>
     @yield('styles')
@@ -213,12 +268,12 @@
         @yield('content')
     </div>
 
-    <!-- Logout Modal -->
+    <!-- Logout Modal Moderno -->
     <div id="logoutModal">
         <div class="modal-content">
-            <h2>Cerrar Sesión</h2>
-            <br>
-            <p>¿Está seguro de que desea cerrar sesión?</p>
+            <div class="modal-icon">!</div>
+            <h2 style="font-size: 22px; color: #333; margin-bottom: 10px;">Cerrar Sesión</h2>
+            <p style="color: #666; margin-bottom: 30px; font-size: 14px;">¿Está seguro de que desea cerrar sesión?</p>
             <div class="modal-actions">
                 <button class="btn-modal btn-cancel" onclick="hideLogoutModal()">Cancelar</button>
                 <button class="btn-modal btn-confirm" onclick="logout()">Confirmar</button>
@@ -254,7 +309,7 @@
         });
 
         function showLogoutModal() {
-            document.getElementById('logoutModal').style.display = 'block';
+            document.getElementById('logoutModal').style.display = 'flex';
         }
 
         function hideLogoutModal() {

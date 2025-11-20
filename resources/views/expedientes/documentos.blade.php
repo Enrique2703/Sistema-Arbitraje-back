@@ -181,6 +181,68 @@
         border-radius: 4px;
         cursor: pointer;
     }
+
+    /* Estilos para el modal moderno de mensajes globales */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 500px;
+        text-align: center;
+    }
+
+    .modal-icon {
+        font-size: 40px;
+        margin-bottom: 15px;
+    }
+
+    .modal-success .modal-icon {
+        color: #28a745;
+    }
+
+    .modal-error .modal-icon {
+        color: #dc3545;
+    }
+
+    .modal-warning .modal-icon {
+        color: #ffc107;
+    }
+
+    .modal-info .modal-icon {
+        color: #17a2b8;
+    }
+
+    .modal-buttons {
+        margin-top: 20px;
+    }
+
+    .btn-accept {
+        padding: 10px 20px;
+        border: none;
+        background: #007bff;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .btn-accept:hover {
+        background: #0056b3;
+    }
 </style>
 
 <div class="min-h-screen bg-gray-100 flex">
@@ -304,6 +366,50 @@
             </form>
         </div>
     </div>
+
+    <!-- Modal moderno de mensajes global reutilizable -->
+    <div id="messageModal" class="modal" style="display:none;">
+        <div class="modal-content" id="modalContent">
+            <div class="modal-icon" id="modalIcon"></div>
+            <h2 id="modalTitle" style="font-size: 22px; color: #333; margin-bottom: 10px;"></h2>
+            <p id="modalMessage" style="color: #666; margin-bottom: 30px; font-size: 14px;"></p>
+            <div class="modal-buttons">
+                <button class="btn-accept" onclick="closeModal()">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showModal(title, message, type = 'success', redirectUrl = null) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            const modal = document.getElementById('messageModal');
+            const modalContent = document.getElementById('modalContent');
+            const modalIcon = document.getElementById('modalIcon');
+            modalContent.classList.remove('modal-success', 'modal-error', 'modal-warning', 'modal-info');
+            if (type === 'success') {
+                modalContent.classList.add('modal-success');
+                modalIcon.innerHTML = '✓';
+            } else if (type === 'error') {
+                modalContent.classList.add('modal-error');
+                modalIcon.innerHTML = '✕';
+            } else if (type === 'warning') {
+                modalContent.classList.add('modal-warning');
+                modalIcon.innerHTML = '!';
+            } else if (type === 'info') {
+                modalContent.classList.add('modal-info');
+                modalIcon.innerHTML = 'ⓘ';
+            }
+            modal.style.display = 'flex';
+            modal.dataset.redirect = redirectUrl || '';
+        }
+        function closeModal() {
+            const modal = document.getElementById('messageModal');
+            modal.style.display = 'none';
+            const redirectUrl = modal.dataset.redirect;
+            if (redirectUrl) window.location.href = redirectUrl;
+        }
+    </script>
 
     <script>
         let expedienteId = null;
@@ -500,7 +606,12 @@
                             throw new Error(result.mensaje || result.message || 'Error al enviar el documento');
                         }
 
-                        alert('Documento presentado exitosamente');
+                        // Mostrar modal moderno de éxito
+                        if (typeof showModal === 'function') {
+                            showModal('¡Éxito!', 'Documento presentado exitosamente', 'success');
+                        } else {
+                            alert('Documento presentado exitosamente');
+                        }
                         cerrarModalNuevoDocumento();
                         cargarDocumentos(); // Recargar la lista de documentos
                     } catch (error) {
