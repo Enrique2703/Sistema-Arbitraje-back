@@ -118,9 +118,22 @@ class UsuarioController extends Controller
     public function destroy($id)
     {
         $usuario = Usuario::findOrFail($id);
+        $datosAnteriores = $usuario->toArray();
+        $nombre = $usuario->nombres;
 
         $usuario->credencial()->delete();
         $usuario->delete();
+
+        // Auditoría: registrar eliminación
+        \App\Traits\RegistraAuditoria::registrarAuditoria(
+            'Usuario eliminado',
+            'Se eliminó un usuario',
+            'eliminar',
+            'usuarios',
+            $datosAnteriores,
+            null,
+            $nombre
+        );
 
         return response()->json(['message' => 'Usuario eliminado correctamente']);
     }

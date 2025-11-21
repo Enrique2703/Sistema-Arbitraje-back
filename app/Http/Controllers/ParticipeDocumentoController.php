@@ -344,6 +344,19 @@ class ParticipeDocumentoController extends Controller
                 ucfirst($accion) . ' el documento: ' . $documento->sumilla
             );
 
+            // Auditoría: registrar habilitar/deshabilitar
+            $expediente = \App\Models\Expediente::find($documento->expediente_id);
+            $expedienteNombre = $expediente ? "{$expediente->numero} - {$expediente->anio}/{$expediente->codigo}" : null;
+            self::registrarAuditoria(
+                $documento->habilitado ? 'Documento habilitado' : 'Documento deshabilitado',
+                ($documento->habilitado ? 'Se habilitó' : 'Se deshabilitó') . ' el documento',
+                $documento->habilitado ? 'habilitar' : 'deshabilitar',
+                'documentos',
+                null,
+                $documento->toArray(),
+                $expedienteNombre
+            );
+
             return response()->json([
                 'mensaje' => 'Estado actualizado exitosamente',
                 'habilitado' => $documento->habilitado
