@@ -809,7 +809,7 @@
 
 
             tbody.innerHTML = '';
-            documentosFiltrados.forEach(doc => {
+            documentosFiltrados.reverse().forEach(doc => {
                 const fecha = new Date(doc.created_at).toLocaleDateString('es-ES', {
                     day: '2-digit',
                     month: '2-digit',
@@ -859,7 +859,7 @@
                     <td class="px-6 py-4 text-gray-900">${doc.usuario_nombre || 'Sistema'}</td>
                     <td class="px-6 py-4">
                         <span class="px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-800">
-                            ${doc.estado || 'Demandado'}
+                            ${doc.rol || doc.estado || 'Demandado'}
                         </span>
                     </td>
                     <td class="px-6 py-4 text-center text-gray-900">${tamanoFormateado}</td>

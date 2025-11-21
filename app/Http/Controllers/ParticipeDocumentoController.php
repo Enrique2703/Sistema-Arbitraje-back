@@ -77,15 +77,12 @@ class ParticipeDocumentoController extends Controller
             ], 401);
         }
 
-        // Determinar si es admin/staff o participe
+        // Determinar si es admin/staff o partícipe
         $participeId = null;
         if ($user->participe) {
             $participeId = $user->participe->id;
-        } else {
-            // Si no tiene participe (es admin/staff), usar el partícipe genérico "Árbitro Sistema"
-            // El ID 1 corresponde al partícipe genérico creado por el seeder
-            $participeId = 1;
         }
+        // Si es admin/staff, participe_id será null (permitido por la migración nullable)
         
         $validator = Validator::make($request->all(), [
             'expediente_id' => 'required|exists:expedientes,id',

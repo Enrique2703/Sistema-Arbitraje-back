@@ -1101,7 +1101,7 @@
                 return;
             }
 
-            container.innerHTML = documentos.map(doc => `
+            container.innerHTML = documentos.slice().reverse().map(doc => `
                 <div class="documento-card">
                     <div class="documento-contenido">
                         <div class="documento-info">
