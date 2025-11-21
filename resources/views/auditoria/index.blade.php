@@ -30,10 +30,6 @@
                             placeholder="Buscar">
                     </div>
 
-                    <button id="filterButton"
-                        class="p-2 bg-gray-200 hover:bg-gray-300 rounded-md border border-gray-300 flex items-center justify-center">
-                        <i class="bi bi-funnel-fill text-black text-lg"></i>
-                    </button>
                 </div>
             </div>
 
@@ -75,45 +71,6 @@
     </div>
 </div>
 
-<!-- Modal de Filtros -->
-<div id="filterModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 hidden flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-lg w-96 p-6">
-        <h2 class="text-lg font-semibold mb-4 text-gray-800">Filtrar registros</h2>
-
-        <label class="block text-sm text-gray-700 mb-2">Módulo:</label>
-        <select id="moduloFilter"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4">
-            <option value="Todos">Todos</option>
-            <option value="expedientes">Expedientes</option>
-            <option value="documentos">Documentos</option>
-            <option value="cédulas">Cédulas</option>
-            <option value="usuarios">Usuarios</option>
-            <option value="partícipes">Partícipes</option>
-        </select>
-
-        <label class="block text-sm text-gray-700 mb-2">Tipo de acción:</label>
-        <select id="tipoAccionFilter"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-6">
-            <option value="Todos">Todos</option>
-            <option value="crear">Crear</option>
-            <option value="editar">Editar</option>
-            <option value="eliminar">Eliminar</option>
-            <option value="subir">Subir archivo</option>
-            <option value="descargar">Descargar</option>
-            <option value="aprobar">Aprobar</option>
-        </select>
-
-        <div class="flex justify-end space-x-3">
-            <button id="closeFilterModal" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-gray-800">
-                Cancelar
-            </button>
-            <button id="applyFilter"
-                class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
-                Aplicar
-            </button>
-        </div>
-    </div>
-</div>
 
 <!-- Modal de Detalles -->
 <div id="detalleModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">

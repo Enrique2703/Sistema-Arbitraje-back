@@ -197,12 +197,20 @@
         }
 
         tbody.innerHTML = '';
+        // Leer estado persistido de los botones
+        let cedulaBtnState = {};
+        try {
+            cedulaBtnState = JSON.parse(localStorage.getItem('cedulaBtnState') || '{}');
+        } catch (e) { cedulaBtnState = {}; }
+
         list.forEach(exp => {
             const rowId = `exp-row-${exp.id}`;
+            // Determinar si el botón debe ser "Cédula" o "Cerrar"
+            const isCedula = cedulaBtnState[exp.id] === true;
             tbody.innerHTML += `
                 <tr class="hover:bg-gray-50" id="${rowId}">
                     <td class="px-6 py-4">
-                        <button id="btn-cedula-${exp.id}" class="bg-gray-400 text-white px-2 py-1 rounded text-sm cursor-not-allowed opacity-60" disabled>Cédula</button>
+                        <button id="btn-cedula-${exp.id}" class="bg-black hover:bg-gray-800 text-white px-2 py-1 rounded text-sm">${isCedula ? 'Cédula' : 'Cerrar'}</button>
                     </td>
                     <td class="px-6 py-4">${String(exp.numero).padStart(4, '0')} - ${exp.anio}/${exp.codigo || ''}</td>
                     <td class="px-6 py-4">
@@ -223,68 +231,40 @@
                         </div>
                     </td>
                 </tr>`;
-
-            // Verificar si hay algún documento aprobado (revisado) para este expediente
-            verificarDocumentoAprobado(exp.id);
+            setCerrarButtonHandler(exp.id, isCedula);
         });
 
-        // Función auxiliar para verificar documentos aprobados y si ya existe cédula
-        async function verificarDocumentoAprobado(expedienteId) {
-            try {
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                
-                // Verificar si existe cédula para este expediente
-                const cedulaResponse = await fetch(`/api/cedulas?expedientes_id=${expedienteId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json'
-                    }
-                });
-                
-                if (cedulaResponse.ok) {
-                    const cedulaData = await cedulaResponse.json();
-                    const tieneCedula = cedulaData.registros && cedulaData.registros.length > 0;
-                    
-                    // Si ya tiene cédula, mostrar botón "Cerrar"
-                    if (tieneCedula) {
-                        const btn = document.getElementById(`btn-cedula-${expedienteId}`);
-                        if (btn) {
-                            btn.textContent = 'Cerrar';
-                            btn.disabled = false;
-                            btn.classList.remove('bg-gray-400', 'cursor-not-allowed', 'opacity-60');
+        // Nueva función: asigna el handler para el botón "Cerrar"
+        function setCerrarButtonHandler(expedienteId, isCedula) {
+            setTimeout(() => {
+                const btn = document.getElementById(`btn-cedula-${expedienteId}`);
+                if (btn) {
+                    if (isCedula) {
+                        btn.onclick = function() {
+                            openGenerarCedulaModal(expedienteId);
+                        };
+                    } else {
+                        btn.onclick = function() {
+                            // Cambiar a Cédula, guardar estado y asignar handler
+                            btn.textContent = 'Cédula';
+                            // Mantener color negro
+                            btn.classList.remove('bg-black', 'hover:bg-gray-800');
                             btn.classList.add('bg-black', 'hover:bg-gray-800');
-                            btn.onclick = function() { 
-                                // Redirigir a la vista de expedientes o cerrar la vista actual
-                                window.location.href = '/expedientes';
+                            // Guardar en localStorage
+                            let cedulaBtnState = {};
+                            try {
+                                cedulaBtnState = JSON.parse(localStorage.getItem('cedulaBtnState') || '{}');
+                            } catch (e) { cedulaBtnState = {}; }
+                            cedulaBtnState[expedienteId] = true;
+                            localStorage.setItem('cedulaBtnState', JSON.stringify(cedulaBtnState));
+                            // Asignar handler para abrir modal
+                            btn.onclick = function() {
+                                openGenerarCedulaModal(expedienteId);
                             };
-                        }
-                        return; // Salir, ya no necesitamos verificar documentos
+                        };
                     }
                 }
-                
-                // Si no hay cédula, verificar documentos aprobados
-                const response = await fetch(`/api/expedientes/${expedienteId}/documentos`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json'
-                    }
-                });
-                if (!response.ok) return;
-                const data = await response.json();
-                const docs = data.documentos || [];
-                const tieneAprobado = docs.some(doc => doc.revisado === true || doc.revisado === 1);
-                if (tieneAprobado) {
-                    const btn = document.getElementById(`btn-cedula-${expedienteId}`);
-                    if (btn) {
-                        btn.disabled = false;
-                        btn.classList.remove('bg-gray-400', 'cursor-not-allowed', 'opacity-60');
-                        btn.classList.add('bg-black', 'hover:bg-gray-800');
-                        btn.onclick = function() { openGenerarCedulaModal(expedienteId); };
-                    }
-                }
-            } catch (e) {
-                // Silenciar error
-            }
+            }, 0);
         }
     }
 
