@@ -58,6 +58,17 @@ class ParticipeController extends Controller
             'estado' => $request->estado,
         ]);
 
+        // Auditoría: registrar creación
+        \App\Traits\RegistraAuditoria::registrarAuditoria(
+            'Partícipe creado',
+            'Se creó un partícipe',
+            'crear',
+            'participes',
+            null,
+            $participe->toArray(),
+            $participe->nombres
+        );
+
         return response()->json(['mensaje' => 'Participe creado exitosamente'], 201);
     }
 
@@ -95,8 +106,20 @@ class ParticipeController extends Controller
     public function destroy($id)
     {
         $participe = Participe::findOrFail($id);
+        $datosAnteriores = $participe->toArray();
+        $nombre = $participe->nombres;
         $participe->credencial()->delete();
         $participe->delete();
+        // Auditoría: registrar eliminación
+        \App\Traits\RegistraAuditoria::registrarAuditoria(
+            'Partícipe eliminado',
+            'Se eliminó un partícipe',
+            'eliminar',
+            'participes',
+            $datosAnteriores,
+            null,
+            $nombre
+        );
         return response()->json(['message' => 'Participe eliminado correctamente']);
     }
 

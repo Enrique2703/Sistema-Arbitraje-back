@@ -125,8 +125,26 @@ class DocumentoController extends Controller
     public function destroy($id)
     {
         try {
-            // Aquí implementarías la lógica para eliminar el documento
-            // Por ahora solo simularemos una respuesta exitosa
+            $documento = \App\Models\ParticipeDocumento::findOrFail($id);
+            $datosAnteriores = $documento->toArray();
+            $expediente = $documento->expediente;
+            $expedienteNombre = $expediente ? ($expediente->numero . ' - ' . $expediente->anio . '/' . $expediente->codigo) : null;
+
+            $documento->delete();
+
+            // Registrar en auditoría
+            if (in_array(auth()->user()->tipo_usuario ?? '', ['admin', 'staff', 'arbitro'])) {
+                \App\Traits\RegistraAuditoria::registrarAuditoria(
+                    'Documento eliminado',
+                    'Se eliminó un documento de expediente',
+                    'eliminar',
+                    'documentos',
+                    $datosAnteriores,
+                    null,
+                    $expedienteNombre
+                );
+            }
+
             return response()->json(['message' => 'Documento eliminado correctamente']);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error al eliminar documento: ' . $e->getMessage()], 500);

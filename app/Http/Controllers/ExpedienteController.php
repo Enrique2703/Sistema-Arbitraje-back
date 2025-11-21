@@ -514,7 +514,20 @@ class ExpedienteController extends Controller
 
         // Registrar en historial antes de eliminar
         HistorialController::registrar($expediente->id, 'Eliminó el expediente');
-        
+
+        // Auditoría: registrar eliminación
+        $datosAnteriores = $expediente->toArray();
+        $expedienteNombre = $expediente->numero . ' - ' . $expediente->anio . '/' . $expediente->codigo;
+        \App\Traits\RegistraAuditoria::registrarAuditoria(
+            'Expediente eliminado',
+            'Se eliminó un expediente',
+            'eliminar',
+            'expedientes',
+            $datosAnteriores,
+            null,
+            $expedienteNombre
+        );
+
         // Eliminar relaciones dependientes
         $expediente->arbitros()->delete();
         $expediente->adjutadores()->delete();

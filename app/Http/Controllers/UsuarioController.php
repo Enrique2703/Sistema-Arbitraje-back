@@ -57,6 +57,17 @@ class UsuarioController extends Controller
             'estado' => $request->estado,
         ]);
 
+        // Auditoría: registrar creación
+        \App\Traits\RegistraAuditoria::registrarAuditoria(
+            'Usuario creado',
+            'Se creó un usuario',
+            'crear',
+            'usuarios',
+            null,
+            $usuario->toArray(),
+            $usuario->nombres
+        );
+
         return response()->json(['mensaje' => 'Usuario creado exitosamente'], 201);
     }
 
