@@ -80,6 +80,7 @@ class UsuarioController extends Controller
     public function update(Request $request, $id)
     {
         $usuario = Usuario::findOrFail($id);
+        $datosAnteriores = $usuario->toArray();
 
         $request->validate([
             'nombres' => 'sometimes|string|max:255',
@@ -99,6 +100,17 @@ class UsuarioController extends Controller
                     : $usuario->credencial->password,
             ]);
         }
+
+        // Auditoría: registrar edición
+        \App\Traits\RegistraAuditoria::registrarAuditoria(
+            'Usuario editado',
+            'Se editó un usuario',
+            'editar',
+            'usuarios',
+            $datosAnteriores,
+            $usuario->toArray(),
+            $usuario->nombres
+        );
 
         return response()->json($usuario->load('credencial'));
     }

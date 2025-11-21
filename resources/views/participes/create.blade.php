@@ -106,14 +106,15 @@
             const result = await response.json();
 
             if (response.ok) {
-                alert('Partícipe creado correctamente');
+                // Mostrar el mensaje que viene del backend si existe, si no, mensaje por defecto
+                alert(result.mensaje || 'Partícipe creado correctamente');
                 closeCreateParticipeModal();
                 // Recargar la lista de partícipes
                 if (typeof cargarParticipes === 'function') {
                     await cargarParticipes();
                 }
             } else {
-                alert('Error: ' + (result.message || 'No se pudo crear el partícipe'));
+                alert('Error: ' + (result.message || result.mensaje || 'No se pudo crear el partícipe'));
             }
         } catch (error) {
             console.error('Error:', error);

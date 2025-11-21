@@ -81,6 +81,7 @@ class ParticipeController extends Controller
     public function update(Request $request, $id)
     {
         $participe = Participe::findOrFail($id);
+        $datosAnteriores = $participe->toArray();
 
         $request->validate([
             'nombres' => 'sometimes|string|max:255',
@@ -99,6 +100,17 @@ class ParticipeController extends Controller
                     : $participe->credencial->password,
             ]);
         }
+
+        // Auditoría: registrar edición
+        \App\Traits\RegistraAuditoria::registrarAuditoria(
+            'Partícipe editado',
+            'Se editó un partícipe',
+            'editar',
+            'participes',
+            $datosAnteriores,
+            $participe->toArray(),
+            $participe->nombres
+        );
 
         return response()->json($participe->load('credencial'));
     }

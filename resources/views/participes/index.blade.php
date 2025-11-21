@@ -447,7 +447,7 @@
             }
 
             // Creado correctamente
-            alert('Usuario creado exitosamente');
+            alert('Partícipe creado exitosamente');
             closeCreateModal();
             loadUsuarios(currentPage, perPage);
         } catch (err) {
@@ -457,7 +457,7 @@
     });
 
     async function deleteUsuario(id) {
-        if (!confirm('¿Seguro que deseas eliminar este usuario?')) return;
+        if (!confirm('¿Seguro que deseas eliminar este partícipe?')) return;
 
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -469,7 +469,7 @@
                 }
             });
             if (res.ok) {
-                alert('Usuario eliminado correctamente');
+                alert('Partícipe eliminado correctamente');
                 loadUsuarios(currentPage, perPage);
             } else {
                 let errMsg = 'Error al eliminar usuario';
@@ -615,7 +615,7 @@
                 try {
                     const updated = await res.json();
                 } catch (_) {}
-                alert('Usuario actualizado correctamente');
+                alert('Partícipe actualizado correctamente');
                 closeEditModal();
 
                 loadUsuarios(currentPage, perPage);
