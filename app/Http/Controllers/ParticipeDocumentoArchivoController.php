@@ -136,6 +136,8 @@ class ParticipeDocumentoArchivoController extends Controller
             ], 422);
         }
 
+        $datosAnteriores = $archivo->toArray();
+
         if ($request->hasFile('archivo')) {
             // Eliminar archivo anterior
             if (Storage::disk('public')->exists($archivo->archivo_adjunto)) {
@@ -145,7 +147,6 @@ class ParticipeDocumentoArchivoController extends Controller
             // Guardar nuevo archivo
             $nuevoArchivo = $request->file('archivo');
             $path = $nuevoArchivo->store('documentos/participes', 'public');
-            
             $archivo->archivo_adjunto = $path;
         }
 
@@ -154,6 +155,19 @@ class ParticipeDocumentoArchivoController extends Controller
         }
 
         $archivo->save();
+
+        // Auditoría: registrar edición
+        $expediente = $archivo->participeDocumento ? $archivo->participeDocumento->expediente : null;
+        $expedienteNombre = $expediente ? ($expediente->numero . ' - ' . $expediente->anio . '/' . $expediente->codigo) : null;
+        self::registrarAuditoria(
+            'Archivo editado',
+            'Se editó un archivo de partícipe',
+            'editar',
+            'documentos',
+            $datosAnteriores,
+            $archivo->toArray(),
+            $expedienteNombre
+        );
 
         return response()->json([
             'mensaje' => 'Archivo actualizado exitosamente',
@@ -167,13 +181,27 @@ class ParticipeDocumentoArchivoController extends Controller
     public function destroy($id)
     {
         $archivo = ParticipeDocumentoArchivo::findOrFail($id);
-        
+        $datosAnteriores = $archivo->toArray();
+
         // Eliminar archivo físico
         if (Storage::disk('public')->exists($archivo->archivo_adjunto)) {
             Storage::disk('public')->delete($archivo->archivo_adjunto);
         }
 
         $archivo->delete();
+
+        // Auditoría: registrar eliminación
+        $expediente = $archivo->participeDocumento ? $archivo->participeDocumento->expediente : null;
+        $expedienteNombre = $expediente ? ($expediente->numero . ' - ' . $expediente->anio . '/' . $expediente->codigo) : null;
+        self::registrarAuditoria(
+            'Archivo eliminado',
+            'Se eliminó un archivo de partícipe',
+            'eliminar',
+            'documentos',
+            $datosAnteriores,
+            null,
+            $expedienteNombre
+        );
 
         return response()->json([
             'mensaje' => 'Archivo eliminado exitosamente'
