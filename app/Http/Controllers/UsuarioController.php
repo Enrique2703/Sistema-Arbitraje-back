@@ -40,7 +40,7 @@ class UsuarioController extends Controller
             'nombres' => 'required|string|max:255',
             'nivel_usuario' => 'required|string|max:50',
             'estado' => 'required|string|max:50',
-            'email' => 'required|email|unique:credenciales,email',
+            'email' => 'required|email',
             'password' => 'required|string|min:6',
         ]);
 

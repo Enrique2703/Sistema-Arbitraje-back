@@ -132,8 +132,9 @@ class DocumentoController extends Controller
 
             $documento->delete();
 
-            // Registrar en auditoría
-            if (in_array(auth()->user()->tipo_usuario ?? '', ['admin', 'staff', 'arbitro'])) {
+            // Registrar en auditoría solo si hay usuario autenticado
+            $usuarioAuth = auth('api')->user();
+            if ($usuarioAuth && in_array($usuarioAuth->tipo_usuario ?? '', ['administrador', 'staff', 'árbitro'])) {
                 \App\Traits\RegistraAuditoria::registrarAuditoria(
                     'Documento eliminado',
                     'Se eliminó un documento de expediente',

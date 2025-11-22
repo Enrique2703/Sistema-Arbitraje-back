@@ -6,78 +6,36 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
 <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 
-<div class="min-h-screen bg-gray-100 flex">
-    <div class="flex-1 flex flex-col">
-        <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
-            <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-semibold text-gray-900">Solicitudes</h1>
-                <div class="flex items-center space-x-4">
-                    <button onclick="exportToExcel()" class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                        <img src="{{ asset('img/folder.png') }}" alt="Folder Icon" class="w-6 h-6">
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <div class="flex-1 p-6">
-            <div class="mb-6 flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
-                        <input type="text" id="searchInput"
-                            class="block w-80 pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Buscar solicitud">
-                    </div>
-
-                    <button id="filterButton"
-                        class="p-2 bg-gray-200 hover:bg-gray-300 rounded-md border border-gray-300 flex items-center justify-center">
-                        <i class="bi bi-funnel-fill text-black text-lg"></i>
-                    </button>
-                </div>
-
-                <button onclick="openCreateModal()"
-                    class="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors font-medium">
-                    Nueva Solicitud
-                </button>
-            </div>
-
-            <!-- Tabla -->
-            <!-- Tabla -->
-            <div class="bg-white rounded-lg shadow overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead style="background-color: #737373;">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Ver</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Expediente</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Inicio</th>
-                        </tr>
-                    </thead>
-                    <tbody id="solicitudesTableBody" class="bg-white divide-y divide-gray-200">
-                        <tr>
-                            <td colspan="3" class="px-6 py-4 text-center text-gray-500">Cargando solicitudes...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Paginación -->
-            <div id="paginationContainer" class="px-6 py-4 border-t bg-white">
-                <nav id="paginationControls" class="flex items-center justify-between" aria-label="Pagination">
-                    <div class="flex items-center justify-between w-full">
-                        <button class="px-3 py-2 text-sm text-gray-700">&larr; Anterior</button>
-                        <div class="flex items-center space-x-2">
-                            <span class="px-3 py-1 text-sm rounded-md bg-gray-200">1</span>
-                            <span class="px-3 py-1 text-sm text-gray-600">2</span>
-                        </div>
-                        <button class="px-3 py-2 text-sm text-gray-700">Siguiente &rarr;</button>
-                    </div>
-                </nav>
-            </div>
+<div class="min-h-screen bg-[#fafbfb] p-8">
+    <h1 class="text-2xl font-bold text-black mb-6">Solicitudes</h1>
+    <div class="mb-6">
+        <input type="text" id="searchInput" class="w-96 px-4 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4" placeholder="Busca por cualquier campo...">
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white rounded-xl">
+            <thead>
+                <tr class="border-b border-gray-200">
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Demandante</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Demandado</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">N° Documentos</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Fecha Inicio</th>
+                    <th class="px-6 py-3 text-center text-sm font-semibold text-gray-700"> </th>
+                </tr>
+            </thead>
+            <tbody id="solicitudesTableBody" class="bg-white">
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">Cargando solicitudes...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="flex justify-between items-center mt-4">
+        <div></div>
+        <div class="flex items-center space-x-2 text-sm">
+            <span id="paginaActual">Página 1 de 1</span>
+            <button id="btnAnterior" class="px-3 py-1 rounded bg-gray-100 text-gray-500" disabled>Anterior</button>
+            <button id="btnSiguiente" class="px-3 py-1 rounded bg-gray-100 text-gray-500" disabled>Siguiente</button>
         </div>
     </div>
 </div>
@@ -192,57 +150,37 @@
     function renderSolicitudes(list) {
         const tbody = document.getElementById('solicitudesTableBody');
         if (!list.length) {
-            tbody.innerHTML = `<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">No hay solicitudes registradas</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No hay solicitudes registradas</td></tr>`;
             return;
         }
-
         tbody.innerHTML = '';
         list.forEach(solicitud => {
             tbody.innerHTML += `
                 <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4">
-                        <button onclick="verSolicitud(${solicitud.id})" class="bg-black text-white px-3 py-1 rounded text-xs">Ver</button>
+                    <td class="px-6 py-4">${solicitud.estado || 'Pendiente'}</td>
+                    <td class="px-6 py-4">${solicitud.demandante || ''}</td>
+                    <td class="px-6 py-4">${solicitud.demandado || ''}</td>
+                    <td class="px-6 py-4 text-center">${solicitud.numero_documentos || 1}</td>
+                    <td class="px-6 py-4">${formatDate(solicitud.fecha_inicio)}</td>
+                    <td class="px-6 py-4 text-center">
+                        <button onclick="verSolicitud(${solicitud.id})" class="text-gray-700 hover:text-black"><i class="bi bi-eye" style="font-size: 1.3rem;"></i></button>
                     </td>
-                    <td class="px-6 py-4">${String(solicitud.numero).padStart(4, '0')} - ${formatDate(solicitud.fecha_creacion)}</td>
-                    <td class="px-6 py-4">${formatDate(solicitud.fecha_creacion)}</td>
                 </tr>`;
         });
     }
 
     function renderPagination() {
-        const container = document.getElementById('paginationControls');
-        const prevDisabled = currentPage === 1;
-        const nextDisabled = currentPage === lastPage;
-
-        let pagesHtml = '';
-        const maxPages = 2;
-        for (let i = currentPage; i < currentPage + maxPages && i <= lastPage; i++) {
-            pagesHtml += `<span class="px-3 py-1 text-sm ${i === currentPage ? 'rounded-md bg-gray-200' : 'text-gray-600'}">${i}</span>`;
-        }
-
-        container.innerHTML = `
-            <div class="flex items-center justify-between w-full">
-                <button onclick="goToPage(${currentPage - 1})" 
-                        ${prevDisabled ? 'disabled' : ''}
-                        class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-500">
-                    &larr; Anterior
-                </button>
-                <div class="flex items-center space-x-2">
-                    ${pagesHtml}
-                </div>
-                <button onclick="goToPage(${currentPage + 1})"
-                        ${nextDisabled ? 'disabled' : ''}
-                        class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-500">
-                    Siguiente &rarr;
-                </button>
-            </div>
-        `;
+        document.getElementById('paginaActual').textContent = `Página ${currentPage} de ${lastPage}`;
+        document.getElementById('btnAnterior').disabled = currentPage === 1;
+        document.getElementById('btnSiguiente').disabled = currentPage === lastPage;
     }
 
-    function goToPage(page) {
-        if (page < 1 || page > lastPage) return;
-        loadSolicitudes(page);
-    }
+    document.getElementById('btnAnterior').onclick = function() {
+        if (currentPage > 1) loadSolicitudes(currentPage - 1);
+    };
+    document.getElementById('btnSiguiente').onclick = function() {
+        if (currentPage < lastPage) loadSolicitudes(currentPage + 1);
+    };
 
     async function deleteSolicitud(id) {
         if (!confirm('¿Seguro que deseas eliminar esta solicitud?')) return;

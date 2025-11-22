@@ -116,7 +116,6 @@
                 }
             }
 
-            alert('Usuario creado correctamente');
             closeCreateModal();
         } catch (error) {
             alert('Error de red o inesperado al crear el usuario');

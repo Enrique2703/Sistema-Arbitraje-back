@@ -1,116 +1,220 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gray-100 flex">
-    <div class="flex-1 flex flex-col">
-        <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
-            <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-semibold text-gray-900">Calculadora</h1>
-                <div class="flex items-center space-x-4">
-                    <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                        <img src="{{ asset('img/folder.png') }}" alt="Folder Icon" class="w-6 h-6">
+
+
+<div class="min-h-screen bg-white flex flex-col py-8">
+    <div class="w-full bg-white">
+        <!-- Header principal -->
+        <div class="flex flex-col md:flex-row items-center justify-between px-16 pt-8 pb-4">
+            <h1 class="text-3xl font-bold text-black mb-4 md:mb-0">Calculadora</h1>
+            <div class="flex items-center gap-2">
+                <button onclick="mostrarModalTarifario()" class="px-8 py-2 bg-black text-white text-base font-semibold rounded-lg hover:bg-gray-800 transition flex items-center gap-2">
+                    Ver Tarifario
+                </button>
+                        <!-- Modal Tarifario -->
+                        <div id="modalTarifario" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+                            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 relative animate-fadeIn">
+                                <h3 class="text-2xl font-bold mb-6">Tarifario</h3>
+                                <div class="flex items-center mb-4 gap-2">
+                                    <input type="text" class="border rounded-lg px-3 py-2 w-full bg-gray-50" value="Ya tienes un tarifario subido" readonly>
+                                    <button type="button" onclick="downloadTarifario()" class="flex items-center gap-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-200">
+                                        <i class="bi bi-download"></i> Descargar
+                                    </button>
+                                </div>
+                                <div class="mb-2 font-semibold">Reemplazar tarifario</div>
+                                <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center text-gray-400 mb-8 cursor-pointer hover:border-gray-400 transition" id="dropzoneTarifario">
+                                    <i class="bi bi-upload text-3xl mb-2"></i>
+                                    <span>Adjuntar archivos (PDF)</span>
+                                    <input type="file" accept="application/pdf" class="hidden" id="inputTarifario">
+                                </div>
+                                <div class="flex justify-end gap-2 mt-6">
+                                    <button type="button" onclick="ocultarModalTarifario()" class="px-6 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-100">Cancelar</button>
+                                    <button type="button" class="px-6 py-2 rounded-lg bg-black text-white font-semibold hover:bg-gray-800">Guardar</button>
+                                </div>
+                            </div>
+                        </div>
+                <div class="relative flex items-center">
+                    <input type="text" id="tipoCambio" value="3.54" class="border border-gray-300 rounded-lg px-3 py-2 text-base w-28 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Tipo de Cambio ($1)">
+                    <button class="absolute right-2 text-gray-400 hover:text-black">
+                        <i class="bi bi-pencil"></i>
                     </button>
                 </div>
             </div>
-        </header>
-
-        <!-- Barra de controles -->
-        <div class="mb-6 flex items-center justify-between px-6 py-4 bg-white border-y border-gray-200">
-            <div class="flex items-center space-x-4">
-                <button onclick="downloadTarifario()" class="px-4 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800">
-                    Subir tarifario
-                </button>
-                <input type="text" id="tipoCambio" placeholder="Tipo de cambio (1$)"
-                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-44 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            </div>
-            <button onclick="cambiarTipo('indeterminada')" class="px-4 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800">
-                Indeterminada
-            </button>
         </div>
-        <div class="flex-1 p-6">
-            <div class="bg-white rounded-lg shadow overflow-hidden">
-                <div class="p-8">
-                    <h2 class="text-lg font-medium text-gray-900 mb-6">Cuantía determinada</h2>
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-base font-medium text-gray-900">Gastos administrativos</h3>
-                        <button onclick="agregarRangoGastosAdmin()" class="flex items-center text-sm text-gray-600 hover:text-gray-900">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                            </svg>
-                            Agregar cuantía
-                        </button>
-                    </div>
-                    <div id="gastosAdminRangos" class="space-y-3">
-                        <div class="grid grid-cols-6 gap-4 mb-4">
-                            <div class="flex items-center">
-                                <button type="button" onclick="this.parentElement.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+
+        <!-- Tabs principales -->
+        <div class="flex border-b border-gray-200 px-16">
+            <button id="btnDeterminada" onclick="cambiarTipo('determinada')" class="px-8 py-2 text-base font-semibold text-black border-b-2 border-black -mb-px focus:outline-none">Determinada</button>
+            <button id="btnIndeterminada" onclick="cambiarTipo('indeterminada')" class="px-8 py-2 text-base font-semibold text-gray-400 border-b-2 border-transparent hover:text-black hover:border-black -mb-px focus:outline-none">Indeterminada</button>
+        </div>
+
+        <div class="px-16 pt-8">
+            <!-- Sección Determinada -->
+            <div id="seccionDeterminada">
+                <h2 class="text-2xl font-bold text-black mb-6">Cuantía Determinada</h2>
+                <!-- Tabs secundarios -->
+                <div class="flex border-b border-gray-200 mb-6">
+                    <button class="px-6 py-2 text-base font-medium text-black border-b-2 border-black -mb-px focus:outline-none">Gastos Administrativos del Centro de Arbitraje</button>
+                    <button class="px-6 py-2 text-base font-medium text-gray-400 border-b-2 border-transparent hover:text-black hover:border-black -mb-px focus:outline-none">Honorarios del Árbitro Único</button>
+                    <button class="px-6 py-2 text-base font-medium text-gray-400 border-b-2 border-transparent hover:text-black hover:border-black -mb-px focus:outline-none">Honorarios del Tribunal Arbitral</button>
+                    <button class="px-6 py-2 text-base font-medium text-gray-400 border-b-2 border-transparent hover:text-black hover:border-black -mb-px focus:outline-none">Honorarios del Secretario Arbitral</button>
+                </div>
+
+                <div class="flex justify-end mb-4">
+                    <button onclick="mostrarModalCuantia()" class="px-6 py-2 bg-black text-white text-base font-semibold rounded-lg hover:bg-gray-800 transition flex items-center gap-2">
+                        Agregar Cuantía
+                    </button>
+                </div>
+
+                <!-- Modal Agregar Cuantía -->
+                <div id="modalCuantia" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 relative animate-fadeIn">
+                        <h3 class="text-2xl font-bold mb-6">Agregar Cuantía</h3>
+                        <form id="formCuantia" autocomplete="off">
+                            <div class="grid grid-cols-2 gap-4 mb-4 items-center">
+                                <label class="font-medium">N° Escala</label>
+                                <input type="number" class="border rounded-lg px-3 py-2 w-full" placeholder="Número de escala" required>
+                                <label class="font-medium">Rango Mín</label>
+                                <input type="number" class="border rounded-lg px-3 py-2 w-full" placeholder="Rango Mínimo" required>
+                                <label class="font-medium">Rango Máx.</label>
+                                <input type="number" class="border rounded-lg px-3 py-2 w-full" placeholder="Rango Máximo" required>
+                                <label class="font-medium">Porcentaje %</label>
+                                <input type="number" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Porcentaje" required>
+                                <label class="font-medium">Monto Máx.</label>
+                                <input type="number" class="border rounded-lg px-3 py-2 w-full" placeholder="Monto Máximo" required>
+                                <label class="font-medium">Monto Base</label>
+                                <input type="number" class="border rounded-lg px-3 py-2 w-full" placeholder="Monto Base" required>
+                                <label class="font-medium">Regla</label>
+                                <textarea class="border rounded-lg px-3 py-2 w-full resize-none" placeholder="Regla" rows="2" required></textarea>
                             </div>
-                            <input type="text" placeholder="Rango min" class="border rounded-lg px-3 py-2">
-                            <span class="flex items-center justify-center">-</span>
-                            <input type="text" placeholder="Rango max" class="border rounded-lg px-3 py-2">
-                            <input type="text" placeholder="%" class="border rounded-lg px-3 py-2">
-                            <input type="text" placeholder="# de regla" class="border rounded-lg px-3 py-2">
-                            <input type="text" placeholder="Monto máximo" class="border rounded-lg px-3 py-2">
-                        </div>
+                            <div class="flex justify-end gap-2 mt-6">
+                                <button type="button" onclick="ocultarModalCuantia()" class="px-6 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-100">Cancelar</button>
+                                <button type="submit" class="px-6 py-2 rounded-lg bg-black text-white font-semibold hover:bg-gray-800">Guardar</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
-                <!-- Sección de Tribunal Arbitral -->
-                <div class="px-8 mt-8">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-base font-medium text-gray-900">Tribunal arbitral</h3>
-                        <button type="button" onclick="agregarRangoTribunal()" class="flex items-center text-sm text-gray-600 hover:text-gray-900">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                            </svg>
-                            Agregar cuantía
-                        </button>
-                    </div>
-                    <div id="tribunalRangos">
-                        <div class="grid grid-cols-6 gap-4 mb-4">
-                            <div class="flex items-center">
-                                <button type="button" onclick="this.parentElement.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
-                            </div>
-                            <input type="text" placeholder="Rango min" class="border rounded-lg px-3 py-2">
-                            <span class="flex items-center justify-center">-</span>
-                            <input type="text" placeholder="Rango max" class="border rounded-lg px-3 py-2">
-                            <input type="text" placeholder="%" class="border rounded-lg px-3 py-2">
-                            <input type="text" placeholder="# de regla" class="border rounded-lg px-3 py-2">
-                            <input type="text" placeholder="Monto máximo" class="border rounded-lg px-3 py-2">
+                <!-- Tabla -->
+                <div class="overflow-x-auto rounded-lg shadow">
+                    <table class="min-w-full bg-white text-sm">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-700">
+                                <th class="px-4 py-3 font-semibold">Escala</th>
+                                <th class="px-4 py-3 font-semibold">Rango Min.</th>
+                                <th class="px-4 py-3 font-semibold">Rango Max.</th>
+                                <th class="px-4 py-3 font-semibold">Porcentaje %</th>
+                                <th class="px-4 py-3 font-semibold">Monto Máximo</th>
+                                <th class="px-4 py-3 font-semibold">Regla</th>
+                                <th class="px-4 py-3 font-semibold">Monto Base</th>
+                                <th class="px-4 py-3 font-semibold">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaGastosAdmin">
+                            <!-- Aquí se renderizan las filas dinámicamente con JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sección Indeterminada -->
+            <div id="seccionIndeterminada" class="hidden">
+                <h2 class="text-2xl font-bold text-black mb-8">Cuantía Indeterminada</h2>
+                <form class="space-y-6 max-w-xl">
+                    <div>
+                        <label class="font-medium block mb-2">Porcentaje de Árbitro Único / Tribunal Arbitral</label>
+                        <div class="flex items-center w-full">
+                            <input type="number" step="0.01" class="border rounded-lg px-3 py-2 w-full" value="3.10">
+                            <span class="ml-2 text-lg font-semibold">%</span>
                         </div>
                     </div>
-                </div>
-
-                <!-- Botón de Editar -->
-                <div class="bg-white px-8 py-4 border-t">
-                    <div class="flex justify-end">
-                        <button onclick="guardarCambios()"
-                            class="px-4 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800">
-                            Editar
-                        </button>
+                    <div>
+                        <label class="font-medium block mb-2">Porcentaje de Secretaria Arbitral / Gastos Administrativos</label>
+                        <div class="flex items-center w-full">
+                            <input type="number" step="0.01" class="border rounded-lg px-3 py-2 w-full" value="2.50">
+                            <span class="ml-2 text-lg font-semibold">%</span>
+                        </div>
                     </div>
-                </div>
+                    <div>
+                        <label class="font-medium block mb-2">Porcentaje de Nulidad de Contrato</label>
+                        <div class="flex items-center w-full">
+                            <input type="number" step="0.01" class="border rounded-lg px-3 py-2 w-full" value="75.00">
+                            <span class="ml-2 text-lg font-semibold">%</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="font-medium block mb-2">Porcentaje de Resolución de Contrato</label>
+                        <div class="flex items-center w-full">
+                            <input type="number" step="0.01" class="border rounded-lg px-3 py-2 w-full" value="50.00">
+                            <span class="ml-2 text-lg font-semibold">%</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="mt-4 px-8 py-2 bg-black text-white text-base font-semibold rounded-lg hover:bg-gray-800 transition">Guardar</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    // Modal Tarifario lógica
+    function mostrarModalTarifario() {
+        document.getElementById('modalTarifario').classList.remove('hidden');
+    }
+    function ocultarModalTarifario() {
+        document.getElementById('modalTarifario').classList.add('hidden');
+    }
+    // Drag & drop para PDF
+    const dropzone = document.getElementById('dropzoneTarifario');
+    const inputTarifario = document.getElementById('inputTarifario');
+    if(dropzone && inputTarifario) {
+        dropzone.addEventListener('click', () => inputTarifario.click());
+        dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('border-blue-400'); });
+        dropzone.addEventListener('dragleave', e => { e.preventDefault(); dropzone.classList.remove('border-blue-400'); });
+        dropzone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropzone.classList.remove('border-blue-400');
+            if(e.dataTransfer.files.length) inputTarifario.files = e.dataTransfer.files;
+        });
+    }
+    // Modal lógica
+    function mostrarModalCuantia() {
+        document.getElementById('modalCuantia').classList.remove('hidden');
+    }
+    function ocultarModalCuantia() {
+        document.getElementById('modalCuantia').classList.add('hidden');
+    }
+
+    // Cerrar modal con Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') ocultarModalCuantia();
+    });
+
+    // Opcional: lógica para guardar cuantía (puedes conectar con tu backend aquí)
+    document.getElementById('formCuantia').onsubmit = function(e) {
+        e.preventDefault();
+        // Aquí puedes recolectar los datos y hacer lo que necesites
+        ocultarModalCuantia();
+    };
     let tipoCalculadora = 'determinada';
     let contadorGastosAdmin = 1;
     let contadorTribunal = 1;
 
     function cambiarTipo(tipo) {
         tipoCalculadora = tipo;
-        document.getElementById('btnDeterminada').classList.toggle('bg-black', tipo === 'determinada');
-        document.getElementById('btnDeterminada').classList.toggle('text-white', tipo === 'determinada');
-        document.getElementById('btnDeterminada').classList.toggle('bg-gray-200', tipo !== 'determinada');
-        document.getElementById('btnDeterminada').classList.toggle('text-gray-700', tipo !== 'determinada');
-
-        document.getElementById('btnIndeterminada').classList.toggle('bg-black', tipo === 'indeterminada');
-        document.getElementById('btnIndeterminada').classList.toggle('text-white', tipo === 'indeterminada');
-        document.getElementById('btnIndeterminada').classList.toggle('bg-gray-200', tipo !== 'indeterminada');
-        document.getElementById('btnIndeterminada').classList.toggle('text-gray-700', tipo !== 'indeterminada');
+        // Tabs visuales
+        document.getElementById('btnDeterminada').classList.toggle('text-black', tipo === 'determinada');
+        document.getElementById('btnDeterminada').classList.toggle('border-black', tipo === 'determinada');
+        document.getElementById('btnDeterminada').classList.toggle('text-gray-400', tipo !== 'determinada');
+        document.getElementById('btnDeterminada').classList.toggle('border-transparent', tipo !== 'determinada');
+        document.getElementById('btnIndeterminada').classList.toggle('text-black', tipo === 'indeterminada');
+        document.getElementById('btnIndeterminada').classList.toggle('border-black', tipo === 'indeterminada');
+        document.getElementById('btnIndeterminada').classList.toggle('text-gray-400', tipo !== 'indeterminada');
+        document.getElementById('btnIndeterminada').classList.toggle('border-transparent', tipo !== 'indeterminada');
+        // Mostrar/ocultar secciones
+        document.getElementById('seccionDeterminada').classList.toggle('hidden', tipo !== 'determinada');
+        document.getElementById('seccionIndeterminada').classList.toggle('hidden', tipo !== 'indeterminada');
     }
 
     function agregarRangoGastosAdmin() {

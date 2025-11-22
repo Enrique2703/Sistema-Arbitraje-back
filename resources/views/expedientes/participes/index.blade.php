@@ -718,17 +718,27 @@
                 return;
             }
 
-            tbody.innerHTML = expedientes.map(exp => `
+
+            tbody.innerHTML = expedientes.map(exp => {
+                let rol = exp.condicion || exp.participesCondiciones;
+                // Mostrar 'Árbitro' solo si fue creado por admin/staff
+                if (exp.creado_por_admin) {
+                    rol = 'Árbitro';
+                } else {
+                    if (!rol) rol = 'Sin rol';
+                }
+                return `
                 <tr>
                     <td><button class="btn-ver" data-id="${exp.id}">Ver</button></td>
                     <td>${exp.codigo}</td>
                     <td><span class="badge ${getEstadoClass(exp.estado)}">${exp.estado}</span></td>
-                    <td>${exp.condicion || exp.participesCondiciones}</td></td>
+                    <td>${rol}</td>
                     <td>${exp.cantidad_documentos || '0'}</td>
                     <td>${formatearFecha(exp.fecha_actualizacion)}</td>
                     <td><button class="btn-seguir" data-id="${exp.id}" data-nombre="${formatearNombreExpediente(exp)}">Seguir trámite</button></td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
 
             agregarEventosABotones();
         }
