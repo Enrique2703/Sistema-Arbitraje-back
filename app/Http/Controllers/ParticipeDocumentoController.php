@@ -111,7 +111,7 @@ class ParticipeDocumentoController extends Controller
                 'parte' => $request->parte,
                 'sumilla' => $request->sumilla,
                 'enlace_descarga' => $request->enlace_descarga,
-                'habilitado' => true, // Por defecto habilitado
+                'habilitado' => false, // SIEMPRE deshabilitado por defecto
             ]);
 
             // Procesar archivos adjuntos si existen

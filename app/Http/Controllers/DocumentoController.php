@@ -94,12 +94,13 @@ class DocumentoController extends Controller
             $path = $file->store('documentos', 'public');
             $tamano = $file->getSize(); // Obtener tamaño en bytes
             
-            // Crear el registro del documento
+            // Crear el registro del documento (siempre deshabilitado por defecto)
             $documento = new \App\Models\ParticipeDocumento();
             $documento->expediente_id = $request->expediente_id;
             $documento->sumilla = $request->titulo;
             $documento->parte = 'Pendiente';
             $documento->enlace_descarga = $path;
+            $documento->habilitado = false; // SIEMPRE deshabilitado por defecto
             $documento->save();
             
             // Crear registro del archivo con tamaño
