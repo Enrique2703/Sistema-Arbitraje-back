@@ -71,23 +71,24 @@
                 <!-- Modal Agregar Cuantía -->
                 <div id="modalCuantia" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
                     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 relative animate-fadeIn">
-                        <h3 class="text-2xl font-bold mb-6">Agregar Cuantía</h3>
+                        <h3 id="tituloModalCuantia" class="text-2xl font-bold mb-6">Agregar Cuantía</h3>
                         <form id="formCuantia" autocomplete="off">
+                            <input type="hidden" name="id" id="cuantiaId">
                             <div class="grid grid-cols-2 gap-4 mb-4 items-center">
                                 <label class="font-medium">N° Escala</label>
-                                <input type="text" name="escala" class="border rounded-lg px-3 py-2 w-full" placeholder="Número de escala" required>
+                                <input type="text" name="escala" id="cuantiaEscala" class="border rounded-lg px-3 py-2 w-full" placeholder="Número de escala" required>
                                 <label class="font-medium">Rango Mín</label>
-                                <input type="number" name="rango_min" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Rango Mínimo" required>
+                                <input type="number" name="rango_min" id="cuantiaRangoMin" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Rango Mínimo" required>
                                 <label class="font-medium">Rango Máx.</label>
-                                <input type="number" name="rango_max" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Rango Máximo" required>
+                                <input type="number" name="rango_max" id="cuantiaRangoMax" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Rango Máximo" required>
                                 <label class="font-medium">Porcentaje %</label>
-                                <input type="number" name="porcentaje" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Porcentaje" required>
+                                <input type="number" name="porcentaje" id="cuantiaPorcentaje" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Porcentaje" required>
                                 <label class="font-medium">Monto Máx.</label>
-                                <input type="number" name="monto_max" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Monto Máximo">
+                                <input type="number" name="monto_max" id="cuantiaMontoMax" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Monto Máximo">
                                 <label class="font-medium">Monto Base</label>
-                                <input type="number" name="monto_base" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Monto Base">
+                                <input type="number" name="monto_base" id="cuantiaMontoBase" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Monto Base">
                                 <label class="font-medium">Regla</label>
-                                <textarea name="regla" class="border rounded-lg px-3 py-2 w-full resize-none" placeholder="Regla" rows="2"></textarea>
+                                <textarea name="regla" id="cuantiaRegla" class="border rounded-lg px-3 py-2 w-full resize-none" placeholder="Regla" rows="2"></textarea>
                             </div>
                             <div class="flex justify-end gap-2 mt-6">
                                 <button type="button" onclick="ocultarModalCuantia()" class="px-6 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-100">Cancelar</button>
@@ -220,10 +221,17 @@
 
     // Modal lógica
     function mostrarModalCuantia() {
+        // Limpiar formulario y resetear título al abrir para crear nueva
+        if (!document.getElementById('cuantiaId').value) {
+            document.getElementById('formCuantia').reset();
+            document.getElementById('tituloModalCuantia').textContent = 'Agregar Cuantía';
+        }
         document.getElementById('modalCuantia').classList.remove('hidden');
     }
     function ocultarModalCuantia() {
         document.getElementById('modalCuantia').classList.add('hidden');
+        document.getElementById('formCuantia').reset();
+        document.getElementById('tituloModalCuantia').textContent = 'Agregar Cuantía';
     }
 
     // Cerrar modal con Escape
@@ -267,11 +275,18 @@
         e.preventDefault();
         const formData = new FormData(e.target);
         const datos = Object.fromEntries(formData.entries());
+        const id = datos.id;
+        
+        // Eliminar id de datos si está vacío
+        if (!id) delete datos.id;
         
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const response = await fetch(`/api/${tabCuantiaActual}`, {
-                method: 'POST',
+            const url = id ? `/api/${tabCuantiaActual}/${id}` : `/api/${tabCuantiaActual}`;
+            const method = id ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
@@ -329,6 +344,9 @@
                 <td class="px-4 py-3">${item.regla || 'N/A'}</td>
                 <td class="px-4 py-3">${item.monto_base ? parseFloat(item.monto_base).toLocaleString() : 'N/A'}</td>
                 <td class="px-4 py-3">
+                    <button onclick="editarCuantia(${item.id})" class="text-blue-500 hover:text-blue-700 mr-2">
+                        <i class="bi bi-pencil"></i>
+                    </button>
                     <button onclick="eliminarCuantia(${item.id})" class="text-red-500 hover:text-red-700">
                         <i class="bi bi-trash"></i>
                     </button>
@@ -336,6 +354,42 @@
             `;
             tbody.appendChild(tr);
         });
+    }
+
+    // Editar cuantía
+    async function editarCuantia(id) {
+        try {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const response = await fetch(`/api/${tabCuantiaActual}/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (!response.ok) throw new Error('Error al cargar cuantía');
+            
+            const cuantia = await response.json();
+            
+            // Rellenar el formulario con los datos
+            document.getElementById('cuantiaId').value = cuantia.id;
+            document.getElementById('cuantiaEscala').value = cuantia.escala;
+            document.getElementById('cuantiaRangoMin').value = cuantia.rango_min;
+            document.getElementById('cuantiaRangoMax').value = cuantia.rango_max;
+            document.getElementById('cuantiaPorcentaje').value = cuantia.porcentaje;
+            document.getElementById('cuantiaMontoMax').value = cuantia.monto_max || '';
+            document.getElementById('cuantiaMontoBase').value = cuantia.monto_base || '';
+            document.getElementById('cuantiaRegla').value = cuantia.regla || '';
+            
+            // Cambiar el título del modal
+            document.getElementById('tituloModalCuantia').textContent = 'Editar Cuantía';
+            
+            // Mostrar el modal
+            mostrarModalCuantia();
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al cargar la cuantía para editar');
+        }
     }
 
     // Eliminar cuantía
