@@ -91,6 +91,9 @@
         const form = e.target;
         const formData = new FormData(form);
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creando...';
 
         try {
             const response = await fetch('/api/usuarios', {
@@ -109,16 +112,34 @@
                         const errorDiv = document.getElementById('error-' + campo);
                         if (errorDiv) errorDiv.textContent = mensajes.join(' ');
                     });
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Crear';
                     return; // No cerrar el modal
+                } else if (errorData && errorData.mensaje) {
+                    // Si el backend retorna un mensaje de error específico
+                    alert(errorData.mensaje);
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Crear';
+                    return;
                 } else {
-                    alert(errorData.message || 'Error al crear el usuario');
+                    alert('Error al crear el usuario');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Crear';
                     return;
                 }
             }
 
+            // Éxito: mostrar mensaje y actualizar tabla
+            alert('Usuario creado correctamente');
             closeCreateModal();
+            if (typeof fetchUsuarios === 'function') {
+                fetchUsuarios();
+            }
         } catch (error) {
             alert('Error de red o inesperado al crear el usuario');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Crear';
         }
     });
 </script>

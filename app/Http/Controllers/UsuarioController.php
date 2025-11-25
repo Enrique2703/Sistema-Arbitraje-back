@@ -44,6 +44,15 @@ class UsuarioController extends Controller
             'password' => 'required|string|min:6',
         ]);
 
+        // Validar email duplicado
+        if (Credencial::where('email', $request->email)->exists()) {
+            return response()->json([
+                'errors' => [
+                    'email' => ['El correo electrónico ya está registrado.']
+                ]
+            ], 422);
+        }
+
         $credencial = Credencial::create([
             'email' => $request->email,
             'password' => Hash::make($request->password),

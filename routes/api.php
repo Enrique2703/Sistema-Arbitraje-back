@@ -10,6 +10,7 @@ use App\Http\Controllers\ParticipeDocumentoController;
 use App\Http\Controllers\ParticipeDocumentoArchivoController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\DocumentoController;
+use App\Http\Controllers\TarifarioController;
 use App\Models\Expediente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -54,4 +55,9 @@ Route::middleware(['session.timeout'])->group(function () {
     // Rutas para auditoría
     Route::get('auditoria', [AuditoriaController::class, 'index']);
     Route::get('auditoria/{id}', [AuditoriaController::class, 'show']);
+    
+    // Tarifario: subir y descargar PDF
+    Route::post('tarifario/upload', [TarifarioController::class, 'upload']);
+    Route::get('tarifario/download', [TarifarioController::class, 'download']);
+    Route::get('tarifario', [TarifarioController::class, 'index']);
 });

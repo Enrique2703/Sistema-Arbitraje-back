@@ -25,12 +25,13 @@
                                 <div class="mb-2 font-semibold">Reemplazar tarifario</div>
                                 <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center text-gray-400 mb-8 cursor-pointer hover:border-gray-400 transition" id="dropzoneTarifario">
                                     <i class="bi bi-upload text-3xl mb-2"></i>
+                                    <span id="nombreArchivoTarifario" class="text-sm text-gray-600 mb-2"></span>
                                     <span>Adjuntar archivos (PDF)</span>
                                     <input type="file" accept="application/pdf" class="hidden" id="inputTarifario">
                                 </div>
                                 <div class="flex justify-end gap-2 mt-6">
                                     <button type="button" onclick="ocultarModalTarifario()" class="px-6 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-100">Cancelar</button>
-                                    <button type="button" class="px-6 py-2 rounded-lg bg-black text-white font-semibold hover:bg-gray-800">Guardar</button>
+                                    <button type="button" onclick="subirTarifario()" class="px-6 py-2 rounded-lg bg-black text-white font-semibold hover:bg-gray-800">Guardar</button>
                                 </div>
                             </div>
                         </div>
@@ -159,8 +160,9 @@
 
 <script>
     // Modal Tarifario lógica
-    function mostrarModalTarifario() {
+    async function mostrarModalTarifario() {
         document.getElementById('modalTarifario').classList.remove('hidden');
+        await cargarNombreArchivoTarifario();
     }
     function ocultarModalTarifario() {
         document.getElementById('modalTarifario').classList.add('hidden');
@@ -175,9 +177,47 @@
         dropzone.addEventListener('drop', e => {
             e.preventDefault();
             dropzone.classList.remove('border-blue-400');
-            if(e.dataTransfer.files.length) inputTarifario.files = e.dataTransfer.files;
+            if(e.dataTransfer.files.length) {
+                inputTarifario.files = e.dataTransfer.files;
+                mostrarNombreArchivoSeleccionado();
+            }
         });
+        inputTarifario.addEventListener('change', mostrarNombreArchivoSeleccionado);
     }
+
+    function mostrarNombreArchivoSeleccionado() {
+        const input = document.getElementById('inputTarifario');
+        const nombre = input.files && input.files.length > 0 ? input.files[0].name : '';
+        document.getElementById('nombreArchivoTarifario').textContent = nombre ? `Archivo seleccionado: ${nombre}` : '';
+    }
+    async function subirTarifario() {
+        const input = document.getElementById('inputTarifario');
+        if (!input.files || input.files.length === 0) {
+            alert('Por favor seleccione un archivo PDF.');
+            return;
+        }
+        const file = input.files[0];
+        const formData = new FormData();
+        formData.append('tarifario', file);
+        try {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const response = await fetch('/api/tarifario/upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            if (!response.ok) throw new Error('Error al subir el archivo');
+            alert('Archivo subido correctamente');
+            ocultarModalTarifario();
+            await cargarNombreArchivoTarifario();
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al subir el archivo');
+        }
+    }
+
     // Modal lógica
     function mostrarModalCuantia() {
         document.getElementById('modalCuantia').classList.remove('hidden');
@@ -322,20 +362,17 @@
     async function downloadTarifario() {
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const response = await fetch('/api/calculadora/export', {
+            const response = await fetch('/api/tarifario/download', {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json'
+                    'Authorization': `Bearer ${token}`
                 }
             });
-
             if (!response.ok) throw new Error('Error al descargar tarifario');
-
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Tarifario_${new Date().toISOString().split('T')[0]}.xlsx`;
+            a.download = 'Tarifario.pdf';
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -346,8 +383,30 @@
         }
     }
 
+    async function cargarNombreArchivoTarifario() {
+        try {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const response = await fetch('/api/tarifario', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (Array.isArray(data) && data.length > 0 && data[0].archivo_adjunto) {
+                    const path = data[0].archivo_adjunto;
+                    const nombre = path.split('/').pop();
+                    document.querySelector('.border.rounded-lg.px-3.py-2.w-full.bg-gray-50').value = `Archivo: ${nombre}`;
+                }
+            }
+        } catch (error) {
+            console.error('Error al cargar nombre de archivo:', error);
+        }
+    }
+
     // Cargar configuración inicial al cargar la página
     document.addEventListener('DOMContentLoaded', async () => {
+        await cargarNombreArchivoTarifario();
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             const response = await fetch('/api/calculadora/configuracion', {
@@ -356,11 +415,8 @@
                     'Accept': 'application/json'
                 }
             });
-
             if (!response.ok) throw new Error('Error al cargar configuración');
-
             const config = await response.json();
-            // Cargar configuración en la interfaz
             cargarConfiguracion(config);
         } catch (error) {
             console.error('Error:', error);
