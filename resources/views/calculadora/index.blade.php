@@ -56,10 +56,10 @@
                 <h2 class="text-2xl font-bold text-black mb-6">Cuantía Determinada</h2>
                 <!-- Tabs secundarios -->
                 <div class="flex border-b border-gray-200 mb-6">
-                    <button class="px-6 py-2 text-base font-medium text-black border-b-2 border-black -mb-px focus:outline-none">Gastos Administrativos del Centro de Arbitraje</button>
-                    <button class="px-6 py-2 text-base font-medium text-gray-400 border-b-2 border-transparent hover:text-black hover:border-black -mb-px focus:outline-none">Honorarios del Árbitro Único</button>
-                    <button class="px-6 py-2 text-base font-medium text-gray-400 border-b-2 border-transparent hover:text-black hover:border-black -mb-px focus:outline-none">Honorarios del Tribunal Arbitral</button>
-                    <button class="px-6 py-2 text-base font-medium text-gray-400 border-b-2 border-transparent hover:text-black hover:border-black -mb-px focus:outline-none">Honorarios del Secretario Arbitral</button>
+                    <button id="btnGastosAdmin" onclick="cambiarTabCuantia('gastos_administrativos')" class="px-6 py-2 text-base font-medium text-black border-b-2 border-black -mb-px focus:outline-none">Gastos Administrativos del Centro de Arbitraje</button>
+                    <button id="btnArbitroUnico" onclick="cambiarTabCuantia('honorarios_arbitros')" class="px-6 py-2 text-base font-medium text-gray-400 border-b-2 border-transparent hover:text-black hover:border-black -mb-px focus:outline-none">Honorarios del Árbitro Único</button>
+                    <button id="btnTribunalArbitral" onclick="cambiarTabCuantia('honorarios_tribunales')" class="px-6 py-2 text-base font-medium text-gray-400 border-b-2 border-transparent hover:text-black hover:border-black -mb-px focus:outline-none">Honorarios del Tribunal Arbitral</button>
+                    <button id="btnSecretarioArbitral" onclick="cambiarTabCuantia('honorarios_secretarios')" class="px-6 py-2 text-base font-medium text-gray-400 border-b-2 border-transparent hover:text-black hover:border-black -mb-px focus:outline-none">Honorarios del Secretario Arbitral</button>
                 </div>
 
                 <div class="flex justify-end mb-4">
@@ -75,19 +75,19 @@
                         <form id="formCuantia" autocomplete="off">
                             <div class="grid grid-cols-2 gap-4 mb-4 items-center">
                                 <label class="font-medium">N° Escala</label>
-                                <input type="number" class="border rounded-lg px-3 py-2 w-full" placeholder="Número de escala" required>
+                                <input type="text" name="escala" class="border rounded-lg px-3 py-2 w-full" placeholder="Número de escala" required>
                                 <label class="font-medium">Rango Mín</label>
-                                <input type="number" class="border rounded-lg px-3 py-2 w-full" placeholder="Rango Mínimo" required>
+                                <input type="number" name="rango_min" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Rango Mínimo" required>
                                 <label class="font-medium">Rango Máx.</label>
-                                <input type="number" class="border rounded-lg px-3 py-2 w-full" placeholder="Rango Máximo" required>
+                                <input type="number" name="rango_max" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Rango Máximo" required>
                                 <label class="font-medium">Porcentaje %</label>
-                                <input type="number" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Porcentaje" required>
+                                <input type="number" name="porcentaje" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Porcentaje" required>
                                 <label class="font-medium">Monto Máx.</label>
-                                <input type="number" class="border rounded-lg px-3 py-2 w-full" placeholder="Monto Máximo" required>
+                                <input type="number" name="monto_max" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Monto Máximo">
                                 <label class="font-medium">Monto Base</label>
-                                <input type="number" class="border rounded-lg px-3 py-2 w-full" placeholder="Monto Base" required>
+                                <input type="number" name="monto_base" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Monto Base">
                                 <label class="font-medium">Regla</label>
-                                <textarea class="border rounded-lg px-3 py-2 w-full resize-none" placeholder="Regla" rows="2" required></textarea>
+                                <textarea name="regla" class="border rounded-lg px-3 py-2 w-full resize-none" placeholder="Regla" rows="2"></textarea>
                             </div>
                             <div class="flex justify-end gap-2 mt-6">
                                 <button type="button" onclick="ocultarModalCuantia()" class="px-6 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-100">Cancelar</button>
@@ -112,7 +112,7 @@
                                 <th class="px-4 py-3 font-semibold">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody id="tablaGastosAdmin">
+                        <tbody id="tablaCuantias">
                             <!-- Aquí se renderizan las filas dinámicamente con JS -->
                         </tbody>
                     </table>
@@ -231,13 +231,136 @@
         if (e.key === 'Escape') ocultarModalCuantia();
     });
 
-    // Opcional: lógica para guardar cuantía (puedes conectar con tu backend aquí)
-    document.getElementById('formCuantia').onsubmit = function(e) {
-        e.preventDefault();
-        // Aquí puedes recolectar los datos y hacer lo que necesites
-        ocultarModalCuantia();
-    };
     let tipoCalculadora = 'determinada';
+    let tabCuantiaActual = 'gastos_administrativos';
+
+    // Función para cambiar entre tabs de cuantía
+    function cambiarTabCuantia(tab) {
+        tabCuantiaActual = tab;
+        
+        // Actualizar estilos de los botones
+        const tabs = ['gastos_administrativos', 'honorarios_arbitros', 'honorarios_tribunales', 'honorarios_secretarios'];
+        const tabBtns = {
+            'gastos_administrativos': 'btnGastosAdmin',
+            'honorarios_arbitros': 'btnArbitroUnico',
+            'honorarios_tribunales': 'btnTribunalArbitral',
+            'honorarios_secretarios': 'btnSecretarioArbitral'
+        };
+        
+        tabs.forEach(t => {
+            const btn = document.getElementById(tabBtns[t]);
+            if (t === tab) {
+                btn.classList.add('text-black', 'border-black');
+                btn.classList.remove('text-gray-400', 'border-transparent');
+            } else {
+                btn.classList.remove('text-black', 'border-black');
+                btn.classList.add('text-gray-400', 'border-transparent');
+            }
+        });
+        
+        // Cargar datos de la tabla correspondiente
+        cargarDatosCuantia(tab);
+    }
+
+    // Guardar cuantía en la tabla correspondiente
+    document.getElementById('formCuantia').onsubmit = async function(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const datos = Object.fromEntries(formData.entries());
+        
+        try {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const response = await fetch(`/api/${tabCuantiaActual}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(datos)
+            });
+            
+            if (!response.ok) throw new Error('Error al guardar cuantía');
+            
+            alert('Cuantía guardada exitosamente');
+            ocultarModalCuantia();
+            e.target.reset();
+            cargarDatosCuantia(tabCuantiaActual);
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al guardar la cuantía');
+        }
+    };
+
+    // Cargar datos de la tabla correspondiente
+    async function cargarDatosCuantia(tabla) {
+        try {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const response = await fetch(`/api/${tabla}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (!response.ok) throw new Error('Error al cargar datos');
+            
+            const datos = await response.json();
+            renderizarTablaCuantias(datos);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    // Renderizar filas en la tabla
+    function renderizarTablaCuantias(datos) {
+        const tbody = document.getElementById('tablaCuantias');
+        tbody.innerHTML = '';
+        
+        datos.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b hover:bg-gray-50';
+            tr.innerHTML = `
+                <td class="px-4 py-3">${item.escala}</td>
+                <td class="px-4 py-3">${parseFloat(item.rango_min).toLocaleString()}</td>
+                <td class="px-4 py-3">${parseFloat(item.rango_max).toLocaleString()}</td>
+                <td class="px-4 py-3">${item.porcentaje}%</td>
+                <td class="px-4 py-3">${item.monto_max ? parseFloat(item.monto_max).toLocaleString() : 'N/A'}</td>
+                <td class="px-4 py-3">${item.regla || 'N/A'}</td>
+                <td class="px-4 py-3">${item.monto_base ? parseFloat(item.monto_base).toLocaleString() : 'N/A'}</td>
+                <td class="px-4 py-3">
+                    <button onclick="eliminarCuantia(${item.id})" class="text-red-500 hover:text-red-700">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Eliminar cuantía
+    async function eliminarCuantia(id) {
+        if (!confirm('¿Está seguro de eliminar esta cuantía?')) return;
+        
+        try {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const response = await fetch(`/api/${tabCuantiaActual}/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (!response.ok) throw new Error('Error al eliminar cuantía');
+            
+            alert('Cuantía eliminada exitosamente');
+            cargarDatosCuantia(tabCuantiaActual);
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al eliminar la cuantía');
+        }
+    }
     let contadorGastosAdmin = 1;
     let contadorTribunal = 1;
 
@@ -407,6 +530,7 @@
     // Cargar configuración inicial al cargar la página
     document.addEventListener('DOMContentLoaded', async () => {
         await cargarNombreArchivoTarifario();
+        await cargarDatosCuantia('gastos_administrativos');
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             const response = await fetch('/api/calculadora/configuracion', {

@@ -11,6 +11,10 @@ use App\Http\Controllers\ParticipeDocumentoArchivoController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\DocumentoController;
 use App\Http\Controllers\TarifarioController;
+use App\Http\Controllers\GastosAdministrativosController;
+use App\Http\Controllers\HonorariosArbitrosController;
+use App\Http\Controllers\HonorariosTribunalesController;
+use App\Http\Controllers\HonorariosSecretariosController;
 use App\Models\Expediente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -60,4 +64,10 @@ Route::middleware(['session.timeout'])->group(function () {
     Route::post('tarifario/upload', [TarifarioController::class, 'upload']);
     Route::get('tarifario/download', [TarifarioController::class, 'download']);
     Route::get('tarifario', [TarifarioController::class, 'index']);
+    
+    // Rutas para cuantías
+    Route::apiResource('gastos_administrativos', GastosAdministrativosController::class);
+    Route::apiResource('honorarios_arbitros', HonorariosArbitrosController::class);
+    Route::apiResource('honorarios_tribunales', HonorariosTribunalesController::class);
+    Route::apiResource('honorarios_secretarios', HonorariosSecretariosController::class);
 });
