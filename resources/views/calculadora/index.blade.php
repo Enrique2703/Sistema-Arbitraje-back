@@ -103,14 +103,14 @@
                     <table class="min-w-full bg-white text-sm">
                         <thead>
                             <tr class="bg-gray-50 text-gray-700">
-                                <th class="px-4 py-3 font-semibold">Escala</th>
-                                <th class="px-4 py-3 font-semibold">Rango Min.</th>
-                                <th class="px-4 py-3 font-semibold">Rango Max.</th>
-                                <th class="px-4 py-3 font-semibold">Porcentaje %</th>
-                                <th class="px-4 py-3 font-semibold">Monto Máximo</th>
-                                <th class="px-4 py-3 font-semibold">Regla</th>
-                                <th class="px-4 py-3 font-semibold">Monto Base</th>
-                                <th class="px-4 py-3 font-semibold">Acciones</th>
+                                <th class="px-4 py-3 font-semibold text-left">Escala</th>
+                                <th class="px-4 py-3 font-semibold text-left">Rango Min.</th>
+                                <th class="px-4 py-3 font-semibold text-left">Rango Max.</th>
+                                <th class="px-4 py-3 font-semibold text-left">Porcentaje %</th>
+                                <th class="px-4 py-3 font-semibold text-left">Monto Máximo</th>
+                                <th class="px-4 py-3 font-semibold text-left">Regla</th>
+                                <th class="px-4 py-3 font-semibold text-left">Monto Base</th>
+                                <th class="px-4 py-3 font-semibold text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="tablaCuantias">
@@ -336,15 +336,15 @@
             const tr = document.createElement('tr');
             tr.className = 'border-b hover:bg-gray-50';
             tr.innerHTML = `
-                <td class="px-4 py-3">${item.escala}</td>
-                <td class="px-4 py-3">${parseFloat(item.rango_min).toLocaleString()}</td>
-                <td class="px-4 py-3">${parseFloat(item.rango_max).toLocaleString()}</td>
-                <td class="px-4 py-3">${item.porcentaje}%</td>
-                <td class="px-4 py-3">${item.monto_max ? parseFloat(item.monto_max).toLocaleString() : 'N/A'}</td>
-                <td class="px-4 py-3">${item.regla || 'N/A'}</td>
-                <td class="px-4 py-3">${item.monto_base ? parseFloat(item.monto_base).toLocaleString() : 'N/A'}</td>
-                <td class="px-4 py-3">
-                    <button onclick="editarCuantia(${item.id})" class="text-blue-500 hover:text-blue-700 mr-2">
+                <td class="px-4 py-3 text-left">${item.escala}</td>
+                <td class="px-4 py-3 text-left">${parseFloat(item.rango_min).toLocaleString()}</td>
+                <td class="px-4 py-3 text-left">${parseFloat(item.rango_max).toLocaleString()}</td>
+                <td class="px-4 py-3 text-left">${item.porcentaje}%</td>
+                <td class="px-4 py-3 text-left">${item.monto_max ? parseFloat(item.monto_max).toLocaleString() : 'N/A'}</td>
+                <td class="px-4 py-3 text-left">${item.regla || 'N/A'}</td>
+                <td class="px-4 py-3 text-left">${item.monto_base ? parseFloat(item.monto_base).toLocaleString() : 'N/A'}</td>
+                <td class="px-4 py-3 text-center">
+                    <button onclick="editarCuantia(${item.id})" class="text-black-500 hover:text-black-700 mr-2">
                         <i class="bi bi-pencil"></i>
                     </button>
                     <button onclick="eliminarCuantia(${item.id})" class="text-red-500 hover:text-red-700">
