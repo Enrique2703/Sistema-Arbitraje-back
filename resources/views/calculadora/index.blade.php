@@ -78,9 +78,9 @@
                                 <label class="font-medium">N° Escala</label>
                                 <input type="text" name="escala" id="cuantiaEscala" class="border rounded-lg px-3 py-2 w-full" placeholder="Número de escala" required>
                                 <label class="font-medium">Rango Mín</label>
-                                <input type="number" name="rango_min" id="cuantiaRangoMin" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Rango Mínimo" required>
+                                <input type="number" name="rango_min" id="cuantiaRangoMin" step="0.01" min="0" class="border rounded-lg px-3 py-2 w-full" placeholder="Rango Mínimo" required>
                                 <label class="font-medium">Rango Máx.</label>
-                                <input type="number" name="rango_max" id="cuantiaRangoMax" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Rango Máximo" required>
+                                <input type="number" name="rango_max" id="cuantiaRangoMax" step="0.01" min="0" class="border rounded-lg px-3 py-2 w-full" placeholder="Rango Máximo" required>
                                 <label class="font-medium">Porcentaje %</label>
                                 <input type="number" name="porcentaje" id="cuantiaPorcentaje" step="0.01" class="border rounded-lg px-3 py-2 w-full" placeholder="Porcentaje" required>
                                 <label class="font-medium">Monto Máx.</label>
@@ -296,6 +296,34 @@
         const datos = Object.fromEntries(formData.entries());
         const id = datos.id;
         
+        // Validar rango mínimo y máximo
+        const rangoMin = parseFloat(datos.rango_min);
+        const rangoMax = parseFloat(datos.rango_max);
+        
+        if (isNaN(rangoMin) || isNaN(rangoMax)) {
+            alert('El rango mínimo y máximo deben ser valores numéricos válidos');
+            return;
+        }
+        
+        if (rangoMin < 0 || rangoMax < 0) {
+            alert('El rango mínimo y máximo deben ser valores positivos');
+            return;
+        }
+        
+        if (rangoMin >= rangoMax) {
+            alert('El rango mínimo debe ser menor que el rango máximo');
+            return;
+        }
+        
+        // Validar monto base y monto máximo
+        const montoBase = parseFloat(datos.monto_base);
+        const montoMax = parseFloat(datos.monto_max);
+        
+        if (!isNaN(montoBase) && !isNaN(montoMax) && montoBase > montoMax) {
+            alert('El monto base no puede ser mayor que el monto máximo');
+            return;
+        }
+        
         // Eliminar id de datos si está vacío
         if (!id) delete datos.id;
         
@@ -314,7 +342,10 @@
                 body: JSON.stringify(datos)
             });
             
-            if (!response.ok) throw new Error('Error al guardar cuantía');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Error al guardar cuantía');
+            }
             
             alert('Cuantía guardada exitosamente');
             ocultarModalCuantia();
@@ -322,7 +353,7 @@
             cargarDatosCuantia(tabCuantiaActual);
         } catch (error) {
             console.error('Error:', error);
-            alert('Error al guardar la cuantía');
+            alert(error.message || 'Error al guardar la cuantía');
         }
     };
 
@@ -496,10 +527,31 @@
     }
 
     function guardarCambios() {
-        // Recolectar datos de gastos administrativos
+        // Recolectar y validar datos de gastos administrativos
         const gastosAdmin = [];
+        let errorRango = null;
+        let numeroRango = 0;
+        
         document.querySelectorAll('#gastosAdminRangos .grid').forEach(rango => {
+            numeroRango++;
             const inputs = rango.querySelectorAll('input');
+            const min = parseFloat(inputs[0].value);
+            const max = parseFloat(inputs[1].value);
+            const porcentaje = parseFloat(inputs[2].value);
+            const regla = inputs[3].value;
+            const montoMaximo = parseFloat(inputs[4].value);
+            const montoBase = parseFloat(inputs[5]?.value); // Si existe un sexto input
+            
+            if (isNaN(min) || isNaN(max)) {
+                errorRango = `Gastos Administrativos - Rango ${numeroRango}: Ingresa valores numéricos válidos en los rangos`;
+            } else if (min < 0 || max < 0) {
+                errorRango = `Gastos Administrativos - Rango ${numeroRango}: Los valores deben ser positivos`;
+            } else if (min >= max) {
+                errorRango = `Gastos Administrativos - Rango ${numeroRango}: El rango mínimo (${min}) debe ser menor que el rango máximo (${max})`;
+            } else if (!isNaN(montoBase) && !isNaN(montoMaximo) && montoBase > montoMaximo) {
+                errorRango = `Gastos Administrativos - Rango ${numeroRango}: El monto base (${montoBase}) no puede ser mayor que el monto máximo (${montoMaximo})`;
+            }
+            
             gastosAdmin.push({
                 rangoMin: inputs[0].value,
                 rangoMax: inputs[1].value,
@@ -509,10 +561,30 @@
             });
         });
 
-        // Recolectar datos del tribunal
+        // Recolectar y validar datos del tribunal
         const tribunal = [];
+        numeroRango = 0;
+        
         document.querySelectorAll('#tribunalRangos .grid').forEach(rango => {
+            numeroRango++;
             const inputs = rango.querySelectorAll('input');
+            const min = parseFloat(inputs[0].value);
+            const max = parseFloat(inputs[1].value);
+            const porcentaje = parseFloat(inputs[2].value);
+            const regla = inputs[3].value;
+            const montoMaximo = parseFloat(inputs[4].value);
+            const montoBase = parseFloat(inputs[5]?.value); // Si existe un sexto input
+            
+            if (isNaN(min) || isNaN(max)) {
+                errorRango = errorRango || `Tribunal Arbitral - Rango ${numeroRango}: Ingresa valores numéricos válidos en los rangos`;
+            } else if (min < 0 || max < 0) {
+                errorRango = errorRango || `Tribunal Arbitral - Rango ${numeroRango}: Los valores deben ser positivos`;
+            } else if (min >= max) {
+                errorRango = errorRango || `Tribunal Arbitral - Rango ${numeroRango}: El rango mínimo (${min}) debe ser menor que el rango máximo (${max})`;
+            } else if (!isNaN(montoBase) && !isNaN(montoMaximo) && montoBase > montoMaximo) {
+                errorRango = errorRango || `Tribunal Arbitral - Rango ${numeroRango}: El monto base (${montoBase}) no puede ser mayor que el monto máximo (${montoMaximo})`;
+            }
+            
             tribunal.push({
                 rangoMin: inputs[0].value,
                 rangoMax: inputs[1].value,
@@ -521,6 +593,11 @@
                 montoMaximo: inputs[4].value
             });
         });
+
+        if (errorRango) {
+            alert(errorRango);
+            return;
+        }
 
         const datos = {
             tipo: tipoCalculadora,
