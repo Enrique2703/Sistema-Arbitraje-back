@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Red Nacional de Arbitraje - Consulta de expedientes</title>
+    <!-- Tom Select CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -543,12 +545,148 @@
         </div>
     </header>
 
+    <!-- Tom Select JS -->
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
     <main>
         <h1>Consulta de expedientes</h1>
 
         <div class="search-section">
-            <input type="text" class="search-input" placeholder="Buscar">
-            <button class="search-btn">Buscar</button>
+            <div style="display: flex; gap: 12px; flex: 1;">
+                <input type="text" class="search-input" placeholder="Buscar">
+                <button class="search-btn" style="border-top-left-radius: 0; border-bottom-left-radius: 0;">Buscar</button>
+            </div>
+            <button class="search-btn" id="btnSolicitudes" style="background-color: #6b6b6b; color: #fff; margin-left: 30px;">Solicitudes</button>
+            <!-- MODAL SOLICITUDES -->
+            <div class="modal-overlay" id="modalSolicitudes" style="display:none;">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h2>Nueva Solicitud</h2>
+                        <button class="modal-close" id="closeSolicitudes">×</button>
+                    </div>
+                    <form id="formSolicitudes">
+                        <div class="modal-body">
+                            <div class="modal-section">
+                                <div class="modal-field">
+                                    <label for="estadoSolicitud">Estado:</label>
+                                    <select id="estadoSolicitud" name="estado" required style="flex:1; padding:8px; border-radius:3px; border:1px solid #ccc;">
+                                        <option value="">Seleccione</option>
+                                        <option value="En trámite">En trámite</option>
+                                        <option value="Suspendido">Suspendido</option>
+                                        <option value="Archivado">Archivado</option>
+                                        <option value="Concluido">Concluido</option>
+                                    </select>
+                                </div>
+                                <div class="modal-field">
+                                    <label for="demandanteSolicitud">Demandante:</label>
+                                    <select id="demandanteSolicitud" name="demandante" required style="flex:1; padding:8px; border-radius:3px; border:1px solid #ccc;">
+                                        <option value="">Seleccione demandante</option>
+                                    </select>
+                                </div>
+                                <div class="modal-field">
+                                    <label for="demandadoSolicitud">Demandado:</label>
+                                    <select id="demandadoSolicitud" name="demandado" required style="flex:1; padding:8px; border-radius:3px; border:1px solid #ccc;">
+                                        <option value="">Seleccione demandado</option>
+                                    </select>
+                                </div>
+                                <div class="modal-field">
+                                    <label for="documentosSolicitud">N° Documentos:</label>
+                                    <input type="number" id="documentosSolicitud" name="documentos" min="0" required style="flex:1; padding:8px; border-radius:3px; border:1px solid #ccc;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-cerrar" id="cancelarSolicitudes">Cancelar</button>
+                            <button type="submit" class="btn-seguir">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <script>
+            // Modal Solicitudes
+            document.getElementById('btnSolicitudes').addEventListener('click', async function() {
+                document.getElementById('modalSolicitudes').style.display = 'flex';
+                await cargarParticipesSolicitudes();
+            });
+            document.getElementById('closeSolicitudes').addEventListener('click', function() {
+                document.getElementById('modalSolicitudes').style.display = 'none';
+            });
+            document.getElementById('cancelarSolicitudes').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('modalSolicitudes').style.display = 'none';
+            });
+            document.getElementById('modalSolicitudes').addEventListener('click', function(e) {
+                if (e.target === this) this.style.display = 'none';
+            });
+            document.getElementById('formSolicitudes').addEventListener('submit', function(e) {
+                e.preventDefault();
+                // Aquí puedes manejar el guardado de la solicitud
+                alert('Solicitud guardada (simulado)');
+                document.getElementById('modalSolicitudes').style.display = 'none';
+                this.reset();
+            });
+
+            // Cargar partícipes y poblar selects con Tom Select
+            async function cargarParticipesSolicitudes() {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                try {
+                    const res = await fetch('/api/participes', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Accept': 'application/json'
+                        }
+                    });
+                    if (!res.ok) throw new Error('Error al obtener partícipes');
+                    const data = await res.json();
+                    const participes = data.registros || [];
+                    inicializarTomSelectParticipes(document.getElementById('demandanteSolicitud'), participes);
+                    inicializarTomSelectParticipes(document.getElementById('demandadoSolicitud'), participes);
+                } catch (error) {
+                    console.error('Error cargando partícipes:', error);
+                }
+            }
+
+            function inicializarTomSelectParticipes(select, participes) {
+                // Destruir instancia anterior si existe
+                if (select.tomselect) {
+                    select.tomselect.destroy();
+                }
+                
+                // Limpiar y poblar opciones
+                const selectedValue = select.value;
+                select.innerHTML = `<option value="">Seleccionar partícipe</option>`;
+                participes.forEach(p => {
+                    const nombreCompleto = `${p.nombres ?? ''} ${p.apellidos ?? ''}`.trim();
+                    const option = document.createElement('option');
+                    option.value = p.id;
+                    option.textContent = nombreCompleto || 'Partícipe sin nombre';
+                    if (p.id == selectedValue) option.selected = true;
+                    select.appendChild(option);
+                });
+                
+                // Inicializar Tom Select
+                new TomSelect(select, {
+                    valueField: 'id',
+                    labelField: 'nombreCompleto',
+                    searchField: ['nombreCompleto'],
+                    options: participes.map(p => ({
+                        id: p.id,
+                        nombreCompleto: `${p.nombres ?? ''} ${p.apellidos ?? ''}`.trim() || 'Partícipe sin nombre'
+                    })),
+                    create: false,
+                    placeholder: 'Buscar partícipe...',
+                    render: {
+                        option: function(item, escape) {
+                            return `<div class="py-2 px-3">${escape(item.nombreCompleto)}</div>`;
+                        },
+                        item: function(item, escape) {
+                            return `<div>${escape(item.nombreCompleto)}</div>`;
+                        }
+                    },
+                    loadingClass: 'loading'
+                });
+            }
+            </script>
         </div>
 
         <div class="table-scroll-container">
