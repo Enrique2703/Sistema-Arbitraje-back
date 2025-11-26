@@ -18,9 +18,73 @@
                                 <h3 class="text-2xl font-bold mb-6">Tarifario</h3>
                                 <div class="flex items-center mb-4 gap-2">
                                     <input type="text" class="border rounded-lg px-3 py-2 w-full bg-gray-50" value="Ya tienes un tarifario subido" readonly>
-                                    <button type="button" onclick="downloadTarifario()" class="flex items-center gap-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-200">
-                                        <i class="bi bi-download"></i> Descargar
+                                    <button type="button" onclick="verAdjuntoTarifario()" class="flex flex-row items-center gap-2 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-200" style="height:40px; min-width:120px;">
+                                        <i class="bi bi-eye"></i>
+                                        <span style="line-height:1;">Ver adjunto</span>
                                     </button>
+                                <!-- Modal para ver el PDF del tarifario (se mueve al final del body) -->
+                                <!-- Modal para ver el PDF del tarifario (fuera de los contenedores principales) -->
+                                <div id="modalVerTarifario" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+                                    <div class="bg-white rounded-lg shadow-xl w-full max-w-md animate-fadeIn relative" style="margin: 0 auto; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column;">
+                                        <button type="button" onclick="ocultarModalVerTarifario()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 z-10" style="padding: 4px;">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                        <div class="flex items-center gap-3 px-6 pt-6 pb-4 border-b border-gray-200" style="flex-shrink: 0;">
+                                            <svg style="width: 28px; height: 28px; min-width: 28px; opacity: 0.7;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                                                <polyline points="13 2 13 9 20 9"></polyline>
+                                            </svg>
+                                            <br>
+                                            <span id="nombreArchivoVerTarifario" class="flex-1 text-base font-semibold text-gray-800 truncate">Tarifario.pdf</span>
+                                        </div>
+                                        <div class="flex justify-end px-6 py-4" style="flex-shrink: 0;">
+                                            <button type="button" onclick="downloadTarifario()" class="px-5 py-2 rounded-lg bg-black text-white font-semibold hover:bg-gray-800 transition flex items-center gap-2">
+                                                <i class="bi bi-download"></i> Descargar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <script>
+                                async function verAdjuntoTarifario() {
+                                    // Obtener el nombre real del archivo y mostrar modal compacto solo con el botón Descargar
+                                    let nombreArchivo = 'Tarifario.pdf';
+                                    const modal = document.getElementById('modalVerTarifario');
+                                    try {
+                                        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                                        if (!token) throw new Error();
+                                        const responseInfo = await fetch(`/api/tarifario?t=${Date.now()}`, {
+                                            headers: {
+                                                'Authorization': `Bearer ${token}`,
+                                                'Cache-Control': 'no-cache',
+                                                'Pragma': 'no-cache'
+                                            }
+                                        });
+                                        if (responseInfo.ok) {
+                                            const data = await responseInfo.json();
+                                            if (Array.isArray(data) && data.length > 0 && data[0].nombre_original) {
+                                                nombreArchivo = data[0].nombre_original;
+                                            }
+                                        }
+                                    } catch (e) {}
+                                    // Mostrar solo el nombre y el botón Descargar
+                                    if (modal) {
+                                        document.getElementById('nombreArchivoVerTarifario').textContent = nombreArchivo;
+                                        modal.classList.remove('hidden');
+                                    }
+                                }
+
+                                function ocultarModalVerTarifario() {
+                                    document.getElementById('modalVerTarifario').classList.add('hidden');
+                                    document.getElementById('tarifarioViewer').innerHTML = '';
+                                }
+
+                                function abrirTarifarioEnVentana() {
+                                    const url = window._tarifarioUrl || `/api/tarifario/download?t=${Date.now()}`;
+                                    window.open(url, '_blank', 'width=800,height=600,menubar=no,toolbar=no,location=no,status=no');
+                                }
+                                </script>
                                 </div>
                                 <div class="mb-2 font-semibold">Reemplazar tarifario</div>
                                 <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center text-gray-400 mb-8 cursor-pointer hover:border-gray-400 transition" id="dropzoneTarifario">
