@@ -209,13 +209,32 @@
                 },
                 body: formData
             });
-            if (!response.ok) throw new Error('Error al subir el archivo');
-            alert('Archivo subido correctamente');
-            ocultarModalTarifario();
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Error del servidor:', errorData);
+                throw new Error(errorData.message || 'Error al subir el archivo');
+            }
+            
+            const result = await response.json();
+            console.log('Archivo subido:', result);
+            
+            // Esperar un momento para que el servidor termine de procesar
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Actualizar el nombre del archivo en el campo de visualización
             await cargarNombreArchivoTarifario();
+            
+            alert('Archivo subido correctamente');
+            
+            // Limpiar el input de archivo y el texto del dropzone
+            input.value = '';
+            document.getElementById('nombreArchivoTarifario').textContent = '';
+            
+            ocultarModalTarifario();
         } catch (error) {
-            console.error('Error:', error);
-            alert('Error al subir el archivo');
+            console.error('Error completo:', error);
+            alert('Error al subir el archivo: ' + error.message);
         }
     }
 
@@ -539,45 +558,125 @@
     async function downloadTarifario() {
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const response = await fetch('/api/tarifario/download', {
+            
+            if (!token) {
+                alert('No se encontró token de autenticación. Por favor, inicia sesión nuevamente.');
+                return;
+            }
+            
+            // Obtener el nombre original del archivo más reciente
+            const responseInfo = await fetch(`/api/tarifario?t=${Date.now()}`, {
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
                 }
             });
-            if (!response.ok) throw new Error('Error al descargar tarifario');
+            
+            if (!responseInfo.ok) {
+                const errorText = await responseInfo.text();
+                console.error('Error al obtener info del tarifario:', errorText);
+                throw new Error('No se pudo obtener la información del tarifario');
+            }
+            
+            const data = await responseInfo.json();
+            let nombreDescarga = 'Tarifario.pdf';
+            
+            if (Array.isArray(data) && data.length > 0) {
+                const ultimo = data[0];
+                if (ultimo && ultimo.nombre_original) {
+                    nombreDescarga = ultimo.nombre_original;
+                }
+            } else {
+                alert('No hay ningún tarifario disponible para descargar');
+                return;
+            }
+            
+            // Descargar el archivo
+            const response = await fetch(`/api/tarifario/download?t=${Date.now()}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            });
+            
+            if (!response.ok) {
+                const contentType = response.headers.get('content-type');
+                let errorMsg = 'Error al descargar el tarifario';
+                
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await response.json();
+                    errorMsg = errorData.error || errorData.message || errorMsg;
+                } else {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    if (errorText) {
+                        errorMsg = errorText;
+                    }
+                }
+                
+                throw new Error(errorMsg);
+            }
+            
             const blob = await response.blob();
+            
+            // Verificar que el blob tiene contenido
+            if (blob.size === 0) {
+                throw new Error('El archivo descargado está vacío');
+            }
+            
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'Tarifario.pdf';
+            a.download = nombreDescarga;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
+            
+            console.log('Archivo descargado exitosamente:', nombreDescarga);
         } catch (error) {
-            console.error('Error:', error);
-            alert('Error al descargar el tarifario');
+            console.error('Error completo:', error);
+            alert('Error al descargar el tarifario: ' + error.message);
         }
     }
 
     async function cargarNombreArchivoTarifario() {
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const response = await fetch('/api/tarifario', {
+            // Agregar timestamp para evitar caché
+            const response = await fetch(`/api/tarifario?t=${Date.now()}`, {
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Cache-Control': 'no-cache'
                 }
             });
             if (response.ok) {
                 const data = await response.json();
-                if (Array.isArray(data) && data.length > 0 && data[0].archivo_adjunto) {
-                    const path = data[0].archivo_adjunto;
-                    const nombre = path.split('/').pop();
-                    document.querySelector('.border.rounded-lg.px-3.py-2.w-full.bg-gray-50').value = `Archivo: ${nombre}`;
+                const inputDisplay = document.querySelector('.border.rounded-lg.px-3.py-2.w-full.bg-gray-50');
+                // Tomar el primer registro (el más reciente)
+                let ultimo = null;
+                if (Array.isArray(data) && data.length > 0) {
+                    ultimo = data[0];
+                }
+                if (ultimo && (ultimo.nombre_original || ultimo.archivo_adjunto)) {
+                    const nombre = ultimo.nombre_original ? ultimo.nombre_original : (ultimo.archivo_adjunto ? ultimo.archivo_adjunto.split('/').pop() : '');
+                    if (inputDisplay) {
+                        inputDisplay.value = `Archivo: ${nombre}`;
+                    }
+                } else {
+                    if (inputDisplay) {
+                        inputDisplay.value = 'No hay tarifario subido aún';
+                    }
                 }
             }
         } catch (error) {
             console.error('Error al cargar nombre de archivo:', error);
+            const inputDisplay = document.querySelector('.border.rounded-lg.px-3.py-2.w-full.bg-gray-50');
+            if (inputDisplay) {
+                inputDisplay.value = 'No hay tarifario subido aún';
+            }
         }
     }
 

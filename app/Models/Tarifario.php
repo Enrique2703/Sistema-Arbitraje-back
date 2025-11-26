@@ -10,5 +10,8 @@ class Tarifario extends Model
 
     protected $fillable = [
         'archivo_adjunto',
+        'nombre_original',
     ];
+    
+    protected $guarded = [];
 }

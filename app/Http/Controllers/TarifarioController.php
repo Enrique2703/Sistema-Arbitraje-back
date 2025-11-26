@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+
 use App\Models\Tarifario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -10,7 +11,8 @@ class TarifarioController extends Controller
 {
     public function index()
     {
-        return Tarifario::all();
+        // Devuelve todos los registros ordenados por fecha de creación descendente
+        return Tarifario::orderBy('created_at', 'desc')->get();
     }
 
     public function show($id)
@@ -53,14 +55,25 @@ class TarifarioController extends Controller
         ]);
 
         $file = $request->file('tarifario');
+        $nombreOriginal = $file->getClientOriginalName();
         $filename = 'tarifario_' . time() . '.' . $file->getClientOriginalExtension();
         $path = $file->storeAs('tarifarios', $filename, 'public');
 
-        // Elimina registros anteriores (solo uno vigente)
-        Tarifario::truncate();
-        $tarifario = Tarifario::create([
+        // Eliminar todos los archivos físicos anteriores y sus registros en BD
+        $anteriores = Tarifario::all();
+        foreach ($anteriores as $anterior) {
+            if ($anterior->archivo_adjunto && Storage::disk('public')->exists($anterior->archivo_adjunto)) {
+                Storage::disk('public')->delete($anterior->archivo_adjunto);
+            }
+            $anterior->delete(); // Eliminar el registro de la BD
+        }
+
+        $datos = [
             'archivo_adjunto' => $path,
-        ]);
+            'nombre_original' => $nombreOriginal,
+        ];
+        
+        $tarifario = Tarifario::create($datos);
 
         return response()->json(['message' => 'Archivo subido correctamente', 'tarifario' => $tarifario]);
     }
@@ -70,10 +83,28 @@ class TarifarioController extends Controller
      */
     public function download()
     {
-        $tarifario = Tarifario::latest()->first();
-        if (!$tarifario || !Storage::disk('public')->exists($tarifario->archivo_adjunto)) {
-            return response()->json(['message' => 'No existe archivo tarifario'], 404);
+        // Buscar el registro más reciente
+        $tarifario = Tarifario::orderBy('created_at', 'desc')->first();
+        
+        if (!$tarifario || !$tarifario->archivo_adjunto) {
+            return response()->json(['error' => 'No existe archivo tarifario'], 404);
         }
-        return response()->download(storage_path('app/public/' . $tarifario->archivo_adjunto), 'Tarifario.pdf');
+        
+        // Verificar que el archivo existe en el disco público
+        if (!Storage::disk('public')->exists($tarifario->archivo_adjunto)) {
+            // Si el archivo no existe, eliminar el registro huérfano
+            $tarifario->delete();
+            return response()->json(['error' => 'El archivo no existe en el servidor'], 404);
+        }
+        
+        $nombreDescarga = $tarifario->nombre_original ?: 'Tarifario.pdf';
+        $filePath = Storage::disk('public')->path($tarifario->archivo_adjunto);
+        
+        return response()->download($filePath, $nombreDescarga, [
+            'Content-Type' => 'application/pdf',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0'
+        ]);
     }
 }

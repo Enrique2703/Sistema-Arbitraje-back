@@ -10,6 +10,7 @@ return new class extends Migration {
         Schema::create('tarifario', function (Blueprint $table) {
             $table->id();
             $table->string('archivo_adjunto');
+            $table->string('nombre_original')->nullable();
             $table->timestamps();
         });
     }
