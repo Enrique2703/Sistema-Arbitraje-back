@@ -589,9 +589,11 @@
                                         <option value="">Seleccione demandado</option>
                                     </select>
                                 </div>
-                                <div class="modal-field">
-                                    <label for="documentosSolicitud">N° Documentos:</label>
-                                    <input type="number" id="documentosSolicitud" name="documentos" min="0" required style="flex:1; padding:8px; border-radius:3px; border:1px solid #ccc;">
+                                <div class="modal-field" style="flex-direction: column; align-items: flex-start;">
+                                    <label for="documentosSolicitud">Documentos:</label>
+                                    <input type="file" id="documentosSolicitud" name="documentos[]" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="width:100%; padding:8px; border-radius:3px; border:1px solid #ccc; margin-top:8px;">
+                                    <small style="color:#666; margin-top:4px;">Puede seleccionar múltiples archivos (PDF, DOC, DOCX, JPG, PNG)</small>
+                                    <div id="listaArchivos" style="margin-top:8px; font-size:13px; color:#333;"></div>
                                 </div>
                             </div>
                         </div>
@@ -618,12 +620,29 @@
             document.getElementById('modalSolicitudes').addEventListener('click', function(e) {
                 if (e.target === this) this.style.display = 'none';
             });
+            
+            // Mostrar archivos seleccionados
+            document.getElementById('documentosSolicitud').addEventListener('change', function(e) {
+                const listaDiv = document.getElementById('listaArchivos');
+                const archivos = Array.from(e.target.files);
+                if (archivos.length > 0) {
+                    listaDiv.innerHTML = '<strong>Archivos seleccionados:</strong><br>' + 
+                        archivos.map(f => `• ${f.name} (${(f.size / 1024).toFixed(1)} KB)`).join('<br>');
+                } else {
+                    listaDiv.innerHTML = '';
+                }
+            });
+            
             document.getElementById('formSolicitudes').addEventListener('submit', function(e) {
                 e.preventDefault();
-                // Aquí puedes manejar el guardado de la solicitud
-                alert('Solicitud guardada (simulado)');
+                const formData = new FormData(this);
+                const archivos = document.getElementById('documentosSolicitud').files;
+                console.log('Archivos a subir:', archivos.length);
+                // Aquí puedes manejar el guardado de la solicitud con FormData
+                alert(`Solicitud guardada (simulado)\nArchivos seleccionados: ${archivos.length}`);
                 document.getElementById('modalSolicitudes').style.display = 'none';
                 this.reset();
+                document.getElementById('listaArchivos').innerHTML = '';
             });
 
             // Cargar partícipes y poblar selects con Tom Select
