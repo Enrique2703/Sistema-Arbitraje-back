@@ -853,16 +853,74 @@
                 renderListaArchivos();
             });
             
-            document.getElementById('formSolicitudes').addEventListener('submit', function(e) {
+            document.getElementById('formSolicitudes').addEventListener('submit', async function(e) {
                 e.preventDefault();
-                const formData = new FormData(this);
-                archivosSeleccionados.forEach(f => formData.append('documentos[]', f));
-                // Aquí puedes manejar el guardado real de la solicitud con formData
-                alert(`Solicitud guardada (simulado)\nArchivos seleccionados: ${archivosSeleccionados.length}`);
-                document.getElementById('modalSolicitudes').style.display = 'none';
-                this.reset();
-                archivosSeleccionados = [];
-                renderListaArchivos();
+                // Eliminar mensajes de error previos
+                let errorDiv = document.getElementById('solicitudErrorMsg');
+                if (errorDiv) errorDiv.remove();
+
+                const formData = new FormData();
+                // Obtener valores
+                const estado = document.getElementById('estadoSolicitud').value;
+                const demandante = document.getElementById('demandanteSolicitud').value;
+                const demandado = document.getElementById('demandadoSolicitud').value;
+                formData.append('participe_id', demandante);
+                formData.append('estado', estado);
+                formData.append('demandante', demandante);
+                formData.append('demandado', demandado);
+                archivosSeleccionados.forEach(f => formData.append('archivos[]', f));
+
+                const mostrarError = (msg) => {
+                    let err = document.createElement('div');
+                    err.className = 'error';
+                    err.id = 'solicitudErrorMsg';
+                    err.textContent = msg;
+                    // Insertar error arriba del footer
+                    const modalBody = this.querySelector('.modal-body') || this.parentElement.querySelector('.modal-body');
+                    if (modalBody) {
+                        modalBody.insertBefore(err, modalBody.firstChild);
+                    }
+                };
+
+                try {
+                    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                    const res = await fetch('/api/solicitudes', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: formData
+                    });
+                    if (!res.ok) {
+                        let msg = 'Error al guardar la solicitud';
+                        try {
+                            const error = await res.json();
+                            if (error.errors) {
+                                msg += ': ' + Object.values(error.errors).flat().join(' ');
+                            } else if (error.message) {
+                                msg += ': ' + error.message;
+                            } else {
+                                msg += ` (HTTP ${res.status})`;
+                            }
+                        } catch (e) {
+                            msg += ` (HTTP ${res.status})`;
+                        }
+                        mostrarError(msg);
+                        return;
+                    }
+                    // Éxito
+                    alert('Solicitud guardada correctamente');
+                    document.getElementById('modalSolicitudes').style.display = 'none';
+                    this.reset();
+                    archivosSeleccionados = [];
+                    renderListaArchivos();
+                    // Actualizar la lista de expedientes automáticamente
+                    if (typeof cargarExpedientes === 'function') {
+                        cargarExpedientes(1);
+                    }
+                } catch (err) {
+                    mostrarError('Error de red al guardar la solicitud: ' + (err.message || err));
+                }
             });
 
             // Cargar partícipes y poblar selects con Tom Select

@@ -15,6 +15,7 @@ use App\Http\Controllers\GastosAdministrativosController;
 use App\Http\Controllers\HonorariosArbitrosController;
 use App\Http\Controllers\HonorariosTribunalesController;
 use App\Http\Controllers\HonorariosSecretariosController;
+use App\Http\Controllers\SolicitudController;
 use App\Models\Expediente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +23,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('login', [AuthController::class, 'login']);
 Route::post('logout', [AuthController::class, 'logout']);
+// Ping simple para diagnóstico desde frontend
+Route::get('/ping', function() {
+    return response()->json(['pong' => true]);
+});
 Route::get('/expedientes/participes', [ExpedienteController::class, 'indexParticipes']);
 Route::get('/expedientes/participes/documentos', [DocumentoController::class, 'getDocumentosPorExpediente']);
 
@@ -70,4 +75,6 @@ Route::middleware(['session.timeout'])->group(function () {
     Route::apiResource('honorarios_arbitros', HonorariosArbitrosController::class);
     Route::apiResource('honorarios_tribunales', HonorariosTribunalesController::class);
     Route::apiResource('honorarios_secretarios', HonorariosSecretariosController::class);
+
+    Route::apiResource('solicitudes', SolicitudController::class);
 });
