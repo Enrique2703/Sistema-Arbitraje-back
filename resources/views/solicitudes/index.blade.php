@@ -156,9 +156,20 @@
         }
         tbody.innerHTML = '';
         list.forEach(solicitud => {
+            let estado = solicitud.estado || 'Pendiente';
+            let estadoClass = '';
+            if (estado === 'Pendiente') {
+                estadoClass = 'bg-gray-200 text-gray-700';
+            } else if (estado === 'Aceptado') {
+                estadoClass = 'bg-green-100 text-green-800';
+            } else if (estado === 'Rechazado') {
+                estadoClass = 'bg-red-100 text-red-800';
+            } else {
+                estadoClass = 'bg-gray-100 text-gray-800';
+            }
             tbody.innerHTML += `
                 <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4">${solicitud.estado || 'Pendiente'}</td>
+                    <td class="px-6 py-4"><span class="font-medium px-2 py-1 rounded ${estadoClass}">${estado}</span></td>
                     <td class="px-6 py-4">${solicitud.demandante || ''}</td>
                     <td class="px-6 py-4">${solicitud.demandado || ''}</td>
                     <td class="px-6 py-4 text-center">${solicitud.numero_documentos || 1}</td>
@@ -287,6 +298,7 @@
 
     // Modal Detalle Solicitud
     async function verSolicitud(id) {
+        window.solicitudDetalleId = id;
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         try {
             const res = await fetch(`/api/solicitudes/${id}`, {
@@ -299,7 +311,18 @@
             const solicitud = await res.json();
 
             // Llenar datos en el modal
-            document.getElementById('detalleEstado').textContent = solicitud.estado || '';
+            // Estado y color
+            const estado = solicitud.estado || '';
+            document.getElementById('detalleEstado').textContent = estado;
+            if (estado === 'Pendiente') {
+                document.getElementById('detalleEstado').className = 'font-medium bg-gray-200 text-gray-700 px-2 py-1 rounded';
+            } else if (estado === 'Aceptado') {
+                document.getElementById('detalleEstado').className = 'font-medium bg-green-100 text-green-800 px-2 py-1 rounded';
+            } else if (estado === 'Rechazado') {
+                document.getElementById('detalleEstado').className = 'font-medium bg-red-100 text-red-800 px-2 py-1 rounded';
+            } else {
+                document.getElementById('detalleEstado').className = 'font-medium bg-gray-100 text-gray-800 px-2 py-1 rounded';
+            }
             if (solicitud.created_at) {
                 const fecha = new Date(solicitud.created_at);
                 const dia = String(fecha.getDate()).padStart(2, '0');
@@ -340,6 +363,59 @@
 
     document.getElementById('btnCerrarDetalleSolicitud').onclick = function() {
         document.getElementById('detalleSolicitudModal').classList.add('hidden');
+    };
+
+    document.getElementById('btnRechazarSolicitud').onclick = async function() {
+        const id = window.solicitudDetalleId;
+        if (!id) return;
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        try {
+            const res = await fetch(`/api/solicitudes/${id}/estado`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ estado: 'Rechazado' })
+            });
+            if (!res.ok) throw new Error('No se pudo actualizar el estado');
+            // Actualizar en UI
+            document.getElementById('detalleEstado').textContent = 'Rechazado';
+            document.getElementById('detalleEstado').className = 'font-medium bg-red-100 text-red-800 px-2 py-1 rounded';
+                // Botón aceptar: cambia a verde
+                document.getElementById('btnAceptarSolicitud').onclick = async function() {
+                    const id = window.solicitudDetalleId;
+                    if (!id) return;
+                    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                    try {
+                        const res = await fetch(`/api/solicitudes/${id}/estado`, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ estado: 'Aceptado' })
+                        });
+                        if (!res.ok) throw new Error('No se pudo actualizar el estado');
+                        document.getElementById('detalleEstado').textContent = 'Aceptado';
+                        document.getElementById('detalleEstado').className = 'font-medium bg-green-100 text-green-800 px-2 py-1 rounded';
+                        setTimeout(() => {
+                            document.getElementById('detalleSolicitudModal').classList.add('hidden');
+                            loadSolicitudes(currentPage, perPage);
+                        }, 800);
+                    } catch (e) {
+                        alert('Error al aceptar la solicitud');
+                    }
+                };
+            setTimeout(() => {
+                document.getElementById('detalleSolicitudModal').classList.add('hidden');
+                loadSolicitudes(currentPage, perPage);
+            }, 800);
+        } catch (e) {
+            alert('Error al rechazar la solicitud');
+        }
     };
 </script>
 @endsection

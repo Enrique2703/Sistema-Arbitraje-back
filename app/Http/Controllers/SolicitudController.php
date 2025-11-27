@@ -160,4 +160,20 @@ class SolicitudController extends Controller
         $solicitud->delete();
         return response()->json(['message' => 'Solicitud eliminada']);
     }
+    // Actualizar el estado de una solicitud
+    public function actualizarEstado(Request $request, $id)
+    {
+        $request->validate([
+            'estado' => 'required|in:Pendiente,Aceptado,Rechazado',
+        ]);
+
+        $solicitud = Solicitud::findOrFail($id);
+        $solicitud->estado = $request->input('estado');
+        $solicitud->save();
+
+        return response()->json([
+            'message' => 'Estado actualizado correctamente',
+            'estado' => $solicitud->estado,
+        ]);
+    }
 }

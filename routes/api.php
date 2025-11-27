@@ -77,4 +77,6 @@ Route::middleware(['session.timeout'])->group(function () {
     Route::apiResource('honorarios_secretarios', HonorariosSecretariosController::class);
 
     Route::apiResource('solicitudes', SolicitudController::class);
+    // Ruta para actualizar el estado de una solicitud
+    Route::put('solicitudes/{id}/estado', [SolicitudController::class, 'actualizarEstado']);
 });
