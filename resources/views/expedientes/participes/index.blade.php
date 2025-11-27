@@ -604,11 +604,6 @@
                                 <div class="modal-solicitudes-fields">
                                     <div class="modal-solicitudes-row">
                                         <div>
-                                            <label for="demandanteSolicitud">DEMANDANTE:</label>
-                                            <select id="demandanteSolicitud" name="demandante" required></select>
-
-                                        </div>
-                                        <div>
                                             <label for="demandadoSolicitud">DEMANDADO:</label>
                                             <select id="demandadoSolicitud" name="demandado" required></select>
 
@@ -856,13 +851,53 @@
                 if (estadoInput) {
                     estado = estadoInput.value || 'Pendiente';
                 }
-                const demandante = document.getElementById('demandanteSolicitud').value;
+                // Obtener el partícipe logueado desde el usuario
+                const usuario = getUsuario();
+                let participeId = null;
+                let errorParticipe = false;
+                try {
+                    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                    const res = await fetch('/api/participes', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Accept': 'application/json'
+                        }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        const participes = data.registros || [];
+                        if (usuario && usuario.credencial_id) {
+                            const miParticipe = participes.find(p => String(p.credencial_id) === String(usuario.credencial_id));
+                            if (miParticipe) {
+                                participeId = miParticipe.id;
+                            } else {
+                                errorParticipe = true;
+                            }
+                        } else {
+                            errorParticipe = true;
+                        }
+                    } else {
+                        errorParticipe = true;
+                    }
+                } catch (e) {
+                    errorParticipe = true;
+                }
                 const demandado = document.getElementById('demandadoSolicitud').value;
-                formData.append('participe_id', demandante);
+
+                if (!demandado) {
+                    mostrarError('Debe seleccionar un demandado.');
+                    return;
+                }
+                formData.append('participe_id', participeId);
                 formData.append('estado', estado);
-                formData.append('demandante', demandante);
+                formData.append('demandante', participeId);
                 formData.append('demandado', demandado);
                 archivosSeleccionados.forEach(f => formData.append('archivos[]', f));
+
+                // Debug: mostrar en consola el payload
+                for (let pair of formData.entries()) {
+                    console.log('FORMDATA', pair[0]+':', pair[1]);
+                }
 
                 const mostrarError = (msg) => {
                     let err = document.createElement('div');
@@ -885,60 +920,65 @@
                         },
                         body: formData
                     });
+                    let responseText = await res.text();
+                    let responseJson = null;
+                    try {
+                        responseJson = JSON.parse(responseText);
+                    } catch (e) {}
+                    // Debug: mostrar en consola la respuesta
+                    console.log('RESPUESTA API', responseJson || responseText);
                     if (!res.ok) {
                         let msg = 'Error al guardar la solicitud';
-                        try {
-                            const error = await res.json();
-                            if (error.errors) {
-                                msg += ': ' + Object.values(error.errors).flat().join(' ');
-                            } else if (error.message) {
-                                msg += ': ' + error.message;
+                        if (responseJson) {
+                            if (responseJson.errors) {
+                                msg += ': ' + Object.values(responseJson.errors).flat().join(' ');
+                            } else if (responseJson.message) {
+                                msg += ': ' + responseJson.message;
                             } else {
                                 msg += ` (HTTP ${res.status})`;
                             }
-                        } catch (e) {
-                            msg += ` (HTTP ${res.status})`;
+                        } else {
+                            msg += ` (HTTP ${res.status})\nRespuesta: ${responseText}`;
                         }
                         mostrarError(msg);
                         return;
                     }
-                    // Éxito
-                    mostrarToast('Solicitud guardada correctamente');
+                    // Éxito: mostrar la respuesta completa de la API
+                    let msg = 'Solicitud guardada correctamente.';
+                    mostrarToast(msg);
                     document.getElementById('modalSolicitudes').style.display = 'none';
                     this.reset();
                     archivosSeleccionados = [];
                     renderListaArchivos();
-                    // Actualizar la lista de expedientes automáticamente
                     if (typeof cargarExpedientes === 'function') {
                         cargarExpedientes(1);
                     }
-                            // Toast de éxito
-                            function mostrarToast(mensaje) {
-                                let toast = document.getElementById('toastExito');
-                                if (!toast) {
-                                    toast = document.createElement('div');
-                                    toast.id = 'toastExito';
-                                    toast.style.position = 'fixed';
-                                    toast.style.top = '30px';
-                                    toast.style.left = '50%';
-                                    toast.style.transform = 'translateX(-50%)';
-                                    toast.style.background = '#38c172';
-                                    toast.style.color = '#fff';
-                                    toast.style.padding = '16px 32px';
-                                    toast.style.borderRadius = '8px';
-                                    toast.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-                                    toast.style.fontSize = '1.1em';
-                                    toast.style.zIndex = '3000';
-                                    toast.style.opacity = '0';
-                                    toast.style.transition = 'opacity 0.3s';
-                                    document.body.appendChild(toast);
-                                }
-                                toast.textContent = mensaje;
-                                toast.style.opacity = '1';
-                                setTimeout(() => {
-                                    toast.style.opacity = '0';
-                                }, 2500);
-                            }
+                    function mostrarToast(mensaje) {
+                        let toast = document.getElementById('toastExito');
+                        if (!toast) {
+                            toast = document.createElement('div');
+                            toast.id = 'toastExito';
+                            toast.style.position = 'fixed';
+                            toast.style.top = '30px';
+                            toast.style.left = '50%';
+                            toast.style.transform = 'translateX(-50%)';
+                            toast.style.background = '#38c172';
+                            toast.style.color = '#fff';
+                            toast.style.padding = '16px 32px';
+                            toast.style.borderRadius = '8px';
+                            toast.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+                            toast.style.fontSize = '1.1em';
+                            toast.style.zIndex = '3000';
+                            toast.style.opacity = '0';
+                            toast.style.transition = 'opacity 0.3s';
+                            document.body.appendChild(toast);
+                        }
+                        toast.textContent = mensaje;
+                        toast.style.opacity = '1';
+                        setTimeout(() => {
+                            toast.style.opacity = '0';
+                        }, 5000);
+                    }
                 } catch (err) {
                     mostrarError('Error de red al guardar la solicitud: ' + (err.message || err));
                 }
@@ -957,8 +997,12 @@
                     if (!res.ok) throw new Error('Error al obtener partícipes');
                     const data = await res.json();
                     const participes = data.registros || [];
-                    inicializarTomSelectParticipes(document.getElementById('demandanteSolicitud'), participes);
-                    inicializarTomSelectParticipes(document.getElementById('demandadoSolicitud'), participes);
+                    const usuario = getUsuario();
+                    // Filtrar demandados: todos menos el usuario logueado
+                    const demandados = participes.filter(p => String(p.id) !== String(usuario?.id));
+                    if (document.getElementById('demandadoSolicitud')) {
+                        inicializarTomSelectParticipes(document.getElementById('demandadoSolicitud'), demandados);
+                    }
                 } catch (error) {
                     console.error('Error cargando partícipes:', error);
                 }

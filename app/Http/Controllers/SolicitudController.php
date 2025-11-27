@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\Solicitud;
 use App\Models\SolicitudArchivo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class SolicitudController extends Controller
@@ -20,9 +21,9 @@ class SolicitudController extends Controller
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('demandante', 'like', "%$search%")
-                  ->orWhere('demandado', 'like', "%$search%")
-                  ->orWhere('estado', 'like', "%$search%")
-                  ->orWhere('id', $search);
+                ->orWhere('demandado', 'like', "%$search%")
+                ->orWhere('estado', 'like', "%$search%")
+                ->orWhere('id', $search);
             });
         }
         if ($estado && $estado !== 'Todos') {
@@ -73,9 +74,14 @@ class SolicitudController extends Controller
     // Crear nueva solicitud
     public function store(Request $request)
     {
+        $user = Auth::user();
+
+        $participeId = null;
+        if ($user->participe) {
+            $participeId = $user->participe->id;
+        }
 
         $request->validate([
-            'participe_id' => 'required|exists:participes,id',
             'demandante' => 'required|string',
             'demandado' => 'required|string',
             'archivos.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
@@ -83,6 +89,7 @@ class SolicitudController extends Controller
 
         $data = $request->only(['participe_id','demandante','demandado']);
         $data['estado'] = 'Pendiente';
+        $data['participe_id'] = $participeId;
         $solicitud = Solicitud::create($data);
 
         if ($request->hasFile('archivos')) {
@@ -95,7 +102,7 @@ class SolicitudController extends Controller
             }
         }
 
-        return response()->json($solicitud->load('archivos'), 201);
+        return response()->json('Solicitud creada correctamente', 201);
     }
 
     // Mostrar una solicitud
