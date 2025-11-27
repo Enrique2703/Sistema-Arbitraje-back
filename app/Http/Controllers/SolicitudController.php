@@ -29,15 +29,31 @@ class SolicitudController extends Controller
             $query->where('estado', $estado);
         }
 
-        $solicitudes = $query->with('participe', 'archivos')->orderByDesc('created_at')->paginate($perPage);
 
-        // Adaptar los datos para el frontend
+        $solicitudes = $query->with(['participe', 'archivos'])->orderByDesc('created_at')->paginate($perPage);
+
+        // Adaptar los datos para el frontend mostrando nombres
         $data = $solicitudes->map(function($solicitud) {
+            // Buscar nombre del demandante
+            $demandanteNombre = null;
+            $demandadoNombre = null;
+            if (is_numeric($solicitud->demandante)) {
+                $demandante = \App\Models\Participe::find($solicitud->demandante);
+                $demandanteNombre = $demandante ? $demandante->nombres : $solicitud->demandante;
+            } else {
+                $demandanteNombre = $solicitud->demandante;
+            }
+            if (is_numeric($solicitud->demandado)) {
+                $demandado = \App\Models\Participe::find($solicitud->demandado);
+                $demandadoNombre = $demandado ? $demandado->nombres : $solicitud->demandado;
+            } else {
+                $demandadoNombre = $solicitud->demandado;
+            }
             return [
                 'id' => $solicitud->id,
                 'estado' => $solicitud->estado,
-                'demandante' => $solicitud->demandante,
-                'demandado' => $solicitud->demandado,
+                'demandante' => $demandanteNombre,
+                'demandado' => $demandadoNombre,
                 'numero_documentos' => $solicitud->archivos->count(),
                 'fecha_inicio' => $solicitud->created_at,
             ];
