@@ -909,7 +909,7 @@
                         return;
                     }
                     // Éxito
-                    alert('Solicitud guardada correctamente');
+                    mostrarToast('Solicitud guardada correctamente');
                     document.getElementById('modalSolicitudes').style.display = 'none';
                     this.reset();
                     archivosSeleccionados = [];
@@ -918,6 +918,33 @@
                     if (typeof cargarExpedientes === 'function') {
                         cargarExpedientes(1);
                     }
+                            // Toast de éxito
+                            function mostrarToast(mensaje) {
+                                let toast = document.getElementById('toastExito');
+                                if (!toast) {
+                                    toast = document.createElement('div');
+                                    toast.id = 'toastExito';
+                                    toast.style.position = 'fixed';
+                                    toast.style.top = '30px';
+                                    toast.style.left = '50%';
+                                    toast.style.transform = 'translateX(-50%)';
+                                    toast.style.background = '#38c172';
+                                    toast.style.color = '#fff';
+                                    toast.style.padding = '16px 32px';
+                                    toast.style.borderRadius = '8px';
+                                    toast.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+                                    toast.style.fontSize = '1.1em';
+                                    toast.style.zIndex = '3000';
+                                    toast.style.opacity = '0';
+                                    toast.style.transition = 'opacity 0.3s';
+                                    document.body.appendChild(toast);
+                                }
+                                toast.textContent = mensaje;
+                                toast.style.opacity = '1';
+                                setTimeout(() => {
+                                    toast.style.opacity = '0';
+                                }, 2500);
+                            }
                 } catch (err) {
                     mostrarError('Error de red al guardar la solicitud: ' + (err.message || err));
                 }
@@ -1218,10 +1245,15 @@
             });
 
             document.querySelectorAll('.btn-seguir').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function(e) {
+                    // Solo redirigir si el id y nombre son válidos y el usuario realmente hace clic
                     const id = this.getAttribute('data-id');
                     const nombre = this.getAttribute('data-nombre');
-                    window.location.href = `${window.location.origin}/expedientes/participes/seguimiento?id=${id}&nombre=${encodeURIComponent(nombre)}`;
+                    if (id && id !== 'null' && nombre && nombre !== 'null') {
+                        window.location.href = `${window.location.origin}/expedientes/participes/seguimiento?id=${id}&nombre=${encodeURIComponent(nombre)}`;
+                    } else {
+                        mostrarToast('No se puede seguir el trámite: datos incompletos');
+                    }
                 });
             });
         }
