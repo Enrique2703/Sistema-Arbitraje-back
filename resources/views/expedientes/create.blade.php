@@ -283,6 +283,7 @@
         document.getElementById('createModalOverlay').classList.remove('hidden');
         loadSelectsExpediente();
     }
+    window.openCreateModal = openCreateModal;
 
     // Cerrar modal
     function closeCreateModal() {

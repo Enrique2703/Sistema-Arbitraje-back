@@ -383,38 +383,84 @@
             // Actualizar en UI
             document.getElementById('detalleEstado').textContent = 'Rechazado';
             document.getElementById('detalleEstado').className = 'font-medium bg-red-100 text-red-800 px-2 py-1 rounded';
-                // Botón aceptar: cambia a verde
-                document.getElementById('btnAceptarSolicitud').onclick = async function() {
-                    const id = window.solicitudDetalleId;
-                    if (!id) return;
-                    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                    try {
-                        const res = await fetch(`/api/solicitudes/${id}/estado`, {
-                            method: 'PUT',
-                            headers: {
-                                'Authorization': `Bearer ${token}`,
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ estado: 'Aceptado' })
-                        });
-                        if (!res.ok) throw new Error('No se pudo actualizar el estado');
-                        document.getElementById('detalleEstado').textContent = 'Aceptado';
-                        document.getElementById('detalleEstado').className = 'font-medium bg-green-100 text-green-800 px-2 py-1 rounded';
-                        setTimeout(() => {
-                            document.getElementById('detalleSolicitudModal').classList.add('hidden');
-                            loadSolicitudes(currentPage, perPage);
-                        }, 800);
-                    } catch (e) {
-                        alert('Error al aceptar la solicitud');
-                    }
-                };
             setTimeout(() => {
                 document.getElementById('detalleSolicitudModal').classList.add('hidden');
                 loadSolicitudes(currentPage, perPage);
             }, 800);
         } catch (e) {
             alert('Error al rechazar la solicitud');
+        }
+    };
+
+    document.getElementById('btnAceptarSolicitud').onclick = async function() {
+        const id = window.solicitudDetalleId;
+        if (!id) return;
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        // Cambiar estado visualmente de inmediato
+        document.getElementById('detalleEstado').textContent = 'Aceptado';
+        document.getElementById('detalleEstado').className = 'font-medium bg-green-100 text-green-800 px-2 py-1 rounded';
+        try {
+            const res = await fetch(`/api/solicitudes/${id}/estado`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ estado: 'Aceptado' })
+            });
+            if (!res.ok) throw new Error('No se pudo actualizar el estado');
+            // Refrescar la tabla
+            loadSolicitudes(currentPage, perPage);
+            // Cerrar cualquier modal de solicitud si existe
+            document.getElementById('detalleSolicitudModal').classList.add('hidden');
+            // Cerrar modal de nueva solicitud si está abierto
+            if (document.getElementById('createModal')) {
+                document.getElementById('createModal').classList.add('hidden');
+            }
+            if (document.getElementById('createSolicitudModalOverlay')) {
+                document.getElementById('createSolicitudModalOverlay').classList.add('hidden');
+            }
+            // Obtener datos de la solicitud para prellenar partícipes
+            const detalle = await fetch(`/api/solicitudes/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+            if (detalle.ok) {
+                const solicitud = await detalle.json();
+                // Abrir modal expediente
+                if (window.openCreateModal) {
+                    window.openCreateModal();
+                    setTimeout(() => {
+                        // Prellenar partícipes
+                        const container = document.getElementById('participesContainer');
+                        container.innerHTML = '';
+                        function crearParticipe(nombre, condicion) {
+                            const div = document.createElement('div');
+                            div.className = 'flex items-center gap-2 mb-2';
+                            div.innerHTML = `
+                                <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+                                <select name="participes_id[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"><option value="">${nombre}</option></select>
+                                <select name="participes_condicion[]" class="w-40 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                                    <option value="">Condición</option>
+                                    <option value="Demandante"${condicion==='Demandante'?' selected':''}>Demandante</option>
+                                    <option value="Demandado"${condicion==='Demandado'?' selected':''}>Demandado</option>
+                                </select>
+                            `;
+                            container.appendChild(div);
+                        }
+                        crearParticipe(solicitud.demandante, 'Demandante');
+                        crearParticipe(solicitud.demandado, 'Demandado');
+                    }, 400);
+                }
+            }
+        } catch (e) {
+            alert('Error al aceptar la solicitud');
+            // Revertir visual si hay error
+            document.getElementById('detalleEstado').textContent = 'Pendiente';
+            document.getElementById('detalleEstado').className = 'font-medium bg-gray-200 text-gray-700 px-2 py-1 rounded';
         }
     };
 </script>
