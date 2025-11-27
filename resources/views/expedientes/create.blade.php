@@ -707,15 +707,56 @@
         const div = document.createElement('div');
         div.className = 'flex items-center gap-2 mb-2';
         div.innerHTML = `
-        <button type="button" onclick="this.parentElement.remove()" 
-            class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
-        <select name="participes_id[]" 
-            class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-            <option value="">Seleccionar partícipe</option>
-        </select>
-    `;
+            <button type=\"button\" onclick=\"this.parentElement.remove()\" class=\"w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0\">−</button>
+            <select name=\"participes_id[]\" class=\"flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white\">
+                <option value=\"\">Seleccionar partícipe</option>
+            </select>
+            <select name=\"participes_condicion[]\" class=\"w-40 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white\">
+                <option value=\"\">Condición</option>
+                <option value=\"Demandante\">Demandante</option>
+                <option value=\"Demandado\">Demandado</option>
+            </select>
+        `;
         container.appendChild(div);
-        if (window.listaParticipes) llenarSelectParticipes([div.querySelector('select')], window.listaParticipes);
+        const select = div.querySelector('select[name="participes_id[]"]');
+        if (window.listaParticipes) llenarSelectParticipes([select], window.listaParticipes);
+        // Integrar TomSelect para buscador
+        if (window.TomSelect) {
+            if (select.tomselect) select.tomselect.destroy();
+            new TomSelect(select, {
+                valueField: 'id',
+                labelField: 'nombres',
+                searchField: ['nombres', 'apellidos', 'email'],
+                options: window.listaParticipes || [],
+                create: false,
+                placeholder: 'Buscar partícipe...',
+                render: {
+                    option: function(item, escape) {
+                        return `<div class=\"py-2 px-3\"><div class=\"font-medium\">${escape(item.nombres ?? '')} ${escape(item.apellidos ?? '')}</div><div class=\"text-sm text-gray-600\">${escape(item.email || '')}</div></div>`;
+                    },
+                    item: function(item, escape) {
+                        return `<div>${escape(item.nombres ?? '')} ${escape(item.apellidos ?? '')}</div>`;
+                    }
+                },
+                loadingClass: 'loading',
+                load: async function(query, callback) {
+                    try {
+                        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                        const response = await fetch(`/api/participes?search=${encodeURIComponent(query)}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Accept': 'application/json'
+                            }
+                        });
+                        const json = await response.json();
+                        callback(json.registros || []);
+                    } catch (e) {
+                        console.error('Error cargando partícipes:', e);
+                        callback();
+                    }
+                }
+            });
+        }
     }
 </script>
 
