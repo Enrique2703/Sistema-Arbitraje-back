@@ -35,14 +35,14 @@ class SolicitudController extends Controller
 
         // Adaptar los datos para el frontend mostrando nombres
         $data = $solicitudes->map(function($solicitud) {
-            // Buscar nombre del demandante
+            // Mostrar el nombre del partícipe (participante) como demandante
             $demandanteNombre = null;
             $demandadoNombre = null;
-            if (is_numeric($solicitud->demandante)) {
-                $demandante = \App\Models\Participe::find($solicitud->demandante);
-                $demandanteNombre = $demandante ? $demandante->nombres : $solicitud->demandante;
+            if (is_numeric($solicitud->participe_id)) {
+                $demandante = \App\Models\Participe::find($solicitud->participe_id);
+                $demandanteNombre = $demandante ? $demandante->nombres : $solicitud->participe_id;
             } else {
-                $demandanteNombre = $solicitud->demandante;
+                $demandanteNombre = $solicitud->participe_id;
             }
             if (is_numeric($solicitud->demandado)) {
                 $demandado = \App\Models\Participe::find($solicitud->demandado);
@@ -110,15 +110,18 @@ class SolicitudController extends Controller
     {
         $solicitud = Solicitud::with(['participe.credencial', 'archivos'])->findOrFail($id);
 
-        // Demandante
-        $demandanteNombre = $solicitud->demandante;
+        // Demandante: si el campo demandante es null, usar participe_id
+        $demandanteNombre = null;
         $demandanteCorreo = null;
-        if (is_numeric($solicitud->demandante)) {
-            $demandante = \App\Models\Participe::with('credencial')->find($solicitud->demandante);
+        $demandanteId = $solicitud->demandante ?? $solicitud->participe_id;
+        if (is_numeric($demandanteId)) {
+            $demandante = \App\Models\Participe::with('credencial')->find($demandanteId);
             if ($demandante) {
                 $demandanteNombre = $demandante->nombres;
                 $demandanteCorreo = $demandante->credencial ? $demandante->credencial->email : null;
             }
+        } else {
+            $demandanteNombre = $demandanteId;
         }
 
         // Demandado
@@ -136,8 +139,9 @@ class SolicitudController extends Controller
             'id' => $solicitud->id,
             'estado' => $solicitud->estado,
             'created_at' => $solicitud->created_at,
-            'demandante' => $demandanteNombre,
-            'demandante_correo' => $demandanteCorreo,
+            // Si demandanteNombre es null, buscar el nombre por participe_id
+            'demandante' => ($demandanteNombre && $demandanteNombre !== 'null') ? $demandanteNombre : ($solicitud->participe ? $solicitud->participe->nombres : $solicitud->participe_id),
+            'demandante_correo' => $demandanteCorreo ?? ($solicitud->participe && $solicitud->participe->credencial ? $solicitud->participe->credencial->email : null),
             'demandado' => $demandadoNombre,
             'demandado_correo' => $demandadoCorreo,
             'archivos' => $solicitud->archivos,
