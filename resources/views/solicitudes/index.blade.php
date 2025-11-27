@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @include('solicitudes.create')
 @include('solicitudes.edit')
+@include('solicitudes.detalle')
 
 @section('content')
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -283,12 +284,62 @@
         }, 300);
     });
 
-    function verDocumentos(id) {
-        window.location.href = `/solicitudes/documentos?id=${id}`;
+
+    // Modal Detalle Solicitud
+    async function verSolicitud(id) {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        try {
+            const res = await fetch(`/api/solicitudes/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+            if (!res.ok) throw new Error('No se pudo cargar la solicitud');
+            const solicitud = await res.json();
+
+            // Llenar datos en el modal
+            document.getElementById('detalleEstado').textContent = solicitud.estado || '';
+            if (solicitud.created_at) {
+                const fecha = new Date(solicitud.created_at);
+                const dia = String(fecha.getDate()).padStart(2, '0');
+                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                const anio = fecha.getFullYear();
+                document.getElementById('detalleFechaInicio').textContent = `${dia}-${mes}-${anio}`;
+            } else {
+                document.getElementById('detalleFechaInicio').textContent = '';
+            }
+
+
+            // Demandante
+            let demandanteNombre = solicitud.demandante;
+            let demandanteCorreo = solicitud.demandante_correo || '';
+            // Demandado
+            let demandadoNombre = solicitud.demandado;
+            let demandadoCorreo = solicitud.demandado_correo || '';
+
+            document.getElementById('detalleDemandante').innerHTML = `${demandanteNombre}${demandanteCorreo ? ' <span class=\"text-xs text-gray-500\">(' + demandanteCorreo + ')</span>' : ''}`;
+            document.getElementById('detalleDemandado').innerHTML = `${demandadoNombre}${demandadoCorreo ? ' <span class=\"text-xs text-gray-500\">(' + demandadoCorreo + ')</span>' : ''}`;
+
+            // Documentos
+            const docList = document.getElementById('detalleDocumentos');
+            docList.innerHTML = '';
+            if (solicitud.archivos && solicitud.archivos.length > 0) {
+                solicitud.archivos.forEach(doc => {
+                    docList.innerHTML += `<li class="flex items-center justify-between border-b py-1">${doc.archivo_adjunto.split('/').pop()} <a href="/storage/${doc.archivo_adjunto}" target="_blank" class="ml-2 text-gray-500 hover:text-black"><i class="bi bi-paperclip"></i></a></li>`;
+                });
+            } else {
+                docList.innerHTML = '<li class="text-gray-400">Sin documentos</li>';
+            }
+
+            document.getElementById('detalleSolicitudModal').classList.remove('hidden');
+        } catch (e) {
+            alert('Error al cargar detalles de la solicitud');
+        }
     }
 
-    function verHistorial(id) {
-        window.location.href = `/solicitudes/historial?id=${id}`;
-    }
+    document.getElementById('btnCerrarDetalleSolicitud').onclick = function() {
+        document.getElementById('detalleSolicitudModal').classList.add('hidden');
+    };
 </script>
 @endsection

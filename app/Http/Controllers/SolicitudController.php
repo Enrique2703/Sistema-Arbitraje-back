@@ -99,7 +99,41 @@ class SolicitudController extends Controller
     // Mostrar una solicitud
     public function show($id)
     {
-        return Solicitud::with('participe', 'archivos')->findOrFail($id);
+        $solicitud = Solicitud::with(['participe.credencial', 'archivos'])->findOrFail($id);
+
+        // Demandante
+        $demandanteNombre = $solicitud->demandante;
+        $demandanteCorreo = null;
+        if (is_numeric($solicitud->demandante)) {
+            $demandante = \App\Models\Participe::with('credencial')->find($solicitud->demandante);
+            if ($demandante) {
+                $demandanteNombre = $demandante->nombres;
+                $demandanteCorreo = $demandante->credencial ? $demandante->credencial->email : null;
+            }
+        }
+
+        // Demandado
+        $demandadoNombre = $solicitud->demandado;
+        $demandadoCorreo = null;
+        if (is_numeric($solicitud->demandado)) {
+            $demandado = \App\Models\Participe::with('credencial')->find($solicitud->demandado);
+            if ($demandado) {
+                $demandadoNombre = $demandado->nombres;
+                $demandadoCorreo = $demandado->credencial ? $demandado->credencial->email : null;
+            }
+        }
+
+        return response()->json([
+            'id' => $solicitud->id,
+            'estado' => $solicitud->estado,
+            'created_at' => $solicitud->created_at,
+            'demandante' => $demandanteNombre,
+            'demandante_correo' => $demandanteCorreo,
+            'demandado' => $demandadoNombre,
+            'demandado_correo' => $demandadoCorreo,
+            'archivos' => $solicitud->archivos,
+            'participe' => $solicitud->participe,
+        ]);
     }
 
     // Eliminar una solicitud y sus archivos
