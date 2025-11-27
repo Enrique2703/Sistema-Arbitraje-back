@@ -73,15 +73,17 @@ class SolicitudController extends Controller
     // Crear nueva solicitud
     public function store(Request $request)
     {
+
         $request->validate([
             'participe_id' => 'required|exists:participes,id',
-            'estado' => 'required|string',
             'demandante' => 'required|string',
             'demandado' => 'required|string',
             'archivos.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
         ]);
 
-        $solicitud = Solicitud::create($request->only(['participe_id','estado','demandante','demandado']));
+        $data = $request->only(['participe_id','demandante','demandado']);
+        $data['estado'] = 'Pendiente';
+        $solicitud = Solicitud::create($data);
 
         if ($request->hasFile('archivos')) {
             foreach ($request->file('archivos') as $archivo) {

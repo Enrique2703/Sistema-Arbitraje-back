@@ -58,6 +58,7 @@
     async function createSolicitud(event) {
         event.preventDefault();
         const formData = new FormData(event.target);
+        // No enviar campo estado, el backend lo pondrá por defecto
 
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');

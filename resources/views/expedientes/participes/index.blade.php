@@ -602,16 +602,6 @@
                         <form id="formSolicitudes" class="modal-solicitudes-form">
                             <div class="modal-body">
                                 <div class="modal-solicitudes-fields">
-                                    <div>
-                                        <label for="estadoSolicitud">ESTADO:</label>
-                                        <select id="estadoSolicitud" name="estado" required>
-                                            <option value="">Seleccione un estado</option>
-                                            <option value="En trámite">En trámite</option>
-                                            <option value="Suspendido">Suspendido</option>
-                                            <option value="Archivado">Archivado</option>
-                                            <option value="Concluido">Concluido</option>
-                                        </select>
-                                    </div>
                                     <div class="modal-solicitudes-row">
                                         <div>
                                             <label for="demandanteSolicitud">DEMANDANTE:</label>
@@ -861,7 +851,11 @@
 
                 const formData = new FormData();
                 // Obtener valores
-                const estado = document.getElementById('estadoSolicitud').value;
+                let estado = 'Pendiente';
+                const estadoInput = document.getElementById('estadoSolicitud');
+                if (estadoInput) {
+                    estado = estadoInput.value || 'Pendiente';
+                }
                 const demandante = document.getElementById('demandanteSolicitud').value;
                 const demandado = document.getElementById('demandadoSolicitud').value;
                 formData.append('participe_id', demandante);
