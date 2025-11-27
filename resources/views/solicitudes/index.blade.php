@@ -434,25 +434,78 @@
                 if (window.openCreateModal) {
                     window.openCreateModal();
                     setTimeout(() => {
-                        // Prellenar partícipes
+                        // Prellenar partícipes usando los IDs reales de la solicitud
                         const container = document.getElementById('participesContainer');
                         container.innerHTML = '';
-                        function crearParticipe(nombre, condicion) {
+                        function crearParticipePorId(id, condicion) {
+                            // Si el id es string (nombre), buscar el ID real en listaParticipes
+                            let realId = id;
+                            if (typeof id === 'string' && window.listaParticipes) {
+                                const normalizar = s => (s||'').toLowerCase().trim();
+                                const encontrado = window.listaParticipes.find(p => {
+                                    const nombreCompleto = `${p.nombres ?? ''} ${p.apellidos ?? ''}`.trim();
+                                    return normalizar(nombreCompleto) === normalizar(id);
+                                });
+                                if (encontrado) realId = encontrado.id;
+                            }
                             const div = document.createElement('div');
                             div.className = 'flex items-center gap-2 mb-2';
                             div.innerHTML = `
                                 <button type="button" onclick="this.parentElement.remove()" class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
-                                <select name="participes_id[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"><option value="">${nombre}</option></select>
+                                <select name="participes_id[]" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                                    <option value="">Seleccionar partícipe</option>
+                                </select>
                                 <select name="participes_condicion[]" class="w-40 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
                                     <option value="">Condición</option>
                                     <option value="Demandante"${condicion==='Demandante'?' selected':''}>Demandante</option>
                                     <option value="Demandado"${condicion==='Demandado'?' selected':''}>Demandado</option>
                                 </select>
                             `;
+                            // Llenar el select con los partícipes y seleccionar el correcto
+                            if (window.listaParticipes) {
+                                const select = div.querySelector('select[name="participes_id[]"]');
+                                select.innerHTML = '<option value="">Seleccionar partícipe</option>';
+                                window.listaParticipes.forEach(p => {
+                                    const nombreCompleto = `${p.nombres ?? ''} ${p.apellidos ?? ''}`.trim();
+                                    const option = document.createElement('option');
+                                    option.value = p.id;
+                                    option.textContent = nombreCompleto || 'Partícipe sin nombre';
+                                    if (p.id == realId) option.selected = true;
+                                    select.appendChild(option);
+                                });
+                                // Integrar TomSelect si está disponible
+                                if (window.TomSelect) {
+                                    if (select.tomselect) select.tomselect.destroy();
+                                    new TomSelect(select, {
+                                        valueField: 'id',
+                                        labelField: 'nombres',
+                                        searchField: ['nombres', 'apellidos', 'email'],
+                                        options: window.listaParticipes || [],
+                                        create: false,
+                                        placeholder: 'Buscar partícipe...'
+                                    });
+                                }
+                            }
                             container.appendChild(div);
                         }
-                        crearParticipe(solicitud.demandante, 'Demandante');
-                        crearParticipe(solicitud.demandado, 'Demandado');
+                        // Usar participe_id como Demandante y demandado como Demandado
+                        let demandanteId = null;
+                        if (solicitud.participe && solicitud.participe.id) {
+                            demandanteId = String(solicitud.participe.id);
+                            crearParticipePorId(demandanteId, 'Demandante');
+                        } else if (solicitud.participe_id) {
+                            demandanteId = String(solicitud.participe_id);
+                            crearParticipePorId(demandanteId, 'Demandante');
+                        }
+                        // Demandado: siempre agregar si existe y no es igual al demandante
+                        let demandadoId = null;
+                        if (solicitud.demandado !== undefined && solicitud.demandado !== null && String(solicitud.demandado).trim() !== '') {
+                            demandadoId = String(solicitud.demandado);
+                        }
+                        // Evitar duplicar si demandante y demandado son el mismo
+                        if (demandadoId !== null && (!demandanteId || demandadoId !== demandanteId)) {
+                            crearParticipePorId(demandadoId, 'Demandado');
+                        }
                     }, 400);
                 }
             }
