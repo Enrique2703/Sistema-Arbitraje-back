@@ -1,3 +1,37 @@
+        <style>
+        /* Mejoras drag&drop y lista archivos en modal Solicitudes */
+        .modal-solicitudes-lista {
+            margin-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .modal-solicitudes-file {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 7px;
+            padding: 8px 14px;
+            font-size: 15px;
+            color: #222;
+            justify-content: space-between;
+            transition: border 0.2s;
+        }
+        .modal-solicitudes-file .modal-solicitudes-remove {
+            background: none;
+            border: none;
+            color: #e11d48;
+            font-size: 1.3em;
+            margin-left: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #dropzoneSolicitud.dragover {
+            border-color: #6366f1;
+            background: #f1f5ff;
+        }
+        </style>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -560,48 +594,186 @@
             <!-- MODAL SOLICITUDES -->
             <div class="modal-overlay" id="modalSolicitudes" style="display:none;">
                 <div class="modal">
-                    <div class="modal-header">
-                        <h2>Nueva Solicitud</h2>
-                        <button class="modal-close" id="closeSolicitudes">×</button>
-                    </div>
-                    <form id="formSolicitudes">
-                        <div class="modal-body">
-                            <div class="modal-section">
-                                <div class="modal-field">
-                                    <label for="estadoSolicitud">Estado:</label>
-                                    <select id="estadoSolicitud" name="estado" required style="flex:1; padding:8px; border-radius:3px; border:1px solid #ccc;">
-                                        <option value="">Seleccione</option>
-                                        <option value="En trámite">En trámite</option>
-                                        <option value="Suspendido">Suspendido</option>
-                                        <option value="Archivado">Archivado</option>
-                                        <option value="Concluido">Concluido</option>
-                                    </select>
-                                </div>
-                                <div class="modal-field">
-                                    <label for="demandanteSolicitud">Demandante:</label>
-                                    <select id="demandanteSolicitud" name="demandante" required style="flex:1; padding:8px; border-radius:3px; border:1px solid #ccc;">
-                                        <option value="">Seleccione demandante</option>
-                                    </select>
-                                </div>
-                                <div class="modal-field">
-                                    <label for="demandadoSolicitud">Demandado:</label>
-                                    <select id="demandadoSolicitud" name="demandado" required style="flex:1; padding:8px; border-radius:3px; border:1px solid #ccc;">
-                                        <option value="">Seleccione demandado</option>
-                                    </select>
-                                </div>
-                                <div class="modal-field" style="flex-direction: column; align-items: flex-start;">
-                                    <label for="documentosSolicitud">Documentos:</label>
-                                    <input type="file" id="documentosSolicitud" name="documentos[]" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="width:100%; padding:8px; border-radius:3px; border:1px solid #ccc; margin-top:8px;">
-                                    <small style="color:#666; margin-top:4px;">Puede seleccionar múltiples archivos (PDF, DOC, DOCX, JPG, PNG)</small>
-                                    <div id="listaArchivos" style="margin-top:8px; font-size:13px; color:#333;"></div>
+                    <div class="modal modal-solicitudes-custom">
+                        <div class="modal-solicitudes-header">
+                            <h2>Nueva Solicitud</h2>
+                            <button class="modal-close" id="closeSolicitudes">×</button>
+                        </div>
+                        <form id="formSolicitudes" class="modal-solicitudes-form">
+                            <div class="modal-body">
+                                <div class="modal-solicitudes-fields">
+                                    <div>
+                                        <label for="estadoSolicitud">ESTADO:</label>
+                                        <select id="estadoSolicitud" name="estado" required>
+                                            <option value="">Seleccione un estado</option>
+                                            <option value="En trámite">En trámite</option>
+                                            <option value="Suspendido">Suspendido</option>
+                                            <option value="Archivado">Archivado</option>
+                                            <option value="Concluido">Concluido</option>
+                                        </select>
+                                    </div>
+                                    <div class="modal-solicitudes-row">
+                                        <div>
+                                            <label for="demandanteSolicitud">DEMANDANTE:</label>
+                                            <select id="demandanteSolicitud" name="demandante" required></select>
+
+                                        </div>
+                                        <div>
+                                            <label for="demandadoSolicitud">DEMANDADO:</label>
+                                            <select id="demandadoSolicitud" name="demandado" required></select>
+
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="documentosSolicitud">DOCUMENTOS:</label>
+                                        <div id="dropzoneSolicitud">
+                                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                <polyline points="17 8 12 3 7 8"></polyline>
+                                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                                            </svg>
+                                            <div class="modal-solicitudes-drop">Arrastra archivos aquí o haz clic para seleccionar</div>
+                                            <div class="modal-solicitudes-help">Formatos permitidos: PDF, DOC, DOCX, JPG, PNG (Máx. 10 MB por archivo)</div>
+                                            <input type="file" id="documentosSolicitud" name="documentos[]" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none;">
+                                        </div>
+                                        <div id="listaArchivos" class="modal-solicitudes-lista"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn-cerrar" id="cancelarSolicitudes">Cancelar</button>
-                            <button type="submit" class="btn-seguir">Guardar</button>
-                        </div>
-                    </form>
+                            <div class="modal-footer modal-solicitudes-footer">
+                                <button type="button" class="btn-cerrar" id="cancelarSolicitudes">CANCELAR</button>
+                                <button type="submit" class="btn-seguir">GUARDAR</button>
+                            </div>
+                        </form>
+                    </div>
+                        <style>
+                        /* MODAL SOLICITUDES AISLADO */
+                        .modal-solicitudes-custom {
+                            max-width: 600px;
+                            width: 96vw;
+                            margin: 0 auto;
+                            border-radius: 10px;
+                            background: #fff;
+                            box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+                            position: relative;
+                            overflow: hidden;
+                        }
+                        .modal-solicitudes-header {
+                            background: #fff;
+                            padding: 28px 32px 4px 32px;
+                            border-radius: 10px 10px 0 0;
+                            position: relative;
+                        }
+                        .modal-solicitudes-header h2 {
+                            color: #181818;
+                            font-size: 2rem;
+                            font-weight: 500;
+                            margin: 0;
+                            letter-spacing: -1px;
+                        }
+                        .modal-solicitudes-header .modal-close {
+                            position: absolute;
+                            top: 24px;
+                            right: 32px;
+                            background: none;
+                            border: none;
+                            color: #181818;
+                            font-size: 2rem;
+                            cursor: pointer;
+                        }
+                        .modal-solicitudes-form {
+                            background: #fff;
+                            border-radius: 0 0 10px 10px;
+                            padding: 32px 32px 0 32px;
+                        }
+                        .modal-solicitudes-fields {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 28px;
+                        }
+                        .modal-solicitudes-fields label {
+                            display: block;
+                            font-weight: bold;
+                            text-transform: uppercase;
+                            color: #222;
+                            margin-bottom: 8px;
+                        }
+                        .modal-solicitudes-required {
+                            color: #e11d48;
+                        }
+                        .modal-solicitudes-fields select {
+                            width: 100%;
+                            padding: 14px 16px;
+                            border: 1.5px solid #d1d5db;
+                            border-radius: 8px;
+                            font-size: 1rem;
+                            background: #fafbfc;
+                            outline: none;
+                        }
+                        .modal-solicitudes-row {
+                            display: flex;
+                            gap: 20px;
+                        }
+                        .modal-solicitudes-row > div {
+                            flex: 1;
+                        }
+                        .modal-solicitudes-help {
+                            color: #6b7280;
+                            font-size: 0.95em;
+                            margin-top: 4px;
+                        }
+                        #dropzoneSolicitud {
+                            border: 1.5px dashed #cbd5e1;
+                            border-radius: 10px;
+                            background: #fafbfc;
+                            padding: 32px 0;
+                            text-align: center;
+                            cursor: pointer;
+                            transition: border-color 0.2s;
+                        }
+                        .modal-solicitudes-clip {
+                            font-size: 2.2rem;
+                            color: #6b7280;
+                            margin-bottom: 8px;
+                        }
+                        .modal-solicitudes-drop {
+                            font-weight: 600;
+                            color: #222;
+                        }
+                        .modal-solicitudes-lista {
+                            margin-top:12px;
+                            font-size:14px;
+                            color:#333;
+                        }
+                        .modal-solicitudes-footer {
+                            display: flex;
+                            justify-content: flex-end;
+                            gap: 16px;
+                            padding: 32px 0 24px 0;
+                            background: #fff;
+                            border-radius: 0 0 10px 10px;
+                        }
+                        .modal-solicitudes-footer .btn-cerrar,
+                        .modal-solicitudes-footer .btn-seguir {
+                            padding: 12px 36px;
+                            font-size: 1.1rem;
+                            font-weight: 600;
+                            border-radius: 8px;
+                            border: none;
+                        }
+                        .modal-solicitudes-footer .btn-cerrar {
+                            background: #f3f4f6;
+                            color: #222;
+                        }
+                        .modal-solicitudes-footer .btn-seguir {
+                            background: #181818;
+                            color: #fff;
+                        }
+                        @media (max-width: 600px) {
+                            .modal-solicitudes-custom { padding: 0; }
+                            .modal-solicitudes-header, .modal-solicitudes-form { padding-left: 10px; padding-right: 10px; }
+                        }
+                        </style>
                 </div>
             </div>
             <script>
@@ -621,28 +793,76 @@
                 if (e.target === this) this.style.display = 'none';
             });
             
-            // Mostrar archivos seleccionados
-            document.getElementById('documentosSolicitud').addEventListener('change', function(e) {
-                const listaDiv = document.getElementById('listaArchivos');
-                const archivos = Array.from(e.target.files);
-                if (archivos.length > 0) {
-                    listaDiv.innerHTML = '<strong>Archivos seleccionados:</strong><br>' + 
-                        archivos.map(f => `• ${f.name} (${(f.size / 1024).toFixed(1)} KB)`).join('<br>');
-                } else {
-                    listaDiv.innerHTML = '';
-                }
+
+            // Drag & drop y lista de archivos para Solicitudes
+            const dropzone = document.getElementById('dropzoneSolicitud');
+            const inputArchivos = document.getElementById('documentosSolicitud');
+            const listaDiv = document.getElementById('listaArchivos');
+            let archivosSeleccionados = [];
+
+            function renderListaArchivos() {
+                listaDiv.innerHTML = '';
+                if (archivosSeleccionados.length === 0) return;
+                archivosSeleccionados.forEach((file, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'modal-solicitudes-file';
+                    div.innerHTML = `${file.name} <span style="color:#6b7280; font-size:0.97em;">(${(file.size/1024).toFixed(1)} KB)</span> <button type="button" class="modal-solicitudes-remove" title="Eliminar archivo">&times;</button>`;
+                    div.querySelector('button').onclick = () => {
+                        archivosSeleccionados.splice(idx, 1);
+                        renderListaArchivos();
+                    };
+                    listaDiv.appendChild(div);
+                });
+            }
+
+            dropzone.addEventListener('click', () => inputArchivos.click());
+            dropzone.addEventListener('dragover', e => {
+                e.preventDefault();
+                dropzone.classList.add('dragover');
+            });
+            dropzone.addEventListener('dragleave', e => {
+                e.preventDefault();
+                dropzone.classList.remove('dragover');
+            });
+            dropzone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropzone.classList.remove('dragover');
+                const files = Array.from(e.dataTransfer.files);
+                files.forEach(f => {
+                    if (!archivosSeleccionados.some(a => a.name === f.name && a.size === f.size)) {
+                        archivosSeleccionados.push(f);
+                    }
+                });
+                renderListaArchivos();
+            });
+            inputArchivos.addEventListener('change', function(e) {
+                const files = Array.from(e.target.files);
+                files.forEach(f => {
+                    if (!archivosSeleccionados.some(a => a.name === f.name && a.size === f.size)) {
+                        archivosSeleccionados.push(f);
+                    }
+                });
+                renderListaArchivos();
+                // Limpiar input para permitir volver a seleccionar el mismo archivo si se elimina
+                inputArchivos.value = '';
+            });
+
+            // Al abrir el modal, limpiar archivos
+            document.getElementById('btnSolicitudes').addEventListener('click', function() {
+                archivosSeleccionados = [];
+                renderListaArchivos();
             });
             
             document.getElementById('formSolicitudes').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const formData = new FormData(this);
-                const archivos = document.getElementById('documentosSolicitud').files;
-                console.log('Archivos a subir:', archivos.length);
-                // Aquí puedes manejar el guardado de la solicitud con FormData
-                alert(`Solicitud guardada (simulado)\nArchivos seleccionados: ${archivos.length}`);
+                archivosSeleccionados.forEach(f => formData.append('documentos[]', f));
+                // Aquí puedes manejar el guardado real de la solicitud con formData
+                alert(`Solicitud guardada (simulado)\nArchivos seleccionados: ${archivosSeleccionados.length}`);
                 document.getElementById('modalSolicitudes').style.display = 'none';
                 this.reset();
-                document.getElementById('listaArchivos').innerHTML = '';
+                archivosSeleccionados = [];
+                renderListaArchivos();
             });
 
             // Cargar partícipes y poblar selects con Tom Select
