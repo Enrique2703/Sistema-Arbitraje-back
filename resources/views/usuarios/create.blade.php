@@ -140,8 +140,9 @@
             // Éxito: mostrar mensaje y actualizar tabla
             alert('Usuario creado correctamente');
             closeCreateUserModal();
-            if (typeof fetchUsuarios === 'function') {
-                fetchUsuarios();
+            // Recargar tabla de usuarios si estamos en la vista de usuarios
+            if (typeof loadUsuarios === 'function') {
+                loadUsuarios(typeof currentPage !== 'undefined' ? currentPage : 1, typeof perPage !== 'undefined' ? perPage : 7);
             }
             // Recargar lista de usuarios en expediente si existe
             if (typeof loadSelectsExpediente === 'function') {

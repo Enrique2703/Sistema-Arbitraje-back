@@ -34,7 +34,7 @@
                             placeholder="Buscar">
                     </div>
                 </div>
-                <button onclick="openCreateModal()"
+                <button onclick="openCreateUserModal()"
                     class="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors font-medium">
                     Nuevo usuario
                 </button>
@@ -307,49 +307,8 @@
     }
 
 
-    document.getElementById('createUserForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const form = e.target;
-        const data = {
-            nombres: form.nombres.value,
-            email: form.email.value,
-            password: form.password.value,
-            nivel_usuario: form.nivel_usuario.value,
-            estado: form.estado.value,
-        };
-
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-
-        try {
-            const res = await fetch('/api/usuarios', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-
-            if (!res.ok) {
-                let errorText = 'No se pudo crear el usuario.';
-                try {
-                    const errorData = await res.json();
-                    errorText = errorData.message || errorText;
-                } catch (_) {}
-                alert('Error: ' + errorText);
-                return;
-            }
-
-            // Creado correctamente
-            alert('Usuario creado exitosamente');
-            closeCreateModal();
-            loadUsuarios(currentPage, perPage);
-        } catch (err) {
-            console.error(err);
-            alert('Error de conexión con la API');
-        }
-    });
+    // El listener de createUserForm está en usuarios/create.blade.php
+    // (eliminado para evitar duplicación)
 
     async function deleteUsuario(id) {
         if (!confirm('¿Seguro que deseas eliminar este usuario?')) return;
@@ -380,17 +339,8 @@
         }
     }
 
-    // Modales
-    function openCreateModal() {
-        document.getElementById('createModalOverlay').classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeCreateModal() {
-        document.getElementById('createModalOverlay').classList.add('hidden');
-        document.body.style.overflow = 'auto';
-        document.getElementById('createUserForm').reset();
-    }
+    // Modales (ahora se usan las funciones de usuarios/create.blade.php)
+    // openCreateUserModal() y closeCreateUserModal() están definidas en @include('usuarios.create')
 
     // Modales de contraseña
     function openPasswordModal(id) {
