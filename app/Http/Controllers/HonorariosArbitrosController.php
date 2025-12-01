@@ -9,7 +9,7 @@ class HonorariosArbitrosController extends Controller
 {
     public function index()
     {
-        return HonorariosArbitros::all();
+        return HonorariosArbitros::orderBy('escala', 'asc')->get();
     }
 
     public function show($id)

@@ -9,7 +9,7 @@ class HonorariosSecretariosController extends Controller
 {
     public function index()
     {
-        return HonorariosSecretarios::all();
+        return HonorariosSecretarios::orderBy('escala', 'asc')->get();
     }
 
     public function show($id)

@@ -9,7 +9,7 @@ class GastosAdministrativosController extends Controller
 {
     public function index()
     {
-        return GastosAdministrativos::all();
+        return GastosAdministrativos::orderBy('escala', 'asc')->get();
     }
 
     public function show($id)
