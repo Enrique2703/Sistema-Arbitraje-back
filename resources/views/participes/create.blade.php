@@ -12,7 +12,7 @@
                 </button>
             </div>
             <div class="px-6 py-4">
-                <form id="createUserForm">
+                <form id="createParticipeForm">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Nombres</label>
                         <input type="text" name="nombres" required
@@ -78,20 +78,20 @@
     });
 
     // Manejar envío del formulario
-    document.getElementById('createParticipeForm')?.addEventListener('submit', async function(e) {
-        e.preventDefault();
+    const participeForm = document.getElementById('createParticipeForm');
+    if (participeForm) {
+        participeForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        const formData = new FormData(this);
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const formData = new FormData(this);
 
-        const data = {
-            nombres: formData.get('nombres'),
-            apellidos: formData.get('apellidos'),
-            documento: formData.get('documento'),
-            email: formData.get('email'),
-            telefono: formData.get('telefono'),
-            estado: formData.get('estado')
-        };
+            const data = {
+                nombres: formData.get('nombres'),
+                email: formData.get('email'),
+                password: formData.get('password'),
+                estado: formData.get('estado')
+            };
 
         try {
             const response = await fetch('/api/participes', {
@@ -113,6 +113,10 @@
                 if (typeof cargarParticipes === 'function') {
                     await cargarParticipes();
                 }
+                // Recargar lista de partícipes en expediente si existe
+                if (typeof loadSelectsExpediente === 'function') {
+                    await loadSelectsExpediente();
+                }
             } else {
                 alert('Error: ' + (result.message || result.mensaje || 'No se pudo crear el partícipe'));
             }
@@ -120,5 +124,6 @@
             console.error('Error:', error);
             alert('Error al crear el partícipe');
         }
-    });
+        });
+    }
 </script>
