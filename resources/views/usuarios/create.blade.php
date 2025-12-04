@@ -138,7 +138,6 @@
             }
 
             // Éxito: mostrar mensaje y actualizar tabla
-            alert('Usuario creado correctamente');
             closeCreateUserModal();
             // Recargar tabla de usuarios si estamos en la vista de usuarios
             if (typeof loadUsuarios === 'function') {
