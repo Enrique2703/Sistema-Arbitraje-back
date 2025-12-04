@@ -112,32 +112,33 @@
                 body: formData
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                const errorData = await response.json();
-                if (errorData && errorData.errors) {
+                // Hay un error
+                if (data && data.errors) {
+                    // Verificar si es error de email duplicado
+                    if (data.errors.email) {
+                        alert('Gmail ya registrado, intenta con otro');
+                    }
                     // Mostrar errores debajo de cada campo
-                    Object.entries(errorData.errors).forEach(([campo, mensajes]) => {
+                    Object.entries(data.errors).forEach(([campo, mensajes]) => {
                         const errorDiv = document.getElementById('error-' + campo);
                         if (errorDiv) errorDiv.textContent = mensajes.join(' ');
                     });
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Crear';
-                    return; // No cerrar el modal
-                } else if (errorData && errorData.mensaje) {
+                } else if (data && data.mensaje) {
                     // Si el backend retorna un mensaje de error específico
-                    alert(errorData.mensaje);
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Crear';
-                    return;
+                    alert(data.mensaje);
                 } else {
-                    alert('Error al crear el usuario');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Crear';
-                    return;
+                    alert('Error al crear el usuario, intenta nuevamente');
                 }
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Crear';
+                return; // Detener aquí, no continuar
             }
 
-            // Éxito: mostrar mensaje y actualizar tabla
+            // Solo llega aquí si response.ok === true (éxito)
+            alert('Usuario creado exitosamente');
             closeCreateUserModal();
             // Recargar tabla de usuarios si estamos en la vista de usuarios
             if (typeof loadUsuarios === 'function') {
@@ -152,7 +153,7 @@
                 inicializarTomSelect(selects, window.listaUsuarios || []);
             }
         } catch (error) {
-            alert('Error de red o inesperado al crear el usuario');
+            alert('Email ya registrado, intenta con otro');
         } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = 'Crear';

@@ -332,7 +332,6 @@
 
 
             // Creado correctamente
-            alert('Usuario creado exitosamente');
             closeCreateModal();
             loadUsuarios(currentPage, perPage);
         } catch (error) {
