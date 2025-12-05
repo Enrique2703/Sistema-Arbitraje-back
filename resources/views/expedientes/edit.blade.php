@@ -886,7 +886,8 @@
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
                         },
                         body: JSON.stringify(data)
                     });
@@ -908,7 +909,7 @@
                     }
                 } catch (error) {
                     console.error('Error en la petición:', error);
-                    alert('Error al crear el usuario: ' + error.message);
+                    alert('Error al crear el usuario333: ' + error.message);
                 }
             });
         }
