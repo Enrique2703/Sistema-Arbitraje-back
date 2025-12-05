@@ -128,6 +128,7 @@ class ExpedienteController extends Controller
                 'anio' => $expediente->anio,
                 'codigo' => $expediente->codigo,
                 'estado' => $expediente->estado ?? 'Sin estado',
+                'cerrado' => $expediente->cerrado ?? false,
                 'cantidad_participes' => $expediente->participes->count(),
                 'documentos' => $expediente->participeDocumentos()->count(),
                 'fecha_creacion' => $expediente->created_at ? $expediente->created_at->format('Y-m-d') : null,
@@ -546,6 +547,45 @@ class ExpedienteController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Expediente eliminado correctamente'
+        ]);
+    }
+
+    /**
+     * Cerrar expediente
+     */
+    public function cerrarExpediente($id)
+    {
+        $expediente = Expediente::find($id);
+
+        if (!$expediente) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Expediente no encontrado'
+            ], 404);
+        }
+
+        // Cerrar el expediente
+        $expediente->cerrado = true;
+        $expediente->save();
+
+        // Registrar en historial
+        HistorialController::registrar($expediente->id, 'Cerró el expediente');
+
+        // Auditoría
+        $expedienteNombre = $expediente->numero . ' - ' . $expediente->anio . '/' . $expediente->codigo;
+        \App\Traits\RegistraAuditoria::registrarAuditoria(
+            'Expediente cerrado',
+            'Se cerró el expediente, los partícipes ya no pueden subir documentos',
+            'actualizar',
+            'expedientes',
+            ['cerrado' => false],
+            ['cerrado' => true],
+            $expedienteNombre
+        );
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Expediente cerrado correctamente'
         ]);
     }
 }

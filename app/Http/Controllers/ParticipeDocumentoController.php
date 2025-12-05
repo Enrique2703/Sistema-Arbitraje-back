@@ -77,6 +77,15 @@ class ParticipeDocumentoController extends Controller
             ], 401);
         }
 
+        // Verificar si el expediente está cerrado
+        $expediente = Expediente::find($request->expediente_id);
+        if ($expediente && $expediente->cerrado) {
+            return response()->json([
+                'mensaje' => 'Expediente cerrado',
+                'error' => 'No se pueden subir documentos a un expediente cerrado'
+            ], 403);
+        }
+
         // Determinar si es admin/staff o partícipe
         $participeId = null;
         if ($user->participe) {

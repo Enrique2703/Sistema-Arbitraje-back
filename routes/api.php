@@ -53,6 +53,7 @@ Route::middleware(['session.timeout'])->group(function () {
     Route::get('participe-documento-archivos/{id}/download', [ParticipeDocumentoArchivoController::class, 'download'])
         ->name('participe-documento-archivos.download');
     Route::apiResource('expedientes', ExpedienteController::class);
+    Route::post('expedientes/{id}/cerrar', [ExpedienteController::class, 'cerrarExpediente']);
     Route::apiResource('participe-documentos', ParticipeDocumentoController::class);
     Route::apiResource('cedulas', CedulaController::class);
     

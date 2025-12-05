@@ -211,8 +211,8 @@
 
         list.forEach(exp => {
             const rowId = `exp-row-${exp.id}`;
-            // Determinar si el botón debe ser "Cédula" o "Cerrar"
-            const isCedula = cedulaBtnState[exp.id] === true;
+            // Determinar si el botón debe ser "Cédula" o "Cerrar" basado en si está cerrado
+            const isCedula = exp.cerrado === true;
             tbody.innerHTML += `
                 <tr class="hover:bg-gray-50" id="${rowId}">
                     <td class="px-6 py-4">
@@ -250,23 +250,40 @@
                             openGenerarCedulaModal(expedienteId);
                         };
                     } else {
-                        btn.onclick = function() {
-                            // Cambiar a Cédula, guardar estado y asignar handler
-                            btn.textContent = 'Cédula';
-                            // Mantener color negro
-                            btn.classList.remove('bg-black', 'hover:bg-gray-800');
-                            btn.classList.add('bg-black', 'hover:bg-gray-800');
-                            // Guardar en localStorage
-                            let cedulaBtnState = {};
+                        btn.onclick = async function() {
+                            if (!confirm('¿Está seguro de cerrar este expediente? Los partícipes no podrán subir más documentos.')) {
+                                return;
+                            }
+
                             try {
-                                cedulaBtnState = JSON.parse(localStorage.getItem('cedulaBtnState') || '{}');
-                            } catch (e) { cedulaBtnState = {}; }
-                            cedulaBtnState[expedienteId] = true;
-                            localStorage.setItem('cedulaBtnState', JSON.stringify(cedulaBtnState));
-                            // Asignar handler para abrir modal
-                            btn.onclick = function() {
-                                openGenerarCedulaModal(expedienteId);
-                            };
+                                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                                const response = await fetch(`/api/expedientes/${expedienteId}/cerrar`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`,
+                                        'Accept': 'application/json',
+                                        'Content-Type': 'application/json'
+                                    }
+                                });
+
+                                const result = await response.json();
+
+                                if (!response.ok) {
+                                    alert(result.message || 'Error al cerrar el expediente');
+                                    return;
+                                }
+
+                                // Cambiar el botón a "Cédula"
+                                btn.textContent = 'Cédula';
+                                btn.onclick = function() {
+                                    openGenerarCedulaModal(expedienteId);
+                                };
+
+                                alert('Expediente cerrado correctamente. Los partícipes ya no pueden subir documentos.');
+                            } catch (error) {
+                                console.error('Error:', error);
+                                alert('Error al cerrar el expediente');
+                            }
                         };
                     }
                 }

@@ -733,6 +733,15 @@
                     const expediente = result.data;
                     const nombreFormateado = `${expediente.numero || 'Expediente'} - ${expediente.anio || '—'}/${expediente.codigo || '—'}`;
                     document.getElementById('nombreExpediente').textContent = nombreFormateado;
+                    
+                    // Verificar si el expediente está cerrado y deshabilitar el botón
+                    const btnPresentar = document.querySelector('.presentar-btn');
+                    if (expediente.cerrado) {
+                        btnPresentar.disabled = true;
+                        btnPresentar.style.opacity = '0.5';
+                        btnPresentar.style.cursor = 'not-allowed';
+                        btnPresentar.title = 'Expediente cerrado - No se pueden subir más documentos';
+                    }
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -798,7 +807,11 @@
 
                     const result = await response.json();
 
-
+                    // Verificar si el expediente está cerrado
+                    if (result.status && result.data && result.data.cerrado) {
+                        alert('EXPEDIENTE CERRADO\n\nNo se pueden subir documentos a este expediente porque ya ha sido cerrado.');
+                        return;
+                    }
 
                     modal.classList.add('active');
                 } catch (error) {
@@ -916,6 +929,14 @@
 
                     if (!response.ok) {
                         console.error('Error completo:', result);
+                        
+                        // Verificar si es un error de expediente cerrado
+                        if (response.status === 403 && result.mensaje === 'Expediente cerrado') {
+                            alert('EXPEDIENTE CERRADO\n\nNo se pueden subir documentos a este expediente porque ya ha sido cerrado.');
+                            cerrarModalNuevoDocumento();
+                            return;
+                        }
+                        
                         if (result.errores) {
                             console.error('Errores de validación:', result.errores);
                             const erroresTexto = Object.entries(result.errores)

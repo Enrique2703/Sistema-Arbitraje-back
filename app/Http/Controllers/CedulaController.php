@@ -103,6 +103,13 @@ class CedulaController extends Controller
             }
         }
 
+        // Cerrar el expediente cuando se envía la cédula
+        $expediente = \App\Models\Expediente::find($request->get('expediente_id'));
+        if ($expediente) {
+            $expediente->cerrado = true;
+            $expediente->save();
+        }
+
             DB::commit();
 
             // Cargar relaciones para devolver en la respuesta
