@@ -163,7 +163,10 @@ class ExpedienteController extends Controller
         $estado = $request->query('estado');
         $rol = $request->query('tipo_proceso');
 
-        $query = Expediente::orderByDesc('id');
+        $query = Expediente::orderByDesc('id')
+            ->whereHas('participes', function ($q) use ($participe) {
+                $q->where('participe_id', $participe->id);
+            });
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -178,8 +181,9 @@ class ExpedienteController extends Controller
         }
 
         if ($rol && $rol !== 'Todos') {
-            $query->whereHas('participes', function ($q) use ($rol) {
-                $q->where('condicion', $rol);
+            $query->whereHas('participes', function ($q) use ($rol, $participe) {
+                $q->where('participe_id', $participe->id)
+                  ->where('condicion', $rol);
             });
         }
 
@@ -188,7 +192,9 @@ class ExpedienteController extends Controller
         // 🔹 Transformar los datos antes de enviar al frontend
         $registros = $expedientesPaginated->map(function ($expediente) use ($participe) {
             // Get the participant role for this specific expediente
-            $participeExpediente = $expediente->participes()->first();
+            $participeExpediente = $expediente->participes()
+                ->where('participe_id', $participe->id)
+                ->first();
 
             return [
             'id' => $expediente->id ?? 'N/A',

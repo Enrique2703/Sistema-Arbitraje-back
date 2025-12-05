@@ -793,9 +793,9 @@
 
                     // Obtener la condición del primer participe
                     if (result.status && result.data && result.data.participes && result.data.participes.length > 0) {
-                        const primerParticipe = result.data.participes[0];
-                        document.getElementById('parte').value = primerParticipe.condicion;
-                        console.log('Condición establecida:', primerParticipe.condicion);
+                        const condicion = result.data.participes[0];
+                        document.getElementById('parte').value = condicion.condicion;
+                        console.log('Condición establecida:', condicion.condicion);
                     }
 
                     modal.classList.add('active');
