@@ -1235,7 +1235,7 @@
                     <td>${rol}</td>
                     <td>${exp.cantidad_documentos || '0'}</td>
                     <td>${formatearFecha(exp.fecha_actualizacion)}</td>
-                    <td><button class="btn-seguir" data-id="${exp.id}" data-nombre="${formatearNombreExpediente(exp)}">Seguir trámite</button></td>
+                    <td><button class="btn-seguir" data-id="${exp.id}" data-nombre="${formatearNombreExpediente(exp)}" data-condicion="${exp.condicion || ''}">Seguir trámite</button></td>
                 </tr>
                 `;
             }).join('');
@@ -1287,8 +1287,9 @@
                     // Solo redirigir si el id y nombre son válidos y el usuario realmente hace clic
                     const id = this.getAttribute('data-id');
                     const nombre = this.getAttribute('data-nombre');
+                    const condicion = this.getAttribute('data-condicion');
                     if (id && id !== 'null' && nombre && nombre !== 'null') {
-                        window.location.href = `${window.location.origin}/expedientes/participes/seguimiento?id=${id}&nombre=${encodeURIComponent(nombre)}`;
+                        window.location.href = `${window.location.origin}/expedientes/participes/seguimiento?id=${id}&nombre=${encodeURIComponent(nombre)}&condicion=${encodeURIComponent(condicion || '')}`;
                     } else {
                         mostrarToast('No se puede seguir el trámite: datos incompletos');
                     }

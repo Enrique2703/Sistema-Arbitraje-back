@@ -763,12 +763,19 @@
             // Configurar handlers para el modal de nuevo documento
             window.presentarDocumento = async function() {
                 const modal = document.getElementById('modalNuevoDocumento');
-                const expedienteId = new URLSearchParams(window.location.search).get('id');
+                const params = new URLSearchParams(window.location.search);
+                const expedienteId = params.get('id');
+                const condicion = params.get('condicion');
 
                 // Limpiar input de archivos y la lista visual SIEMPRE que se abre el modal
                 const archivosInput = document.getElementById('archivos');
                 archivosInput.value = '';
                 document.getElementById('selectedFiles').innerHTML = '';
+
+                const parteInput = document.getElementById('parte');
+                if (parteInput && condicion) {
+                    parteInput.value = condicion;
+                }
 
                 try {
                     const token = getToken();
@@ -791,12 +798,7 @@
 
                     const result = await response.json();
 
-                    // Obtener la condición del primer participe
-                    if (result.status && result.data && result.data.participes && result.data.participes.length > 0) {
-                        const condicion = result.data.participes[0];
-                        document.getElementById('parte').value = condicion.condicion;
-                        console.log('Condición establecida:', condicion.condicion);
-                    }
+
 
                     modal.classList.add('active');
                 } catch (error) {
