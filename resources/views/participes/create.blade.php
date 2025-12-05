@@ -122,7 +122,7 @@
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error al crear el partícipe');
+            alert('Email ya registrado, por favor use otro email');
         }
         });
     }
