@@ -203,16 +203,14 @@
         }
 
         tbody.innerHTML = '';
-        // Leer estado persistido de los botones
-        let cedulaBtnState = {};
-        try {
-            cedulaBtnState = JSON.parse(localStorage.getItem('cedulaBtnState') || '{}');
-        } catch (e) { cedulaBtnState = {}; }
 
         list.forEach(exp => {
             const rowId = `exp-row-${exp.id}`;
-            // Determinar si el botón debe ser "Cédula" o "Cerrar" basado en si está cerrado
-            const isCedula = exp.cerrado === true;
+            // Determinar si el botón debe ser "Cédula" o "Cerrar" basado en el campo cerrado del backend
+            // Convertir a booleano para manejar 1, "1", true, etc.
+            const isCedula = exp.cerrado == true || exp.cerrado === 1 || exp.cerrado === "1";
+            // DEBUG: Ver qué valor está llegando
+            console.log(`Expediente ${exp.id}: cerrado=${exp.cerrado}, tipo=${typeof exp.cerrado}, isCedula=${isCedula}`);
             tbody.innerHTML += `
                 <tr class="hover:bg-gray-50" id="${rowId}">
                     <td class="px-6 py-4">
@@ -640,18 +638,7 @@
                     alert('Cédula generada exitosamente');
                     closeGenerarCedulaModal();
                     
-                    // Actualizar el botón de cédula a "Cerrar" después de crear la cédula
-                    const btn = document.getElementById(`btn-cedula-${expedienteIdForCedula}`);
-                    if (btn) {
-                        btn.textContent = 'Cerrar';
-                        btn.disabled = false;
-                        btn.classList.remove('bg-gray-400', 'cursor-not-allowed', 'opacity-60');
-                        btn.classList.add('bg-black', 'hover:bg-gray-800');
-                        btn.onclick = function() { 
-                            // Redirigir a la vista de expedientes o cerrar la vista actual
-                            window.location.href = '/expedientes';
-                        };
-                    }
+                    // El botón permanece como "Cédula" ya que el expediente está cerrado
 
                 } catch (error) {
                     console.error('❌ Error completo:', error);
