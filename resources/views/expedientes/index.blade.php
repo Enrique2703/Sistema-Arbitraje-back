@@ -9,7 +9,47 @@
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 
-<div class="min-h-screen bg-gray-100 flex">
+<style>
+    /* Ocultar contenido hasta que esté listo */
+    body:not(.loaded) #mainContent {
+        opacity: 0;
+        visibility: hidden;
+    }
+    
+    /* Loader */
+    #pageLoader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+    
+    body.loaded #pageLoader {
+        display: none;
+    }
+    
+    body.loaded #mainContent {
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.3s ease-in;
+    }
+</style>
+
+<!-- Loader -->
+<div id="pageLoader">
+    <div class="text-center">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-black"></div>
+        <p class="mt-4 text-gray-600">Cargando...</p>
+    </div>
+</div>
+
+<div id="mainContent" class="min-h-screen bg-gray-100 flex">
     <div class="flex-1 flex flex-col">
         <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
             <div class="flex items-center justify-between">
@@ -708,5 +748,19 @@
         </form>
     </div>
 </div>
+
+<script>
+    // Marcar la página como cargada cuando todo esté listo
+    window.addEventListener('load', function() {
+        document.body.classList.add('loaded');
+    });
+    
+    // Fallback: marcar como cargada después de 1 segundo si no se ha cargado
+    setTimeout(function() {
+        if (!document.body.classList.contains('loaded')) {
+            document.body.classList.add('loaded');
+        }
+    }, 1000);
+</script>
 
 @endsection
