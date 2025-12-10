@@ -40,6 +40,106 @@
         visibility: visible;
         transition: opacity 0.3s ease-in;
     }
+
+    /* Toast de Notificación */
+    #toastNotification {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 16px 24px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 9999;
+        display: none;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    #toastNotification.success {
+        background: #10b981;
+    }
+
+    #toastNotification.error {
+        background: #ef4444;
+    }
+
+    @keyframes slideDown {
+        from {
+            transform: translateX(-50%) translateY(-100px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* Modal de Confirmación */
+    #confirmCerrarModal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #confirmCerrarModal .modal-box {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        max-width: 450px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    #confirmCerrarModal .modal-message {
+        font-size: 16px;
+        color: #333;
+        margin-bottom: 24px;
+        line-height: 1.5;
+    }
+
+    #confirmCerrarModal .modal-buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    #confirmCerrarModal .modal-buttons button {
+        padding: 10px 24px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    #confirmCerrarModal .btn-cancelar {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    #confirmCerrarModal .btn-cancelar:hover {
+        background: #d1d5db;
+    }
+
+    #confirmCerrarModal .btn-aceptar {
+        background: #3b82f6;
+        color: white;
+    }
+
+    #confirmCerrarModal .btn-aceptar:hover {
+        background: #2563eb;
+    }
 </style>
 
 <!-- Loader -->
@@ -290,39 +390,37 @@
                         };
                     } else {
                         btn.onclick = async function() {
-                            if (!confirm('¿Está seguro de cerrar este expediente? Los partícipes no podrán subir más documentos.')) {
-                                return;
-                            }
+                            showConfirmCerrarModal(async () => {
+                                try {
+                                    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                                    const response = await fetch(`/api/expedientes/${expedienteId}/cerrar`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Authorization': `Bearer ${token}`,
+                                            'Accept': 'application/json',
+                                            'Content-Type': 'application/json'
+                                        }
+                                    });
 
-                            try {
-                                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                                const response = await fetch(`/api/expedientes/${expedienteId}/cerrar`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Authorization': `Bearer ${token}`,
-                                        'Accept': 'application/json',
-                                        'Content-Type': 'application/json'
+                                    const result = await response.json();
+
+                                    if (!response.ok) {
+                                        showToast(result.message || 'Error al cerrar el expediente', 'error');
+                                        return;
                                     }
-                                });
 
-                                const result = await response.json();
+                                    // Cambiar el botón a "Cédula"
+                                    btn.textContent = 'Cédula';
+                                    btn.onclick = function() {
+                                        openGenerarCedulaModal(expedienteId);
+                                    };
 
-                                if (!response.ok) {
-                                    alert(result.message || 'Error al cerrar el expediente');
-                                    return;
+                                    showToast('Expediente cerrado correctamente', 'success');
+                                } catch (error) {
+                                    console.error('Error:', error);
+                                    showToast('Error al cerrar el expediente', 'error');
                                 }
-
-                                // Cambiar el botón a "Cédula"
-                                btn.textContent = 'Cédula';
-                                btn.onclick = function() {
-                                    openGenerarCedulaModal(expedienteId);
-                                };
-
-                                alert('Expediente cerrado correctamente. Los partícipes ya no pueden subir documentos.');
-                            } catch (error) {
-                                console.error('Error:', error);
-                                alert('Error al cerrar el expediente');
-                            }
+                            });
                         };
                     }
                 }
@@ -750,7 +848,54 @@
     </div>
 </div>
 
+<!-- Toast de Notificación -->
+<div id="toastNotification"></div>
+
+<!-- Modal de Confirmación para Cerrar Expediente -->
+<div id="confirmCerrarModal">
+    <div class="modal-box">
+        <p class="modal-message">¿Está seguro de cerrar este expediente? Los partícipes no podrán subir más documentos.</p>
+        <div class="modal-buttons">
+            <button class="btn-cancelar" onclick="closeConfirmCerrarModal()">Cancelar</button>
+            <button class="btn-aceptar" id="confirmCerrarBtn">Aceptar</button>
+        </div>
+    </div>
+</div>
+
 <script>
+    // Funciones para Toast
+    function showToast(message, type = 'success', duration = 3000) {
+        const toast = document.getElementById('toastNotification');
+        toast.textContent = message;
+        toast.className = type;
+        toast.style.display = 'block';
+        
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, duration);
+    }
+
+    // Funciones para Modal de Confirmación
+    let confirmCerrarCallback = null;
+
+    function showConfirmCerrarModal(callback) {
+        confirmCerrarCallback = callback;
+        document.getElementById('confirmCerrarModal').style.display = 'flex';
+    }
+
+    function closeConfirmCerrarModal() {
+        confirmCerrarCallback = null;
+        document.getElementById('confirmCerrarModal').style.display = 'none';
+    }
+
+    // Manejar click en aceptar
+    document.getElementById('confirmCerrarBtn').addEventListener('click', function() {
+        if (confirmCerrarCallback) {
+            confirmCerrarCallback();
+        }
+        closeConfirmCerrarModal();
+    });
+
     // Marcar la página como cargada cuando todo esté listo
     window.addEventListener('load', function() {
         document.body.classList.add('loaded');

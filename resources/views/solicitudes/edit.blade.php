@@ -1,6 +1,6 @@
 <!-- Modal de Edición -->
-<div id="editModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 overflow-y-auto h-full w-full hidden">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+<div id="editModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 overflow-y-auto h-full w-full hidden flex items-center justify-center">
+    <div class="p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-lg font-medium text-gray-900">Editar Solicitud</h3>
             <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-500">

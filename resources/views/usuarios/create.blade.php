@@ -112,45 +112,75 @@
                 body: formData
             });
 
-            const data = await response.json();
+            let data;
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                console.error('Error al parsear JSON:', jsonError);
+                data = {};
+            }
 
-            if (!response.ok) {
-                // Hay un error
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+            console.log('Response data:', data);
+
+            // Verificar si hubo error (códigos 4xx o 5xx)
+            if (!response.ok || response.status === 422) {
+                // Hay un error de validación
                 if (data && data.errors) {
                     // Verificar si es error de email duplicado
                     if (data.errors.email) {
-                        alert('Gmail ya registrado, intenta con otro');
+                        alert('El email ya está registrado. Por favor, intenta con otro email.');
+                        // También mostrar el error debajo del campo
+                        const errorDiv = document.getElementById('error-email');
+                        if (errorDiv) errorDiv.textContent = data.errors.email.join(' ');
                     }
-                    // Mostrar errores debajo de cada campo
+                    // Mostrar otros errores debajo de cada campo
                     Object.entries(data.errors).forEach(([campo, mensajes]) => {
-                        const errorDiv = document.getElementById('error-' + campo);
-                        if (errorDiv) errorDiv.textContent = mensajes.join(' ');
+                        if (campo !== 'email') {
+                            const errorDiv = document.getElementById('error-' + campo);
+                            if (errorDiv) errorDiv.textContent = mensajes.join(' ');
+                        }
                     });
+                } else if (data && data.message) {
+                    // Laravel a veces usa 'message' en lugar de 'mensaje'
+                    alert(data.message);
                 } else if (data && data.mensaje) {
-                    // Si el backend retorna un mensaje de error específico
                     alert(data.mensaje);
                 } else {
                     alert('Error al crear el usuario, intenta nuevamente');
                 }
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Crear';
-                return; // Detener aquí, no continuar
+                return;
             }
 
-            // Solo llega aquí si response.ok === true (éxito)
+            // Solo llega aquí si response.ok === true (éxito - código 201)
             alert('Usuario creado exitosamente');
+            form.reset();
             closeCreateUserModal();
+            
             // Recargar tabla de usuarios si estamos en la vista de usuarios
             if (typeof loadUsuarios === 'function') {
                 loadUsuarios(typeof currentPage !== 'undefined' ? currentPage : 1, typeof perPage !== 'undefined' ? perPage : 7);
             }
+            
             // Recargar lista de usuarios en expediente si existe
             if (typeof loadSelectsExpediente === 'function') {
-                await loadSelectsExpediente();
+                try {
+                    await loadSelectsExpediente();
+                } catch (err) {
+                    console.warn('Error al recargar selects de expediente:', err);
+                }
             }
+            
             if (typeof inicializarTomSelect === 'function') {
-                const selects = document.querySelectorAll('select[name="arbitros[]"], select[name="adjutadores[]"], select[name="secretarios_tecnicos[]"]');
-                inicializarTomSelect(selects, window.listaUsuarios || []);
+                try {
+                    const selects = document.querySelectorAll('select[name="arbitros[]"], select[name="adjutadores[]"], select[name="secretarios_tecnicos[]"]');
+                    inicializarTomSelect(selects, window.listaUsuarios || []);
+                } catch (err) {
+                    console.warn('Error al inicializar TomSelect:', err);
+                }
             }
         } catch (error) {
             console.error('Error al crear usuario:', error);
