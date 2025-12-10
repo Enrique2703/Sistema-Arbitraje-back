@@ -1,8 +1,9 @@
 @extends('layouts.app')
+
+@section('content')
 @include('expedientes.create')
 @include('expedientes.edit')
 
-@section('content')
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
 <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 <!-- Tom Select CSS y JS -->

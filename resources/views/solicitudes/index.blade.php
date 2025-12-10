@@ -1,9 +1,10 @@
 @extends('layouts.app')
+
+@section('content')
 @include('solicitudes.create')
 @include('solicitudes.edit')
 @include('solicitudes.detalle')
 
-@section('content')
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
 <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 

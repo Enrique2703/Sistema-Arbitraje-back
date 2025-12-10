@@ -1,8 +1,9 @@
 @extends('layouts.app')
+
+@section('content')
 @include('usuarios.create')
 @include('usuarios.edit')
 
-@section('content')
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
 <div class="min-h-screen bg-gray-100 flex">
 

@@ -14,6 +14,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
 
     <style>
+        /* Ocultar modales con clase hidden de Tailwind */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Mostrar modales como flex cuando no tienen hidden */
+        div[id$="ModalOverlay"]:not(.hidden) {
+            display: flex !important;
+        }
+
         /* Tus estilos personalizados existentes */
         * {
             margin: 0;
@@ -233,6 +243,20 @@
 
         #logoutModal .btn-confirm:hover {
             background: #da190b;
+        }
+
+        /* Permitir que los modales se muestren cuando JavaScript los active */
+        div[id$="ModalOverlay"]:not(.hidden),
+        div[id$="ModalOverlay"][style*="display: block"],
+        div[id$="ModalOverlay"][style*="display: flex"] {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
         }
     </style>
     @yield('styles')

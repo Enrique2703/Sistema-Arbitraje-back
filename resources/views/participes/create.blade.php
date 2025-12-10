@@ -1,6 +1,6 @@
 <!-- Modal Overlay para Crear -->
-<div id="createParticipeModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
-    <div class="flex items-center justify-center min-h-screen p-4">
+<div id="createParticipeModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="p-4 w-full flex items-center justify-center">
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-screen overflow-y-auto">
             <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                 <h3 class="text-lg font-semibold text-gray-900">Nuevo partícipe</h3>
