@@ -54,7 +54,7 @@
                     <div class="flex justify-end space-x-3">
                         <button type="button" onclick="closeEditModal()"
                             class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300">Cancelar</button>
-                        <button type="submit" class="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800">Guardar</button>
+                        <button type="submit" class="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800">Editar</button>
                     </div>
                 </form>
             </div>
