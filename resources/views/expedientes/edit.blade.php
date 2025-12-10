@@ -234,7 +234,13 @@
 
     function openEditModal(id) {
         document.getElementById('editModalOverlay').classList.remove('hidden');
-        loadEditSelects().then(() => loadExpedienteToForm(id));
+        // Cargar selects solo si no están cargados
+        if (!window.listaUsuariosEdit || !window.listaParticipesEdit) {
+            Promise.all([loadEditSelects(), cargarUsuariosEdit(), cargarParticipesEdit()])
+                .then(() => loadExpedienteToFormFast(id));
+        } else {
+            loadExpedienteToFormFast(id);
+        }
     }
 
     function closeEditModal() {
@@ -622,14 +628,136 @@
         return row;
     }
 
+    // Función rápida que usa datos ya cargados desde la tabla
+    async function loadExpedienteToFormFast(id) {
+        // Intentar obtener expediente de allExpedientes (datos ya cargados)
+        let exp = window.allExpedientes ? window.allExpedientes.find(e => e.id === id) : null;
+        
+        // Si no está en memoria, hacer petición al API
+        if (!exp) {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            try {
+                const res = await fetch(`/api/expedientes/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const json = await res.json();
+                if (!res.ok) throw new Error(json.message || 'No se pudo obtener expediente');
+                exp = json.data;
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al cargar el expediente');
+                return;
+            }
+        }
+
+        const form = document.getElementById('editExpedienteForm');
+        const usuarios = window.listaUsuariosEdit || [];
+        const clientes = window.listaParticipesEdit || [];
+
+        // Rellenar formulario
+        form.querySelector('input[name="expediente_id"]').value = exp.id || '';
+        form.querySelector('input[name="usuario_id"]').value = exp.usuario?.id || '';
+        form.querySelector('input[name="numero"]').value = exp.numero || '';
+        form.querySelector('input[name="anio"]').value = exp.anio || '';
+        if (form.querySelector('select[name="codigo"]'))
+            form.querySelector('select[name="codigo"]').value = exp.codigo || '';
+        form.querySelector('select[name="etapa_procesal"]').value = exp.etapa_procesal || '';
+        form.querySelector('input[name="inicio_proceso"]').value = exp.inicio_proceso || '';
+        form.querySelector('select[name="tipo_proceso"]').value = exp.tipo_proceso || '';
+        form.querySelector('select[name="estado"]').value = exp.estado || '';
+
+        // Si el expediente viene de allExpedientes, hacer petición solo para relaciones
+        if (window.allExpedientes && window.allExpedientes.find(e => e.id === id)) {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            try {
+                const res = await fetch(`/api/expedientes/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const json = await res.json();
+                if (res.ok) exp = json.data;
+            } catch (error) {
+                console.error('Error cargando relaciones:', error);
+            }
+        }
+
+        // Fechas
+        const fLaudoCont = document.getElementById('editFechasLaudoContainer');
+        fLaudoCont.innerHTML = `
+            <div class="flex items-center gap-2 mb-2">
+                <button type="button" onclick="this.parentElement.remove()" 
+                    class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+                <input type="date" name="fecha_laudo" value="${exp.fecha_laudo || ''}"
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>`;
+
+        const fResCont = document.getElementById('editFechasResolucionContainer');
+        fResCont.innerHTML = `
+            <div class="flex items-center gap-2 mb-2">
+                <button type="button" onclick="this.parentElement.remove()" 
+                    class="w-6 h-6 border-2 border-gray-700 rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 flex-shrink-0">−</button>
+                <input type="date" name="fecha_resolucion" value="${exp.fecha_resolucion || ''}"
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>`;
+
+        // Árbitros
+        const arbContainer = document.getElementById('editArbitrosContainer');
+        arbContainer.innerHTML = '';
+        if (exp.arbitros && exp.arbitros.length > 0) {
+            exp.arbitros.forEach(arbitro => {
+                const usuarioId = arbitro.usuario_id || (arbitro.usuario && arbitro.usuario.id);
+                arbContainer.appendChild(crearFilaUsuarioSelect('arbitros[]', usuarios, usuarioId));
+            });
+        } else {
+            arbContainer.appendChild(crearFilaUsuarioSelect('arbitros[]', usuarios));
+        }
+
+        // Adjutadores
+        const adjContainer = document.getElementById('editAdjudicadoresContainer');
+        adjContainer.innerHTML = '';
+        if (exp.adjutadores && exp.adjutadores.length > 0) {
+            exp.adjutadores.forEach(adjutador => {
+                const usuarioId = adjutador.usuario_id || (adjutador.usuario && adjutador.usuario.id);
+                adjContainer.appendChild(crearFilaUsuarioSelect('adjutadores[]', usuarios, usuarioId));
+            });
+        } else {
+            adjContainer.appendChild(crearFilaUsuarioSelect('adjutadores[]', usuarios));
+        }
+
+        // Secretarios Técnicos
+        const secContainer = document.getElementById('editSecretariosTecnicosContainer');
+        secContainer.innerHTML = '';
+        if (exp.secretarios_tecnicos && exp.secretarios_tecnicos.length > 0) {
+            exp.secretarios_tecnicos.forEach(secretario => {
+                const usuarioId = secretario.usuario_id || (secretario.usuario && secretario.usuario.id);
+                secContainer.appendChild(crearFilaUsuarioSelect('secretarios_tecnicos[]', usuarios, usuarioId));
+            });
+        } else {
+            secContainer.appendChild(crearFilaUsuarioSelect('secretarios_tecnicos[]', usuarios));
+        }
+
+        // Partícipes
+        const partsContainer = document.getElementById('editParticipesContainer');
+        partsContainer.innerHTML = '';
+        if (exp.participes && exp.participes.length > 0) {
+            exp.participes.forEach(participe => {
+                const participeId = participe.participe_id || (participe.participe && participe.participe.id);
+                const condicion = participe.condicion || '';
+                partsContainer.appendChild(crearFilaParticipeSelect('participes[]', 'participes_condicion[]', clientes, participeId, condicion));
+            });
+        } else {
+            partsContainer.appendChild(crearFilaParticipeSelect('participes[]', 'participes_condicion[]', clientes));
+        }
+    }
+
 
     async function loadExpedienteToForm(id) {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         try {
-            // Asegurar que los datos de usuarios y partícipes estén cargados
-            await cargarUsuariosEdit();
-            await cargarParticipesEdit();
-            
+            // Los datos ya fueron cargados en paralelo en openEditModal
             const res = await fetch(`/api/expedientes/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -640,15 +768,6 @@
 
             const exp = json.data;
             const form = document.getElementById('editExpedienteForm');
-
-            // Debug: Mostrar qué datos están llegando
-            console.log('Datos del expediente recibidos:', exp);
-            console.log('Árbitros:', exp.arbitros);
-            console.log('Adjutadores:', exp.adjutadores);
-            console.log('Secretarios técnicos:', exp.secretarios_tecnicos);
-            console.log('Partícipes:', exp.participes);
-            console.log('Usuarios disponibles:', window.listaUsuariosEdit);
-            console.log('Partícipes disponibles:', window.listaParticipesEdit);
 
             // Campos principales
             form.querySelector('input[name="expediente_id"]').value = exp.id || '';
@@ -700,17 +819,13 @@
             const arbContainer = document.getElementById('editArbitrosContainer');
             arbContainer.innerHTML = '';
             if (exp.arbitros && exp.arbitros.length > 0) {
-                console.log('Procesando árbitros:', exp.arbitros);
                 exp.arbitros.forEach(arbitro => {
-                    console.log('Árbitro:', arbitro);
                     const usuarioId = arbitro.usuario_id || (arbitro.usuario && arbitro.usuario.id);
-                    console.log('Usuario ID del árbitro:', usuarioId);
                     arbContainer.appendChild(
                         crearFilaUsuarioSelect('arbitros[]', usuarios, usuarioId)
                     );
                 });
             } else {
-                console.log('No hay árbitros, creando fila vacía');
                 arbContainer.appendChild(crearFilaUsuarioSelect('arbitros[]', usuarios));
             }
 
@@ -718,7 +833,6 @@
             const adjContainer = document.getElementById('editAdjudicadoresContainer');
             adjContainer.innerHTML = '';
             if (exp.adjutadores && exp.adjutadores.length > 0) {
-                console.log('Procesando adjutadores:', exp.adjutadores);
                 exp.adjutadores.forEach(adjutador => {
                     const usuarioId = adjutador.usuario_id || (adjutador.usuario && adjutador.usuario.id);
                     adjContainer.appendChild(
@@ -733,7 +847,6 @@
             const secContainer = document.getElementById('editSecretariosTecnicosContainer');
             secContainer.innerHTML = '';
             if (exp.secretarios_tecnicos && exp.secretarios_tecnicos.length > 0) {
-                console.log('Procesando secretarios técnicos:', exp.secretarios_tecnicos);
                 exp.secretarios_tecnicos.forEach(secretario => {
                     const usuarioId = secretario.usuario_id || (secretario.usuario && secretario.usuario.id);
                     secContainer.appendChild(

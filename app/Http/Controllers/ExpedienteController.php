@@ -103,12 +103,12 @@ class ExpedienteController extends Controller
 
         $query = Expediente::with('participes.participe')->orderBydesc('id');
 
-        // 🔍 Búsqueda por ID, etapa_procesal o tipo_proceso
+        // 🔍 Búsqueda solo por nombre del expediente (número, año, código)
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('id', 'like', "%$search%")
-                    ->orWhere('etapa_procesal', 'like', "%$search%")
-                    ->orWhere('tipo_proceso', 'like', "%$search%");
+                $q->where('numero', 'like', "%$search%")
+                    ->orWhere('codigo', 'like', "%$search%")
+                    ->orWhereRaw("CONCAT(numero, ' - ', anio, '/', codigo) LIKE ?", ["%$search%"]);
             });
         }
 

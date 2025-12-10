@@ -19,11 +19,6 @@
             display: none !important;
         }
 
-        /* Mostrar modales como flex cuando no tienen hidden */
-        div[id$="ModalOverlay"]:not(.hidden) {
-            display: flex !important;
-        }
-
         /* Tus estilos personalizados existentes */
         * {
             margin: 0;
