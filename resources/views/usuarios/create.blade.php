@@ -15,7 +15,7 @@
                 <form id="createUserForm">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Nombres</label>
-                        <input type="text" name="nombres" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required placeholder="Ingrese su Nombre">
+                        <input type="text" name="nombres" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required placeholder="Ingrese su nombre">
                         <div id="error-nombres" class="text-red-500 text-xs mt-1"></div>
                     </div>
                     <div class="mb-4">

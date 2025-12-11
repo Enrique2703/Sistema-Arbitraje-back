@@ -1,5 +1,3 @@
-
-
 <!-- Tom Select CSS y JS -->
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
@@ -450,6 +448,9 @@
             e.preventDefault();
 
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            
+            // Obtener el ID de la solicitud guardado globalmente
+            const idSolicitud = window.idSolicitud || window.solicitudPendienteAceptar;
 
             // Recopilar datos del formulario
             const formData = new FormData(form);
@@ -482,6 +483,24 @@
             }));
 
             try {
+
+                const res = await fetch(`/api/solicitudes/${idSolicitud}/estado`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        estado: 'Aceptado'
+                    })
+                });
+
+                if (!res.ok) {
+                    alert('No se pudo actualizar el estado');
+                    return;
+                }
+
                 const response = await fetch('/api/expedientes', {
                     method: 'POST',
                     headers: {
@@ -496,10 +515,8 @@
                 if (response.ok) {
                     alert('Expediente creado correctamente');
                     closeCreateModal();
-                    // Recargar tabla o lista de expedientes
-                    if (typeof loadExpedientes === 'function') {
-                        loadExpedientes();
-                    }
+                    // Recargar la página completa
+                    window.location.reload();
                 } else {
                     alert('Error: ' + (result.message || 'No se pudo crear el expediente'));
                 }

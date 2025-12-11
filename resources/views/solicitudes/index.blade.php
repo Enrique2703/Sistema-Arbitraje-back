@@ -439,25 +439,13 @@
         
         try {
             // Cambiar el estado a Aceptado inmediatamente
-            const res = await fetch(`/api/solicitudes/${id}/estado`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ estado: 'Aceptado' })
-            });
-            
-            if (!res.ok) {
-                alert('No se pudo actualizar el estado');
-                return;
-            }
+
             
             console.log('Estado cambiado a Aceptado. ID guardado:', id);
             
             // Guardar el ID de la solicitud para saber que debe volver a Pendiente si se cancela
             window.solicitudPendienteAceptar = id;
+            window.idSolicitud = id; // Guardar ID con nombre más descriptivo
             
             // Actualizar visualmente el estado en el modal
             document.getElementById('detalleEstado').textContent = 'Aceptado';
