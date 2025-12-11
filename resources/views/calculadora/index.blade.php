@@ -140,7 +140,7 @@
                             <input type="hidden" name="id" id="cuantiaId">
                             <div class="grid grid-cols-2 gap-4 mb-4 items-center">
                                 <label class="font-medium">N° Escala</label>
-                                <input type="text" name="escala" id="cuantiaEscala" class="border rounded-lg px-3 py-2 w-full" placeholder="Número de escala" required>
+                                <input type="text" name="escala" id="cuantiaEscala" class="border rounded-lg px-3 py-2 w-full" placeholder="N° de escala" required>
                                 <label class="font-medium">Rango Mín</label>
                                 <input type="number" name="rango_min" id="cuantiaRangoMin" step="0.01" min="0" class="border rounded-lg px-3 py-2 w-full" placeholder="Rango Mínimo" required>
                                 <label class="font-medium">Rango Máx.</label>

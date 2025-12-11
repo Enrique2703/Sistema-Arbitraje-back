@@ -435,8 +435,8 @@
         const prevDisabled = currentPage <= 1;
         const nextDisabled = currentPage >= lastPage;
 
-        const prevBtn = `<button ${prevDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage-1})" class="px-3 py-2 text-sm ${prevDisabled ? 'text-gray-400' : 'text-gray-700'}">&larr; Anterior</button>`;
-        const nextBtn = `<button ${nextDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage+1})" class="px-3 py-2 text-sm ${nextDisabled ? 'text-gray-400' : 'text-black-700'}">Siguiente &rarr;</button>`;
+        const prevBtn = `<button ${prevDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage-1})" class="px-3 py-2 text-sm text-black">&larr; Anterior</button>`;
+        const nextBtn = `<button ${nextDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage+1})" class="px-3 py-2 text-sm text-black">Siguiente &rarr;</button>`;
 
         let pagesHtml = '';
         const maxPages = 4;
@@ -444,7 +444,7 @@
         let end = Math.min(lastPage, start + maxPages - 1);
 
         for (let i = start; i <= end; i++) {
-            pagesHtml += `<button onclick="goToPage(${i})" class="mx-1 px-2 py-1 text-sm ${i === currentPage ? 'bg-gray-100 rounded' : 'text-gray-500'}">${i}</button>`;
+            pagesHtml += `<button onclick="goToPage(${i})" class="mx-1 px-2 py-1 text-sm ${i === currentPage ? 'bg-gray-200 rounded text-black' : 'text-black'}">${i}</button>`;
         }
 
         container.innerHTML = `

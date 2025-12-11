@@ -229,10 +229,10 @@
         container.innerHTML = '';
 
         const prevDisabled = currentPage <= 1;
-        const prevBtn = `<button ${prevDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage-1})" class="px-3 py-2 text-sm ${prevDisabled ? 'text-gray-400' : 'text-gray-700'}">&larr; Anterior</button>`;
+        const prevBtn = `<button ${prevDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage-1})" class="px-3 py-2 text-sm text-black">&larr; Anterior</button>`;
 
         const nextDisabled = currentPage >= lastPage;
-        const nextBtn = `<button ${nextDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage+1})" class="px-3 py-2 text-sm ${nextDisabled ? 'text-gray-400' : 'text-gray-700'}">Siguiente &rarr;</button>`;
+        const nextBtn = `<button ${nextDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage+1})" class="px-3 py-2 text-sm text-black">Siguiente &rarr;</button>`;
 
         let pagesHtml = '';
         const maxPagesToShow = 4;
@@ -243,21 +243,21 @@
         }
 
         if (start > 1) {
-            pagesHtml += `<button onclick="goToPage(1)" class="mx-1 text-sm text-gray-500">1</button>`;
+            pagesHtml += `<button onclick="goToPage(1)" class="mx-1 text-sm text-black">1</button>`;
             if (start > 2) pagesHtml += `<span class="mx-1 text-sm text-gray-400">...</span>`;
         }
 
         for (let p = start; p <= end; p++) {
             if (p === currentPage) {
-                pagesHtml += `<button class="mx-1 px-2 py-1 text-sm bg-gray-100 rounded">${p}</button>`;
+                pagesHtml += `<button class="mx-1 px-2 py-1 text-sm bg-gray-200 rounded text-black">${p}</button>`;
             } else {
-                pagesHtml += `<button onclick="goToPage(${p})" class="mx-1 text-sm text-gray-500">${p}</button>`;
+                pagesHtml += `<button onclick="goToPage(${p})" class="mx-1 text-sm text-black">${p}</button>`;
             }
         }
 
         if (end < lastPage) {
             if (end < lastPage - 1) pagesHtml += `<span class="mx-1 text-sm text-gray-400">...</span>`;
-            pagesHtml += `<button onclick="goToPage(${lastPage})" class="mx-1 text-sm text-gray-500">${lastPage}</button>`;
+            pagesHtml += `<button onclick="goToPage(${lastPage})" class="mx-1 text-sm text-black">${lastPage}</button>`;
         }
 
         container.innerHTML = `
