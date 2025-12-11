@@ -2,6 +2,18 @@
 
 @section('content')
 
+<style>
+/* Ocultar flechitas de inputs tipo number */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+</style>
 
 <div class="min-h-screen bg-white flex flex-col py-8">
     <div class="w-full bg-white">
@@ -140,7 +152,7 @@
                             <input type="hidden" name="id" id="cuantiaId">
                             <div class="grid grid-cols-2 gap-4 mb-4 items-center">
                                 <label class="font-medium">N° Escala</label>
-                                <input type="text" name="escala" id="cuantiaEscala" class="border rounded-lg px-3 py-2 w-full" placeholder="N° de escala" required>
+                                <input type="number" name="escala" id="cuantiaEscala" class="border rounded-lg px-3 py-2 w-full" placeholder="N° de escala" required min="1" step="1">
                                 <label class="font-medium">Rango Mín</label>
                                 <input type="number" name="rango_min" id="cuantiaRangoMin" step="0.01" min="0" class="border rounded-lg px-3 py-2 w-full" placeholder="Rango Mínimo" required>
                                 <label class="font-medium">Rango Máx.</label>
