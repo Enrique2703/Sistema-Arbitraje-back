@@ -262,6 +262,64 @@ async function verDetalle(id) {
     }
 }
 
+function formatearValor(valor) {
+    if (valor === null || valor === undefined) return 'Sin información';
+    if (valor === true) return 'Sí';
+    if (valor === false) return 'No';
+    if (typeof valor === 'string' && valor.trim() === '') return 'Vacío';
+    return valor;
+}
+
+function formatearCampo(campo) {
+    const traducciones = {
+        'cerrado': 'Estado de cierre',
+        'numero_expediente': 'Número de expediente',
+        'numero_solicitud': 'Número de solicitud',
+        'tipo_arbitraje': 'Tipo de arbitraje',
+        'materia': 'Materia',
+        'cuantia': 'Cuantía',
+        'moneda': 'Moneda',
+        'fecha_admision': 'Fecha de admisión',
+        'fecha_cierre': 'Fecha de cierre',
+        'nombres': 'Nombres',
+        'email': 'Correo electrónico',
+        'estado': 'Estado',
+        'nivel_usuario': 'Nivel de usuario',
+        'password': 'Contraseña',
+        'cedula': 'Cédula',
+        'telefono': 'Teléfono',
+        'celular': 'Celular',
+        'direccion': 'Dirección',
+        'created_at': 'Fecha de creación',
+        'updated_at': 'Fecha de actualización'
+    };
+    return traducciones[campo] || campo.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function formatearDatos(datos) {
+    if (!datos || typeof datos !== 'object') return '';
+    
+    let html = '<div class="space-y-3">';
+    
+    for (const [campo, valor] of Object.entries(datos)) {
+        // Omitir campos técnicos y contraseñas
+        if (campo === 'password' || campo === 'updated_at' || campo === 'created_at' || campo === 'id') continue;
+        
+        const campoFormateado = formatearCampo(campo);
+        const valorFormateado = formatearValor(valor);
+        
+        html += `
+            <div class="flex border-b border-gray-200 pb-2">
+                <span class="font-medium text-gray-700 min-w-[160px]">${campoFormateado}:</span>
+                <span class="text-gray-900 flex-1">${valorFormateado}</span>
+            </div>
+        `;
+    }
+    
+    html += '</div>';
+    return html;
+}
+
 function mostrarDetalleModal(auditoria) {
     const fecha = new Date(auditoria.created_at).toLocaleString('es-ES', {
         day: '2-digit',
@@ -305,16 +363,20 @@ function mostrarDetalleModal(auditoria) {
         ` : ''}
         
         ${auditoria.datos_anteriores ? `
-        <div class="mt-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Datos anteriores</label>
-            <pre class="text-xs text-gray-700 bg-gray-50 p-3 rounded border border-gray-200 overflow-x-auto">${JSON.stringify(auditoria.datos_anteriores, null, 2)}</pre>
+        <div class="mt-6">
+            <label class="block text-base font-semibold text-gray-800 mb-3 pb-2 border-b-2 border-blue-500"> Datos Anteriores</label>
+            <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+                ${formatearDatos(auditoria.datos_anteriores)}
+            </div>
         </div>
         ` : ''}
         
         ${auditoria.datos_nuevos ? `
-        <div class="mt-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Datos nuevos</label>
-            <pre class="text-xs text-gray-700 bg-gray-50 p-3 rounded border border-gray-200 overflow-x-auto">${JSON.stringify(auditoria.datos_nuevos, null, 2)}</pre>
+        <div class="mt-6">
+            <label class="block text-base font-semibold text-gray-800 mb-3 pb-2 border-b-2 border-green-500"> Datos Nuevos</label>
+            <div class="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+                ${formatearDatos(auditoria.datos_nuevos)}
+            </div>
         </div>
         ` : ''}
     `;
