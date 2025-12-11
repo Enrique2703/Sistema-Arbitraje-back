@@ -125,12 +125,12 @@
             console.log('Response data:', data);
 
             // Verificar si hubo error (códigos 4xx o 5xx)
-            if (!response.ok || response.status === 422) {
+            if (!response.ok) {
                 // Hay un error de validación
                 if (data && data.errors) {
                     // Verificar si es error de email duplicado
                     if (data.errors.email) {
-                        alert('El email ya está registrado. Por favor, intenta con otro email.');
+                        alert('Email ya registrado, por favor use otro email');
                         // También mostrar el error debajo del campo
                         const errorDiv = document.getElementById('error-email');
                         if (errorDiv) errorDiv.textContent = data.errors.email.join(' ');
@@ -143,7 +143,6 @@
                         }
                     });
                 } else if (data && data.message) {
-                    // Laravel a veces usa 'message' en lugar de 'mensaje'
                     alert(data.message);
                 } else if (data && data.mensaje) {
                     alert(data.mensaje);
@@ -156,7 +155,7 @@
             }
 
             // Solo llega aquí si response.ok === true (éxito - código 201)
-            alert('Usuario creado exitosamente');
+            alert(data.mensaje || 'Email ya registrado, por favor use otro email');
             form.reset();
             closeCreateUserModal();
             
