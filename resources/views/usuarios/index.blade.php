@@ -270,6 +270,9 @@
     });
 
     async function fetchUsuarios(search = '') {
+        const tbody = document.getElementById('usuariosTableBody');
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-500">Buscando...</td></tr>`;
+
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
@@ -298,11 +301,25 @@
             }
 
             const data = await res.json();
-            allUsuarios = data.registros || [];
+            
+            if (data && Array.isArray(data.registros)) {
+                allUsuarios = data.registros;
+                currentPage = data.meta?.current_page || 1;
+                lastPage = data.meta?.last_page || 1;
+                perPage = data.meta?.per_page || 7;
+                renderPagination();
+            } else {
+                allUsuarios = [];
+                currentPage = 1;
+                lastPage = 1;
+                renderPagination();
+            }
+            
             renderUsuarios(allUsuarios);
 
         } catch (error) {
             console.error('Error en la búsqueda:', error);
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-red-500">Error al buscar usuarios</td></tr>`;
         }
     }
 

@@ -294,16 +294,8 @@ function mostrarDetalleModal(auditoria) {
                 <label class="block text-sm font-medium text-gray-700 mb-1">Expediente</label>
                 <p class="text-sm text-gray-900">${auditoria.expediente || 'N/A'}</p>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Dirección IP</label>
-                <p class="text-sm text-gray-900">${auditoria.ip || '—'}</p>
-            </div>
         </div>
         
-        <div class="mt-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Acción</label>
-            <p class="text-sm text-gray-900">${auditoria.accion}</p>
-        </div>
         
         ${auditoria.detalle ? `
         <div class="mt-4">

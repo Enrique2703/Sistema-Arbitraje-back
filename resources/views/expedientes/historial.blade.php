@@ -270,10 +270,6 @@ function mostrarDetalleModal(historial) {
                 <label class="block text-sm font-medium text-gray-700 mb-1">Fecha y hora</label>
                 <p class="text-sm text-gray-900">${fecha}</p>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Acción</label>
-                <p class="text-sm text-gray-900">${historial.accion || '—'}</p>
-            </div>
         </div>
     `;
 
