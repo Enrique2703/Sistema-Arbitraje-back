@@ -179,6 +179,8 @@
             tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red-500 py-6">Error al cargar solicitudes</td></tr>`;
         }
     }
+    // Exponer función globalmente para que pueda ser llamada desde otros modales
+    window.loadSolicitudes = loadSolicitudes;
 
     function renderSolicitudes(list) {
         const tbody = document.getElementById('solicitudesTableBody');
@@ -434,10 +436,9 @@
         const id = window.solicitudDetalleId;
         if (!id) return;
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        // Cambiar estado visualmente de inmediato
-        document.getElementById('detalleEstado').textContent = 'Aceptado';
-        document.getElementById('detalleEstado').className = 'font-medium bg-green-100 text-green-800 px-2 py-1 rounded';
+        
         try {
+            // Cambiar el estado a Aceptado inmediatamente
             const res = await fetch(`/api/solicitudes/${id}/estado`, {
                 method: 'PUT',
                 headers: {
@@ -447,18 +448,27 @@
                 },
                 body: JSON.stringify({ estado: 'Aceptado' })
             });
-            if (!res.ok) throw new Error('No se pudo actualizar el estado');
-            // Refrescar la tabla
+            
+            if (!res.ok) {
+                alert('No se pudo actualizar el estado');
+                return;
+            }
+            
+            console.log('Estado cambiado a Aceptado. ID guardado:', id);
+            
+            // Guardar el ID de la solicitud para saber que debe volver a Pendiente si se cancela
+            window.solicitudPendienteAceptar = id;
+            
+            // Actualizar visualmente el estado en el modal
+            document.getElementById('detalleEstado').textContent = 'Aceptado';
+            document.getElementById('detalleEstado').className = 'font-medium bg-green-100 text-green-800 px-2 py-1 rounded';
+            
+            // Recargar la tabla para mostrar el cambio
             loadSolicitudes(currentPage, perPage);
-            // Cerrar cualquier modal de solicitud si existe
+            
+            // Cerrar modal de detalle de solicitud
             document.getElementById('detalleSolicitudModal').classList.add('hidden');
-            // Cerrar modal de nueva solicitud si está abierto
-            if (document.getElementById('createModal')) {
-                document.getElementById('createModal').classList.add('hidden');
-            }
-            if (document.getElementById('createSolicitudModalOverlay')) {
-                document.getElementById('createSolicitudModalOverlay').classList.add('hidden');
-            }
+            
             // Obtener datos de la solicitud para prellenar partícipes
             const detalle = await fetch(`/api/solicitudes/${id}`, {
                 headers: {

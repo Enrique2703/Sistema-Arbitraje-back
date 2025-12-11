@@ -286,10 +286,46 @@
     window.openCreateModal = openCreateModal;
 
     // Cerrar modal
-    function closeCreateModal() {
+    async function closeCreateModal() {
+        console.log('closeCreateModal llamada. solicitudPendienteAceptar:', window.solicitudPendienteAceptar);
+        
+        // Si hay una solicitud que fue aceptada pero no se completó el expediente, volver a Pendiente
+        if (window.solicitudPendienteAceptar) {
+            try {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                console.log('Revirtiendo estado a Pendiente para solicitud:', window.solicitudPendienteAceptar);
+                
+                const response = await fetch(`/api/solicitudes/${window.solicitudPendienteAceptar}/estado`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ estado: 'Pendiente' })
+                });
+                
+                if (response.ok) {
+                    console.log('✓ Estado revertido a Pendiente exitosamente');
+                    alert('Se canceló la aceptación. La solicitud vuelve a estado Pendiente');
+                    
+                    // Recargar solicitudes si existe la función
+                    if (typeof window.loadSolicitudes === 'function') {
+                        window.loadSolicitudes();
+                    }
+                } else {
+                    console.error('Error al revertir estado:', response.status);
+                }
+            } catch (err) {
+                console.error('Error al revertir estado:', err);
+            }
+            window.solicitudPendienteAceptar = null;
+        }
+        
         document.getElementById('createModalOverlay').classList.add('hidden');
         document.getElementById('createExpedienteForm').reset();
     }
+    window.closeCreateModal = closeCreateModal;
 
     // Cargar selects
     async function loadSelectsExpediente() {
@@ -494,17 +530,76 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    alert('Expediente creado correctamente');
+                    // Si viene de una solicitud, el estado ya está en Aceptado, solo limpiar la variable
+                    console.log('Expediente creado correctamente');
+                    if (window.solicitudPendienteAceptar) {
+                        console.log('Solicitud ya está en estado Aceptado. Limpiando variable.');
+                        // Recargar solicitudes si existe la función
+                        if (typeof loadSolicitudes === 'function') {
+                            setTimeout(() => {
+                                loadSolicitudes(1, 7);
+                            }, 500);
+                        }
+                        // Limpiar la variable sin revertir el estado
+                        window.solicitudPendienteAceptar = null;
+                        alert('Expediente creado correctamente y solicitud aceptada');
+                    } else {
+                        alert('Expediente creado correctamente');
+                    }
+                    
                     closeCreateModal();
                     // Recargar tabla o lista de expedientes
                     if (typeof loadExpedientes === 'function') {
                         loadExpedientes();
                     }
                 } else {
+                    // Si hay error al crear el expediente, revertir a Pendiente
+                    if (window.solicitudPendienteAceptar) {
+                        try {
+                            await fetch(`/api/solicitudes/${window.solicitudPendienteAceptar}/estado`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`,
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ estado: 'Pendiente' })
+                            });
+                            console.log('Error al crear expediente. Estado revertido a Pendiente');
+                            if (typeof loadSolicitudes === 'function') {
+                                loadSolicitudes(1, 7);
+                            }
+                        } catch (err) {
+                            console.error('Error al revertir estado:', err);
+                        }
+                        window.solicitudPendienteAceptar = null;
+                    }
                     alert('Error: ' + (result.message || 'No se pudo crear el expediente'));
                 }
             } catch (error) {
                 console.error('Error:', error);
+                // Si hay error al crear el expediente, revertir a Pendiente
+                if (window.solicitudPendienteAceptar) {
+                    try {
+                        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                        await fetch(`/api/solicitudes/${window.solicitudPendienteAceptar}/estado`, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ estado: 'Pendiente' })
+                        });
+                        console.log('Error de conexión. Estado revertido a Pendiente');
+                        if (typeof loadSolicitudes === 'function') {
+                            loadSolicitudes(1, 7);
+                        }
+                    } catch (err) {
+                        console.error('Error al revertir estado:', err);
+                    }
+                    window.solicitudPendienteAceptar = null;
+                }
                 alert('Error al crear el expediente');
             }
         });

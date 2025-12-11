@@ -51,7 +51,10 @@ input[type="number"] {
                                             <br>
                                             <span id="nombreArchivoVerTarifario" class="flex-1 text-base font-semibold text-gray-800 truncate">Tarifario.pdf</span>
                                         </div>
-                                        <div class="flex justify-end px-6 py-4" style="flex-shrink: 0;">
+                                        <div class="flex justify-end gap-3 px-6 py-4" style="flex-shrink: 0;">
+                                            <button type="button" onclick="verTarifarioEnVentana()" class="px-5 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-700 font-semibold hover:bg-gray-200 transition flex items-center gap-2">
+                                                <i class="bi bi-eye"></i> Ver
+                                            </button>
                                             <button type="button" onclick="downloadTarifario()" class="px-5 py-2 rounded-lg bg-black text-white font-semibold hover:bg-gray-800 transition flex items-center gap-2">
                                                 <i class="bi bi-download"></i> Descargar
                                             </button>
@@ -92,9 +95,41 @@ input[type="number"] {
                                     document.getElementById('tarifarioViewer').innerHTML = '';
                                 }
 
-                                function abrirTarifarioEnVentana() {
-                                    const url = window._tarifarioUrl || `/api/tarifario/download?t=${Date.now()}`;
-                                    window.open(url, '_blank', 'width=800,height=600,menubar=no,toolbar=no,location=no,status=no');
+                                async function verTarifarioEnVentana() {
+                                    try {
+                                        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                                        if (!token) {
+                                            alert('No se encontró el token de autenticación');
+                                            return;
+                                        }
+                                        
+                                        // Obtener el PDF
+                                        const response = await fetch(`/api/tarifario/download?t=${Date.now()}`, {
+                                            headers: {
+                                                'Authorization': `Bearer ${token}`,
+                                                'Accept': 'application/pdf'
+                                            }
+                                        });
+                                        
+                                        if (!response.ok) {
+                                            throw new Error('Error al cargar el tarifario');
+                                        }
+                                        
+                                        // Convertir la respuesta a blob
+                                        const blob = await response.blob();
+                                        
+                                        // Crear URL del blob
+                                        const url = window.URL.createObjectURL(blob);
+                                        
+                                        // Abrir en nueva ventana
+                                        window.open(url, '_blank');
+                                        
+                                        // Liberar la URL después de un tiempo
+                                        setTimeout(() => window.URL.revokeObjectURL(url), 100);
+                                    } catch (error) {
+                                        console.error('Error al visualizar tarifario:', error);
+                                        alert('Error al visualizar el tarifario');
+                                    }
                                 }
                                 </script>
                                 </div>
