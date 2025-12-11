@@ -10,8 +10,13 @@
 
 <div class="min-h-screen bg-[#fafbfb] p-8">
     <h1 class="text-2xl font-bold text-black mb-6">Solicitudes</h1>
-    <div class="mb-6">
-        <input type="text" id="searchInput" class="w-96 px-4 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4" placeholder="Busca por cualquier campo...">
+    <div class="mb-6 flex items-center gap-4">
+        <input type="text" id="searchInput" class="w-96 px-4 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Busca por cualquier campo...">
+        <div class="flex items-center gap-2">
+            <label class="text-sm font-medium text-gray-700">Fecha:</label>
+            <input type="date" id="fechaFilter" class="px-4 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <button onclick="limpiarFecha()" class="px-3 py-2 text-sm bg-gray-200 rounded-lg hover:bg-gray-300 text-gray-700">Limpiar</button>
+        </div>
     </div>
     <div class="overflow-x-auto">
         <table class="min-w-full bg-white rounded-xl">
@@ -48,14 +53,17 @@
         <h2 class="text-lg font-semibold mb-4 text-gray-800">Filtrar solicitudes</h2>
 
         <label class="block text-sm text-gray-700 mb-2">Estado:</label>
-        <select id="estadoFilter"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-6">
+        <select id="estadoFilterModal"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4">
             <option value="Todos">Todos</option>
             <option value="Pendiente">Pendiente</option>
             <option value="En revisión">En revisión</option>
             <option value="Aprobada">Aprobada</option>
             <option value="Rechazada">Rechazada</option>
         </select>
+
+        <label class="block text-sm text-gray-700 mb-2">Fecha:</label>
+        <input type="date" id="fechaFilterModal" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-6">
 
         <div class="flex justify-end space-x-3">
             <button id="closeFilterModal" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-gray-800">
@@ -100,12 +108,30 @@
     let perPage = 7;
     let allSolicitudes = [];
     let estadoSeleccionado = 'Todos';
+    let fechaSeleccionada = '';
 
     document.addEventListener('DOMContentLoaded', () => {
         loadSolicitudes(currentPage, perPage);
 
-        document.getElementById('filterButton').addEventListener('click', () => {
+        // Filtro de fecha en tiempo real
+        document.getElementById('fechaFilter').addEventListener('change', function() {
+            fechaSeleccionada = this.value;
+            loadSolicitudes(1, perPage, document.getElementById('searchInput').value.trim(), estadoSeleccionado, fechaSeleccionada);
+        });
+
+        // Búsqueda en tiempo real
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                loadSolicitudes(1, perPage, this.value.trim(), estadoSeleccionado, fechaSeleccionada);
+            }, 300);
+        });
+
+        document.getElementById('filterButton')?.addEventListener('click', () => {
             document.getElementById('filterModal').classList.remove('hidden');
+            document.getElementById('estadoFilterModal').value = estadoSeleccionado;
+            document.getElementById('fechaFilterModal').value = fechaSeleccionada;
         });
 
         document.getElementById('closeFilterModal').addEventListener('click', () => {
@@ -113,19 +139,24 @@
         });
 
         document.getElementById('applyFilter').addEventListener('click', () => {
-            estadoSeleccionado = document.getElementById('estadoFilter').value;
+            estadoSeleccionado = document.getElementById('estadoFilterModal').value;
+            fechaSeleccionada = document.getElementById('fechaFilterModal').value;
             document.getElementById('filterModal').classList.add('hidden');
-            loadSolicitudes(1, perPage, document.getElementById('searchInput').value.trim(), estadoSeleccionado);
+            document.getElementById('fechaFilter').value = fechaSeleccionada;
+            loadSolicitudes(1, perPage, document.getElementById('searchInput').value.trim(), estadoSeleccionado, fechaSeleccionada);
         });
     });
 
-    async function loadSolicitudes(page = 1, pageSize = perPage, search = '', estado = estadoSeleccionado) {
+    async function loadSolicitudes(page = 1, pageSize = perPage, search = '', estado = estadoSeleccionado, fecha = fechaSeleccionada) {
         const tbody = document.getElementById('solicitudesTableBody');
         tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-500">Cargando...</td></tr>`;
 
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const url = `/api/solicitudes?page=${page}&per_page=${pageSize}&search=${search}&estado=${estado}`;
+            let url = `/api/solicitudes?page=${page}&per_page=${pageSize}&search=${search}&estado=${estado}`;
+            if (fecha) {
+                url += `&fecha=${fecha}`;
+            }
             const res = await fetch(url, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -188,11 +219,17 @@
         document.getElementById('btnSiguiente').disabled = currentPage === lastPage;
     }
 
+    function limpiarFecha() {
+        fechaSeleccionada = '';
+        document.getElementById('fechaFilter').value = '';
+        loadSolicitudes(1, perPage, document.getElementById('searchInput').value.trim(), estadoSeleccionado, '');
+    }
+
     document.getElementById('btnAnterior').onclick = function() {
-        if (currentPage > 1) loadSolicitudes(currentPage - 1);
+        if (currentPage > 1) loadSolicitudes(currentPage - 1, perPage, document.getElementById('searchInput').value.trim(), estadoSeleccionado, fechaSeleccionada);
     };
     document.getElementById('btnSiguiente').onclick = function() {
-        if (currentPage < lastPage) loadSolicitudes(currentPage + 1);
+        if (currentPage < lastPage) loadSolicitudes(currentPage + 1, perPage, document.getElementById('searchInput').value.trim(), estadoSeleccionado, fechaSeleccionada);
     };
 
     async function deleteSolicitud(id) {

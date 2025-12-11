@@ -15,6 +15,7 @@ class SolicitudController extends Controller
         $perPage = $request->input('per_page', 7);
         $search = $request->input('search');
         $estado = $request->input('estado');
+        $fecha = $request->input('fecha');
 
         $query = Solicitud::query();
 
@@ -23,11 +24,24 @@ class SolicitudController extends Controller
                 $q->where('demandante', 'like', "%$search%")
                 ->orWhere('demandado', 'like', "%$search%")
                 ->orWhere('estado', 'like', "%$search%")
-                ->orWhere('id', $search);
+                ->orWhere('id', $search)
+                // Buscar en la tabla de partícipes relacionados
+                ->orWhereHas('participe', function($query) use ($search) {
+                    $query->where('nombres', 'like', "%$search%");
+                })
+                // Buscar en partícipes para demandado (si es ID numérico)
+                ->orWhereIn('demandado', function($subQuery) use ($search) {
+                    $subQuery->select('id')
+                        ->from('participes')
+                        ->where('nombres', 'like', "%$search%");
+                });
             });
         }
         if ($estado && $estado !== 'Todos') {
             $query->where('estado', $estado);
+        }
+        if ($fecha) {
+            $query->whereDate('created_at', $fecha);
         }
 
 
