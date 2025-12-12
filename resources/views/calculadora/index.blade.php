@@ -229,6 +229,12 @@ input[type="number"] {
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Paginación -->
+                <div id="paginationContainer" class="px-6 py-4 border-t bg-white mt-4 rounded-lg shadow">
+                    <nav id="paginationControls" class="flex items-center justify-between" aria-label="Pagination">
+                    </nav>
+                </div>
             </div>
 
             <!-- Sección Indeterminada -->
@@ -371,10 +377,17 @@ input[type="number"] {
 
     let tipoCalculadora = 'determinada';
     let tabCuantiaActual = 'gastos_administrativos';
+    
+    // Variables de paginación
+    let currentPage = 1;
+    let lastPage = 1;
+    let perPage = 6;
+    let allData = [];
 
     // Función para cambiar entre tabs de cuantía
     function cambiarTabCuantia(tab) {
         tabCuantiaActual = tab;
+        currentPage = 1; // Resetear a página 1 al cambiar de tab
         
         // Actualizar estilos de los botones
         const tabs = ['gastos_administrativos', 'honorarios_arbitros', 'honorarios_tribunales', 'honorarios_secretarios'];
@@ -468,11 +481,11 @@ input[type="number"] {
         }
     };
 
-    // Cargar datos de la tabla correspondiente
+    // Cargar datos de cuantía con paginación
     async function cargarDatosCuantia(tabla) {
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const response = await fetch(`/api/${tabla}`, {
+            const response = await fetch(`/api/${tabla}?per_page=1000`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
@@ -482,18 +495,38 @@ input[type="number"] {
             if (!response.ok) throw new Error('Error al cargar datos');
             
             const datos = await response.json();
-            renderizarTablaCuantias(datos);
+            allData = Array.isArray(datos) ? datos : [];
+            
+            // Calcular paginación
+            lastPage = Math.ceil(allData.length / perPage) || 1;
+            if (currentPage > lastPage) currentPage = lastPage;
+            
+            renderizarTablaCuantias();
+            renderPagination();
         } catch (error) {
             console.error('Error:', error);
+            allData = [];
+            renderizarTablaCuantias();
+            renderPagination();
         }
     }
 
-    // Renderizar filas en la tabla
-    function renderizarTablaCuantias(datos) {
+    // Renderizar filas en la tabla con paginación
+    function renderizarTablaCuantias() {
         const tbody = document.getElementById('tablaCuantias');
         tbody.innerHTML = '';
         
-        datos.forEach(item => {
+        if (allData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">No hay datos registrados</td></tr>';
+            return;
+        }
+        
+        // Calcular rango de datos para la página actual
+        const startIndex = (currentPage - 1) * perPage;
+        const endIndex = Math.min(startIndex + perPage, allData.length);
+        const paginatedData = allData.slice(startIndex, endIndex);
+        
+        paginatedData.forEach(item => {
             const tr = document.createElement('tr');
             tr.className = 'border-b hover:bg-gray-50';
             tr.innerHTML = `
@@ -515,6 +548,62 @@ input[type="number"] {
             `;
             tbody.appendChild(tr);
         });
+    }
+
+    // Renderizar controles de paginación
+    function renderPagination() {
+        const container = document.getElementById('paginationControls');
+        if (!container) return;
+        
+        container.innerHTML = '';
+
+        const prevDisabled = currentPage <= 1;
+        const prevBtn = `<button ${prevDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage-1})" class="px-3 py-2 text-sm text-black ${prevDisabled ? 'opacity-50 cursor-not-allowed' : ''}">&larr; Anterior</button>`;
+
+        const nextDisabled = currentPage >= lastPage;
+        const nextBtn = `<button ${nextDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage+1})" class="px-3 py-2 text-sm text-black ${nextDisabled ? 'opacity-50 cursor-not-allowed' : ''}">Siguiente &rarr;</button>`;
+
+        let pagesHtml = '';
+        const maxPagesToShow = 4;
+        let start = Math.max(1, currentPage - 3);
+        let end = Math.min(lastPage, start + maxPagesToShow - 1);
+        if (end - start < maxPagesToShow - 1) {
+            start = Math.max(1, end - maxPagesToShow + 1);
+        }
+
+        if (start > 1) {
+            pagesHtml += `<button onclick="goToPage(1)" class="mx-1 text-sm text-black">1</button>`;
+            if (start > 2) pagesHtml += `<span class="mx-1 text-sm text-gray-400">...</span>`;
+        }
+
+        for (let p = start; p <= end; p++) {
+            if (p === currentPage) {
+                pagesHtml += `<button class="mx-1 px-2 py-1 text-sm bg-gray-200 rounded text-black">${p}</button>`;
+            } else {
+                pagesHtml += `<button onclick="goToPage(${p})" class="mx-1 text-sm text-black">${p}</button>`;
+            }
+        }
+
+        if (end < lastPage) {
+            if (end < lastPage - 1) pagesHtml += `<span class="mx-1 text-sm text-gray-400">...</span>`;
+            pagesHtml += `<button onclick="goToPage(${lastPage})" class="mx-1 text-sm text-black">${lastPage}</button>`;
+        }
+
+        container.innerHTML = `
+            <div class="flex items-center justify-between w-full">
+                <div>${prevBtn}</div>
+                <div class="flex items-center">${pagesHtml}</div>
+                <div>${nextBtn}</div>
+            </div>
+        `;
+    }
+
+    function goToPage(page) {
+        if (page < 1) page = 1;
+        if (page > lastPage) page = lastPage;
+        currentPage = page;
+        renderizarTablaCuantias();
+        renderPagination();
     }
 
     // Editar cuantía
