@@ -16,12 +16,12 @@ class AuditoriaController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('usuario_nombre', 'like', "%$search%")
-                  ->orWhere('accion', 'like', "%$search%")
-                  ->orWhere('detalle', 'like', "%$search%")
-                  ->orWhere('ip', 'like', "%$search%")
-                  ->orWhere('expediente', 'like', "%$search%")
-                  ->orWhere('modulo', 'like', "%$search%")
-                  ->orWhere('tipo_accion', 'like', "%$search%");
+                    ->orWhere('accion', 'like', "%$search%")
+                    ->orWhere('detalle', 'like', "%$search%")
+                    ->orWhere('ip', 'like', "%$search%")
+                    ->orWhere('expediente', 'like', "%$search%")
+                    ->orWhere('modulo', 'like', "%$search%")
+                    ->orWhere('tipo_accion', 'like', "%$search%");
             });
         }
         

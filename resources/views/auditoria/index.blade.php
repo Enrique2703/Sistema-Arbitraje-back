@@ -255,7 +255,7 @@ async function verDetalle(id) {
         if (!response.ok) throw new Error('Error al cargar detalles');
         
         const data = await response.json();
-        mostrarDetalleModal(data);
+        await mostrarDetalleModal(data);
     } catch (error) {
         console.error('Error:', error);
         alert('Error al cargar los detalles');
@@ -268,6 +268,26 @@ function formatearValor(valor) {
     if (valor === false) return 'No';
     if (typeof valor === 'string' && valor.trim() === '') return 'Vacío';
     return valor;
+}
+
+async function obtenerNombreParticipe(participeId) {
+    try {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const response = await fetch(`/api/participes/${participeId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (!response.ok) return null;
+        
+        const data = await response.json();
+        return data.nombres || data.nombre || null;
+    } catch (error) {
+        console.error('Error al obtener nombre del partícipe:', error);
+        return null;
+    }
 }
 
 function formatearCampo(campo) {
@@ -291,22 +311,34 @@ function formatearCampo(campo) {
         'celular': 'Celular',
         'direccion': 'Dirección',
         'created_at': 'Fecha de creación',
-        'updated_at': 'Fecha de actualización'
+        'updated_at': 'Fecha de actualización',
+        'participe_id': 'Partícipe'
     };
     return traducciones[campo] || campo.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
-function formatearDatos(datos) {
+async function formatearDatos(datos) {
     if (!datos || typeof datos !== 'object') return '';
     
     let html = '<div class="space-y-3">';
     
     for (const [campo, valor] of Object.entries(datos)) {
-        // Omitir campos técnicos y contraseñas
-        if (campo === 'password' || campo === 'updated_at' || campo === 'created_at' || campo === 'id') continue;
+        // Omitir campos técnicos, contraseñas, expediente_id y created_by_user_id
+        if (campo === 'password' || campo === 'updated_at' || campo === 'created_at' || campo === 'id' || campo === 'expediente_id' || campo === 'created_by_user_id') continue;
         
         const campoFormateado = formatearCampo(campo);
-        const valorFormateado = formatearValor(valor);
+        let valorFormateado = formatearValor(valor);
+        
+        // Si es participe_id, obtener el nombre del partícipe
+        if (campo === 'participe_id' && valor) {
+            try {
+                const nombreParticipe = await obtenerNombreParticipe(valor);
+                valorFormateado = nombreParticipe || valor;
+            } catch (error) {
+                console.error('Error al obtener nombre del partícipe:', error);
+                valorFormateado = valor;
+            }
+        }
         
         html += `
             <div class="flex border-b border-gray-200 pb-2">
@@ -320,7 +352,7 @@ function formatearDatos(datos) {
     return html;
 }
 
-function mostrarDetalleModal(auditoria) {
+async function mostrarDetalleModal(auditoria) {
     const fecha = new Date(auditoria.created_at).toLocaleString('es-ES', {
         day: '2-digit',
         month: '2-digit',
@@ -329,6 +361,10 @@ function mostrarDetalleModal(auditoria) {
         minute: '2-digit',
         second: '2-digit'
     });
+
+    // Formatear datos anteriores y nuevos de manera asíncrona
+    const datosAnterioresHtml = auditoria.datos_anteriores ? await formatearDatos(auditoria.datos_anteriores) : '';
+    const datosNuevosHtml = auditoria.datos_nuevos ? await formatearDatos(auditoria.datos_nuevos) : '';
 
     let html = `
         <div class="grid grid-cols-2 gap-4">
@@ -366,7 +402,7 @@ function mostrarDetalleModal(auditoria) {
         <div class="mt-6">
             <label class="block text-base font-semibold text-gray-800 mb-3 pb-2 border-b-2 border-blue-500"> Datos Anteriores</label>
             <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
-                ${formatearDatos(auditoria.datos_anteriores)}
+                ${datosAnterioresHtml}
             </div>
         </div>
         ` : ''}
@@ -375,7 +411,7 @@ function mostrarDetalleModal(auditoria) {
         <div class="mt-6">
             <label class="block text-base font-semibold text-gray-800 mb-3 pb-2 border-b-2 border-green-500"> Datos Nuevos</label>
             <div class="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
-                ${formatearDatos(auditoria.datos_nuevos)}
+                ${datosNuevosHtml}
             </div>
         </div>
         ` : ''}
