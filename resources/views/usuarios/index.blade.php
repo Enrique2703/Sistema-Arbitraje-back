@@ -86,12 +86,12 @@
                     <input type="hidden" id="passwordUserId">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Nueva contraseña</label>
-                        <input type="password" id="newPassword" required
+                        <input type="password" id="newPassword" required placeholder="Ingresa la nueva contraseña"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Confirmar contraseña</label>
-                        <input type="password" id="confirmPassword" required
+                        <input type="password" id="confirmPassword" required placeholder="Confirma la nueva contraseña"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div class="flex justify-end space-x-3">
