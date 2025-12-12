@@ -558,10 +558,10 @@ input[type="number"] {
         container.innerHTML = '';
 
         const prevDisabled = currentPage <= 1;
-        const prevBtn = `<button ${prevDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage-1})" class="px-3 py-2 text-sm text-black ${prevDisabled ? 'opacity-50 cursor-not-allowed' : ''}">&larr; Anterior</button>`;
+        const prevBtn = `<button ${prevDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage-1})" class="px-3 py-2 text-sm text-black ${prevDisabled ? 'cursor-not-allowed' : ''}">&larr; Anterior</button>`;
 
         const nextDisabled = currentPage >= lastPage;
-        const nextBtn = `<button ${nextDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage+1})" class="px-3 py-2 text-sm text-black ${nextDisabled ? 'opacity-50 cursor-not-allowed' : ''}">Siguiente &rarr;</button>`;
+        const nextBtn = `<button ${nextDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage+1})" class="px-3 py-2 text-sm text-black ${nextDisabled ? 'cursor-not-allowed' : ''}">Siguiente &rarr;</button>`;
 
         let pagesHtml = '';
         const maxPagesToShow = 4;
