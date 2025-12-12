@@ -6,6 +6,15 @@
 <div id="editModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden flex items-center justify-center">
     <div class="p-4 w-full flex items-center justify-center">
         <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                                    <!-- Loading Overlay -->
+                                    <div id="editExpedienteLoading" style="display:none;"
+                                            class="absolute inset-0 bg-white bg-opacity-80 z-50 flex flex-col items-center justify-center">
+                                            <svg class="animate-spin h-8 w-8 text-black mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                            </svg>
+                                            <span class="text-black text-base font-medium">Cargando datos...</span>
+                                    </div>
             <!-- Header -->
             <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
                 <h3 class="text-lg font-semibold text-gray-900">Editar expediente</h3>
@@ -234,6 +243,9 @@
 
     function openEditModal(id) {
         document.getElementById('editModalOverlay').classList.remove('hidden');
+        // Mostrar loading
+        const loadingDiv = document.getElementById('editExpedienteLoading');
+        if (loadingDiv) loadingDiv.style.display = 'flex';
         // Cargar selects solo si no están cargados
         if (!window.listaUsuariosEdit || !window.listaParticipesEdit) {
             Promise.all([loadEditSelects(), cargarUsuariosEdit(), cargarParticipesEdit()])
@@ -632,7 +644,6 @@
     async function loadExpedienteToFormFast(id) {
         // Intentar obtener expediente de allExpedientes (datos ya cargados)
         let exp = window.allExpedientes ? window.allExpedientes.find(e => e.id === id) : null;
-        
         // Si no está en memoria, hacer petición al API
         if (!exp) {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -648,9 +659,15 @@
             } catch (error) {
                 console.error('Error:', error);
                 alert('Error al cargar el expediente');
+                // Ocultar loading si hay error
+                const loadingDiv = document.getElementById('editExpedienteLoading');
+                if (loadingDiv) loadingDiv.style.display = 'none';
                 return;
             }
         }
+        // Al terminar de cargar y rellenar los campos, ocultar loading
+        const loadingDiv = document.getElementById('editExpedienteLoading');
+        if (loadingDiv) loadingDiv.style.display = 'none';
 
         const form = document.getElementById('editExpedienteForm');
         const usuarios = window.listaUsuariosEdit || [];
