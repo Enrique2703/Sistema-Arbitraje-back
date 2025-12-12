@@ -21,7 +21,7 @@
 
         <div class="flex-1 p-6">
             <div class="mb-6 flex items-center justify-between">
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,6 +33,12 @@
                             class="block w-80 pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Buscar">
                     </div>
+
+                    <!-- Botón de filtro -->
+                    <button id="filterButton"
+                        class="p-2 bg-gray-200 hover:bg-gray-300 rounded-md border border-gray-300 flex items-center justify-center">
+                        <i class="bi bi-funnel-fill text-black text-lg"></i>
+                    </button>
                 </div>
                 <button onclick="openCreateUserModal()"
                     class="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors font-medium">
@@ -105,26 +111,75 @@
     </div>
 </div>
 
+
+<!-- Modal de Filtro -->
+<div id="filterModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-lg w-96 p-6">
+        <h2 class="text-lg font-semibold mb-4 text-gray-800">Filtrar usuarios</h2>
+
+        <label class="block text-sm text-gray-700 mb-2">Estado:</label>
+        <select id="estadoFilter"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-6">
+            <option value="Todos">Todos</option>
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+        </select>
+
+        <div class="flex justify-end space-x-3">
+            <button id="closeFilterModal" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-gray-800">
+                Cancelar
+            </button>
+            <button id="applyFilter"
+                class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                Aplicar
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Modal para Editar al Usuario -->
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         loadUsuarios(currentPage, perPage);
+
+        // Configuración del filtro
+        document.getElementById('filterButton').addEventListener('click', () => {
+            document.getElementById('filterModal').classList.remove('hidden');
+        });
+
+        document.getElementById('closeFilterModal').addEventListener('click', () => {
+            document.getElementById('filterModal').classList.add('hidden');
+        });
+
+        document.getElementById('applyFilter').addEventListener('click', () => {
+            estadoSeleccionado = document.getElementById('estadoFilter').value;
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            document.getElementById('filterModal').classList.add('hidden');
+            loadUsuarios(1, perPage, searchTerm, estadoSeleccionado);
+        });
     });
 
     let allUsuarios = [];
+    let estadoSeleccionado = 'Todos';
 
     //Estado de paginación
     let currentPage = 1;
     let lastPage = 1;
     let perPage = 7;
 
-    async function loadUsuarios(page = 1, pageSize = perPage) {
+    async function loadUsuarios(page = 1, pageSize = perPage, search = '', estado = estadoSeleccionado) {
         const tbody = document.getElementById('usuariosTableBody');
         tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-500">Cargando...</td></tr>`;
 
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const res = await fetch(`/api/usuarios?page=${page}&per_page=${pageSize}`, {
+            const url = new URL('/api/usuarios', window.location.origin);
+            url.searchParams.append('page', page);
+            url.searchParams.append('per_page', pageSize);
+            if (search) url.searchParams.append('search', search);
+            if (estado && estado !== 'Todos') url.searchParams.append('estado', estado);
+
+            const res = await fetch(url, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
@@ -218,7 +273,8 @@
     function goToPage(page) {
         if (page < 1) page = 1;
         if (page > lastPage) page = lastPage;
-        loadUsuarios(page, perPage);
+        const searchTerm = document.getElementById('searchInput').value.trim();
+        loadUsuarios(page, perPage, searchTerm, estadoSeleccionado);
     }
 
     function renderUsuarios(list) {
@@ -265,64 +321,9 @@
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
             const term = e.target.value.trim();
-            fetchUsuarios(term);
+            loadUsuarios(1, perPage, term, estadoSeleccionado);
         }, 300);
     });
-
-    async function fetchUsuarios(search = '') {
-        const tbody = document.getElementById('usuariosTableBody');
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-500">Buscando...</td></tr>`;
-
-        try {
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-
-            const url = new URL('/api/usuarios', window.location.origin);
-            const params = {
-                page: 1,
-                per_page: 7
-            };
-            if (search) params.search = search;
-
-            Object.entries(params).forEach(([key, value]) => url.searchParams.append(key, value));
-
-            const res = await fetch(url, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json'
-                }
-            });
-
-            if (!res.ok) {
-                if (res.status === 401) {
-                    window.location.href = '/login';
-                    return;
-                }
-                throw new Error(`Error ${res.status} al obtener los usuarios`);
-            }
-
-            const data = await res.json();
-            
-            if (data && Array.isArray(data.registros)) {
-                allUsuarios = data.registros;
-                currentPage = data.meta?.current_page || 1;
-                lastPage = data.meta?.last_page || 1;
-                perPage = data.meta?.per_page || 7;
-                renderPagination();
-            } else {
-                allUsuarios = [];
-                currentPage = 1;
-                lastPage = 1;
-                renderPagination();
-            }
-            
-            renderUsuarios(allUsuarios);
-
-        } catch (error) {
-            console.error('Error en la búsqueda:', error);
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-red-500">Error al buscar usuarios</td></tr>`;
-        }
-    }
-
 
     document.getElementById('createUserForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -449,7 +450,8 @@
                 alert('Contraseña actualizada correctamente');
                 closePasswordModal();
                 // Recargar lista para reflejar cambios si fuera necesario
-                loadUsuarios(currentPage, perPage);
+                const searchTerm = document.getElementById('searchInput').value.trim();
+                loadUsuarios(currentPage, perPage, searchTerm, estadoSeleccionado);
             } else {
                 let errMsg = 'Error al actualizar contraseña';
                 try {
@@ -521,7 +523,8 @@
                 alert('Usuario actualizado correctamente');
                 closeEditModal();
 
-                loadUsuarios(currentPage, perPage);
+                const searchTerm = document.getElementById('searchInput').value.trim();
+                loadUsuarios(currentPage, perPage, searchTerm, estadoSeleccionado);
             } else {
                 let errMsg = 'Error al actualizar usuario';
                 try {

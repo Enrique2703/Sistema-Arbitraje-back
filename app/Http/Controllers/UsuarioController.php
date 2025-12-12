@@ -20,6 +20,11 @@ class UsuarioController extends Controller
             $query->where('nombres', 'like', "%$search%");
         }
 
+        // Filtro por estado
+        if ($estado = $request->query('estado')) {
+            $query->where('estado', $estado);
+        }
+
         $ventasPaginated = $query->paginate($perPage);
 
         return response()->json([
