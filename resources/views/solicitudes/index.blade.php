@@ -249,7 +249,7 @@
 
             if (res.ok) {
                 alert('Solicitud eliminada correctamente');
-                loadSolicitudes(currentPage);
+                loadSolicitudes(currentPage, perPage, document.getElementById('searchInput').value.trim(), estadoSeleccionado, fechaSeleccionada);
             } else {
                 alert('Error al eliminar solicitud');
             }
@@ -331,7 +331,7 @@
     document.getElementById('searchInput').addEventListener('input', function(e) {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            loadSolicitudes(1, perPage, e.target.value.trim(), estadoSeleccionado);
+            loadSolicitudes(1, perPage, e.target.value.trim(), estadoSeleccionado, fechaSeleccionada);
         }, 300);
     });
 
@@ -425,7 +425,7 @@
             document.getElementById('detalleEstado').className = 'font-medium bg-red-100 text-red-800 px-2 py-1 rounded';
             setTimeout(() => {
                 document.getElementById('detalleSolicitudModal').classList.add('hidden');
-                loadSolicitudes(currentPage, perPage);
+                loadSolicitudes(currentPage, perPage, document.getElementById('searchInput').value.trim(), estadoSeleccionado, fechaSeleccionada);
             }, 800);
         } catch (e) {
             alert('Error al rechazar la solicitud');
@@ -452,7 +452,7 @@
             document.getElementById('detalleEstado').className = 'font-medium bg-green-100 text-green-800 px-2 py-1 rounded';
             
             // Recargar la tabla para mostrar el cambio
-            loadSolicitudes(currentPage, perPage);
+            loadSolicitudes(currentPage, perPage, document.getElementById('searchInput').value.trim(), estadoSeleccionado, fechaSeleccionada);
             
             // Cerrar modal de detalle de solicitud
             document.getElementById('detalleSolicitudModal').classList.add('hidden');

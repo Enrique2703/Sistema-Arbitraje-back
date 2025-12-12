@@ -41,7 +41,8 @@ class SolicitudController extends Controller
             $query->where('estado', $estado);
         }
         if ($fecha) {
-            $query->whereDate('created_at', $fecha);
+            // Convertir la fecha al formato correcto y filtrar
+            $query->whereDate('created_at', '=', $fecha);
         }
 
 
