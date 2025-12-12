@@ -399,6 +399,22 @@
             } else {
                 document.getElementById('detalleEstado').className = 'font-medium bg-gray-100 text-gray-800 px-2 py-1 rounded';
             }
+
+            // Deshabilitar botones si el estado es "Aceptado"
+            const btnAceptar = document.getElementById('btnAceptarSolicitud');
+            const btnRechazar = document.getElementById('btnRechazarSolicitud');
+            if (estado === 'Aceptado') {
+                btnAceptar.disabled = true;
+                btnRechazar.disabled = true;
+                btnAceptar.classList.add('opacity-50', 'cursor-not-allowed');
+                btnRechazar.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                btnAceptar.disabled = false;
+                btnRechazar.disabled = false;
+                btnAceptar.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnRechazar.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
             if (solicitud.created_at) {
                 const fecha = new Date(solicitud.created_at);
                 const dia = String(fecha.getDate()).padStart(2, '0');
