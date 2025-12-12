@@ -298,10 +298,14 @@
                 <td class="px-6 py-4">${usuario.credencial?.email || 'Sin correo'}</td>
                 <td class="px-6 py-4">${usuario.documentos_count || 0}</td>
                 <td class="px-6 py-4">
-                    <div class="flex items-center justify-end gap-2">
-                        <button onclick="openPasswordModal(${usuario.id})" class="bg-black text-white px-3 py-1.5 rounded-sm text-center">Contraseña</button>
-                        <button onclick="openEditModal(${usuario.id})" class="text-gray-900 font-medium hover:underline ml-2">Editar</button>
-                        <button onclick="deleteUsuario(${usuario.id})" class="text-red-500 hover:underline ml-2">Eliminar</button>
+                    <div class="flex items-center justify-between w-full">
+                        <div class="flex-1 flex justify-center">
+                            <button onclick="openPasswordModal(${usuario.id})" class="bg-black text-white px-3 py-1.5 rounded-sm text-center">Contraseña</button>
+                        </div>
+                        <div class="flex flex-col items-end gap-0.5">
+                            <button onclick="openEditModal(${usuario.id})" class="text-gray-900 font-medium hover:underline">Editar</button>
+                            <button onclick="deleteUsuario(${usuario.id})" class="text-red-500 hover:underline">Eliminar</button>
+                        </div>
                     </div>
                 </td>
             </tr>`;
