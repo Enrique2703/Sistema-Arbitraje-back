@@ -37,13 +37,10 @@
             </tbody>
         </table>
     </div>
-    <div class="flex justify-between items-center mt-4">
-        <div></div>
-        <div class="flex items-center space-x-2 text-sm">
-            <span id="paginaActual">Página 1 de 1</span>
-            <button id="btnAnterior" class="px-3 py-1 rounded bg-gray-100 text-gray-500" disabled>Anterior</button>
-            <button id="btnSiguiente" class="px-3 py-1 rounded bg-gray-100 text-gray-500" disabled>Siguiente</button>
-        </div>
+    <!-- Paginación -->
+    <div id="paginationContainer" class="px-6 py-4 border-t bg-white mt-4">
+        <nav id="paginationControls" class="flex items-center justify-between" aria-label="Pagination">
+        </nav>
     </div>
 </div>
 
@@ -216,9 +213,55 @@
     }
 
     function renderPagination() {
-        document.getElementById('paginaActual').textContent = `Página ${currentPage} de ${lastPage}`;
-        document.getElementById('btnAnterior').disabled = currentPage === 1;
-        document.getElementById('btnSiguiente').disabled = currentPage === lastPage;
+        const container = document.getElementById('paginationControls');
+        container.innerHTML = '';
+
+        const prevDisabled = currentPage <= 1;
+        const prevBtn = `<button ${prevDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage-1})" class="px-3 py-2 text-sm text-black">&larr; Anterior</button>`;
+
+        const nextDisabled = currentPage >= lastPage;
+        const nextBtn = `<button ${nextDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage+1})" class="px-3 py-2 text-sm text-black">Siguiente &rarr;</button>`;
+
+        let pagesHtml = '';
+        const maxPagesToShow = 4;
+        let start = Math.max(1, currentPage - 3);
+        let end = Math.min(lastPage, start + maxPagesToShow - 1);
+        if (end - start < maxPagesToShow - 1) {
+            start = Math.max(1, end - maxPagesToShow + 1);
+        }
+
+        if (start > 1) {
+            pagesHtml += `<button onclick="goToPage(1)" class="mx-1 text-sm text-black">1</button>`;
+            if (start > 2) pagesHtml += `<span class="mx-1 text-sm text-gray-400">...</span>`;
+        }
+
+        for (let p = start; p <= end; p++) {
+            if (p === currentPage) {
+                pagesHtml += `<button class="mx-1 px-2 py-1 text-sm bg-gray-200 rounded text-black">${p}</button>`;
+            } else {
+                pagesHtml += `<button onclick="goToPage(${p})" class="mx-1 text-sm text-black">${p}</button>`;
+            }
+        }
+
+        if (end < lastPage) {
+            if (end < lastPage - 1) pagesHtml += `<span class="mx-1 text-sm text-gray-400">...</span>`;
+            pagesHtml += `<button onclick="goToPage(${lastPage})" class="mx-1 text-sm text-black">${lastPage}</button>`;
+        }
+
+        container.innerHTML = `
+            <div class="flex items-center justify-between w-full">
+                <div>${prevBtn}</div>
+                <div class="flex items-center">${pagesHtml}</div>
+                <div>${nextBtn}</div>
+            </div>
+        `;
+    }
+
+    function goToPage(page) {
+        if (page < 1) page = 1;
+        if (page > lastPage) page = lastPage;
+        const searchTerm = document.getElementById('searchInput').value.trim();
+        loadSolicitudes(page, perPage, searchTerm, estadoSeleccionado, fechaSeleccionada);
     }
 
     function limpiarFecha() {
@@ -226,13 +269,6 @@
         document.getElementById('fechaFilter').value = '';
         loadSolicitudes(1, perPage, document.getElementById('searchInput').value.trim(), estadoSeleccionado, '');
     }
-
-    document.getElementById('btnAnterior').onclick = function() {
-        if (currentPage > 1) loadSolicitudes(currentPage - 1, perPage, document.getElementById('searchInput').value.trim(), estadoSeleccionado, fechaSeleccionada);
-    };
-    document.getElementById('btnSiguiente').onclick = function() {
-        if (currentPage < lastPage) loadSolicitudes(currentPage + 1, perPage, document.getElementById('searchInput').value.trim(), estadoSeleccionado, fechaSeleccionada);
-    };
 
     async function deleteSolicitud(id) {
         if (!confirm('¿Seguro que deseas eliminar esta solicitud?')) return;
