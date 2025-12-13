@@ -323,8 +323,8 @@ async function formatearDatos(datos) {
     let html = '<div class="space-y-3">';
     
     for (const [campo, valor] of Object.entries(datos)) {
-        // Omitir campos técnicos, contraseñas, expediente_id y created_by_user_id
-        if (campo === 'password' || campo === 'updated_at' || campo === 'created_at' || campo === 'id' || campo === 'expediente_id' || campo === 'created_by_user_id') continue;
+        // Omitir campos técnicos, contraseñas, expediente_id, created_by_user_id, usuario_id, nombre, numero, anio y codigo
+        if (campo === 'password' || campo === 'updated_at' || campo === 'created_at' || campo === 'id' || campo === 'expediente_id' || campo === 'created_by_user_id' || campo === 'usuario_id' || campo === 'nombre' || campo === 'numero' || campo === 'anio' || campo === 'codigo') continue;
         
         const campoFormateado = formatearCampo(campo);
         let valorFormateado = formatearValor(valor);
@@ -378,11 +378,11 @@ async function mostrarDetalleModal(auditoria) {
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Módulo</label>
-                <p class="text-sm text-gray-900">${auditoria.modulo || '—'}</p>
+                <p class="text-sm text-gray-900">${auditoria.modulo ? auditoria.modulo.charAt(0).toUpperCase() + auditoria.modulo.slice(1) : '—'}</p>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de acción</label>
-                <p class="text-sm text-gray-900">${auditoria.tipo_accion || '—'}</p>
+                <p class="text-sm text-gray-900">${auditoria.tipo_accion ? auditoria.tipo_accion.charAt(0).toUpperCase() + auditoria.tipo_accion.slice(1) : '—'}</p>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Expediente</label>
