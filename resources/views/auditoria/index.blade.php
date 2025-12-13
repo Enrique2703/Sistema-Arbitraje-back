@@ -219,12 +219,36 @@ function renderPagination() {
     const nextBtn = `<button ${nextDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage+1})" class="px-3 py-2 text-sm text-black">Siguiente &rarr;</button>`;
 
     let pagesHtml = '';
-    const maxPages = 4;
-    let start = Math.max(1, currentPage - 2);
-    let end = Math.min(lastPage, start + maxPages - 1);
+    
+    // Mostrar más páginas para que el usuario pueda ver el rango completo
+    const maxPagesToShow = 7;
+    let start = Math.max(1, currentPage - 3);
+    let end = Math.min(lastPage, currentPage + 3);
+    
+    // Ajustar el inicio y fin para mostrar siempre maxPagesToShow páginas si es posible
+    if (end - start + 1 < maxPagesToShow) {
+        if (start === 1) {
+            end = Math.min(lastPage, maxPagesToShow);
+        } else if (end === lastPage) {
+            start = Math.max(1, lastPage - maxPagesToShow + 1);
+        }
+    }
 
+    // Mostrar primera página y puntos suspensivos si es necesario
+    if (start > 1) {
+        pagesHtml += `<button onclick="goToPage(1)" class="mx-1 px-2 py-1 text-sm text-black">1</button>`;
+        if (start > 2) pagesHtml += `<span class="mx-1 text-sm text-gray-400">...</span>`;
+    }
+
+    // Mostrar páginas en el rango
     for (let i = start; i <= end; i++) {
         pagesHtml += `<button onclick="goToPage(${i})" class="mx-1 px-2 py-1 text-sm ${i === currentPage ? 'bg-gray-200 rounded text-black' : 'text-black'}">${i}</button>`;
+    }
+
+    // Mostrar última página y puntos suspensivos si es necesario
+    if (end < lastPage) {
+        if (end < lastPage - 1) pagesHtml += `<span class="mx-1 text-sm text-gray-400">...</span>`;
+        pagesHtml += `<button onclick="goToPage(${lastPage})" class="mx-1 px-2 py-1 text-sm text-black">${lastPage}</button>`;
     }
 
     container.innerHTML = `
